@@ -1,0 +1,22 @@
+# === Python 관련 제외 목록 ===
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# === IDE 및 OS 관련 임시 파일 ===
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# === 향후 추가될 매매 시스템 보안 파일 선제 방어 ===
+*.env
+secret_*.json
+key.txt

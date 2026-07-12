@@ -1,0 +1,25 @@
+# nginx.conf.template
+events { 
+    worker_connections 1024; 
+}
+
+http {
+    upstream web_cluster {
+        server backend-service:8000;
+    }
+
+    server {
+        listen 80;
+        server_name localhost;
+
+        location / {
+            proxy_pass http://web_cluster;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            
+            # 💡 [정석 템플릿 기법] 쿠버네티스가 주입해 줄 리눅스 시스템 환경 변수명을 그대로 적어둡니다.
+            # Nginx 켜지기 직전에 envsubst가 이 부분을 "AWS-EC2-INSTANCE-AAAA" 같은 실제 글자로 도장 찍어줍니다.
+            proxy_set_header X-Instance-Name "$INSTANCE_NAME";
+        }
+    }
+}

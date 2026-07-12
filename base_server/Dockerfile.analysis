@@ -1,0 +1,11 @@
+# Dockerfile.analysis
+FROM python:3.10-slim
+WORKDIR /app
+
+COPY base_server /app/base_server
+
+# 분석에 필요한 라이브러리가 있다면 추가 설치 (예시: pandas 등)
+RUN pip install --no-cache-dir fastapi uvicorn pandas httpx
+
+# [핵심] analysis_server 폴더 안의 main.py를 실행 주체로 지정
+CMD ["python", "-m", "uvicorn", "base_server.application.analysis_server.main:app", "--host", "0.0.0.0", "--port", "8000"]

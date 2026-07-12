@@ -1,0 +1,10 @@
+# Dockerfile.alarm
+FROM python:3.10-slim
+WORKDIR /app
+
+COPY base_server /app/base_server
+
+RUN pip install --no-cache-dir fastapi uvicorn
+
+# [핵심] alarm_server 폴더 안의 main.py를 실행 주체로 지정
+CMD ["python", "-m", "uvicorn", "base_server.application.alarm_server.main:app", "--host", "0.0.0.0", "--port", "8000"]

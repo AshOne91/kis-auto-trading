@@ -1,0 +1,5 @@
+# Dockerfile.nginx
+FROM nginx:latest
+
+# 💡 템플릿 파일을 Nginx 자동 치환 엔진이 감시하는 전용 폴더(/etc/nginx/templates/)로 복사합니다.
+COPY nginx.conf.template /etc/nginx/templates/nginx.conf.template

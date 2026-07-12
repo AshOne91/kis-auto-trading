@@ -1,0 +1,13 @@
+FROM python:3.10-slim
+WORKDIR /app
+
+# 💡 현재 폴더(base_server) 안의 내용을 컨테이너 내부의 /app 폴더로 바로 복사합니다.
+COPY . /app/
+
+RUN pip install --no-cache-dir fastapi uvicorn
+
+# 💡 파이썬 환경 변수에 현재 폴더(/app)를 등록하여 상위 경로 인식을 강제로 통일합니다.
+ENV PYTHONPATH=/app
+
+# 💡 실행 경로를 application 폴더 내부 기준으로 명확히 짚어줍니다.
+CMD ["python", "-m", "uvicorn", "application.base_web_server.main:app", "--host", "0.0.0.0", "--port", "8000"]

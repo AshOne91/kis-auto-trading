@@ -1,0 +1,69 @@
+# kis-instances.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: king-load-balancer
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 8080        # 내 PC 진입 통로
+    targetPort: 80    # 내부 Nginx의 80번 포트로 연결
+  selector:
+    tier: proxy-instance # 아래 2대로 늘어난 Nginx 파드를 동시에 조준합니다!
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: instance-web-fastapi-deploy
+spec:
+  replicas: 3         # 💡 [안정성 UP] 기존 2대에서 '3대'로 일꾼 확장!
+  selector:
+    matchLabels:
+      app: fastapi-web-pod
+  template:
+    metadata:
+      labels:
+        app: fastapi-web-pod
+    spec:
+      containers:
+      - name: fastapi
+        image: kis-fastapi-web:v3
+        imagePullPolicy: Never
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-service
+spec:
+  ports:
+  - port: 8000
+  selector:
+    app: fastapi-web-pod # 3대로 늘어난 일꾼들에게 부하 분산
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: instance-web-nginx-deploy
+spec:
+  replicas: 2         # 💡 [핵심] 문지기 Nginx를 '2대'로 확장! (1대가 죽어도 절대 안 멈춤)
+  selector:
+    matchLabels:
+      app: nginx-web-pod
+  template:
+    metadata:
+      labels:
+        app: nginx-web-pod
+        tier: proxy-instance # 위의 king-load-balancer와 연결선 유지
+    spec:
+      containers:
+      - name: nginx
+        image: kis-nginx:v4
+        imagePullPolicy: Never
+        env:
+        - name: INSTANCE_NAME
+          value: "AWS-EC2-INSTANCE-AAAA"
+        - name: NGINX_ENVSUBST_OUTPUT_DIR
+          value: "/etc/nginx"
