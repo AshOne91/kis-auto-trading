@@ -1,3 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: trading-config
+data:
+  # 💡 암호나 설정값을 소스코드가 아닌 안전한 쿠버네티스 주머니에 보관합니다.
+  INSTANCE_NAME: "SECURE-TEMPLATED-BANANA-AAAA"
+  KIS_API_URL: "https://openapi.koreainvestment.com:9443"
+---
+# (이 아래로 기존 king-load-balancer 및 nginx deployment 내용이 이어집니다)
 # kis-instances.yaml
 apiVersion: v1
 kind: Service
@@ -30,7 +40,15 @@ spec:
       - name: fastapi
         image: kis-fastapi-web:v3
         imagePullPolicy: Never
-
+        # 💡 [추가] 컨테이너 내부에 가상 하드디스크를 꽂을 꽂이(마운트) 주소를 정합니다.
+        volumeMounts:
+        - name: trading-log-storage
+          mountPath: /app/logs
+      volumes:
+      - name: trading-log-storage
+        hostPath:
+          path: /c/kis-auto-trading/logs # 내 윈도우 PC의 실제 폴더 경로
+          type: DirectoryOrCreate       # 폴더가 없으면 쿠버네티스가 자동으로 만듭니다.
 ---
 apiVersion: v1
 kind: Service
@@ -63,7 +81,11 @@ spec:
         image: kis-nginx:v4
         imagePullPolicy: Never
         env:
+# 💡 [수정] 직접 글자를 박지 않고, trading-config 주머니의 INSTANCE_NAME 값을 훔쳐옵니다!
         - name: INSTANCE_NAME
-          value: "AWS-EC2-INSTANCE-AAAA"
+          valueFrom:
+            configMapKeyRef:
+              name: trading-config
+              key: INSTANCE_NAME
         - name: NGINX_ENVSUBST_OUTPUT_DIR
           value: "/etc/nginx"
