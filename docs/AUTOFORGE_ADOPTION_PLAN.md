@@ -11,6 +11,8 @@ AutoForge와 이 저장소는 독립 Git 저장소로 유지한다.
 - AutoForge: 명세 모델, Generator, Plugin, Manifest와 검증
 - kis-auto-trading: 실제 명세, 생성 결과, KIS 연동과 거래 업무 규칙
 
+두 저장소의 상세 책임은 `PROJECT_BOUNDARIES.md`를 따른다.
+
 ## 현재 상태
 
 현재 서버는 `/ping`으로 Kubernetes, Nginx와 FastAPI 연결을 확인하는
@@ -123,7 +125,10 @@ database:
 4. 격리 Workspace에서 생성하고 import와 pytest를 실행한다.
 5. 성공한 결과만 이 저장소에 적용한다.
 6. 실제 SQLAlchemy/Alembic Adapter는 별도 Plugin 단계에서 추가한다.
-7. Account 검증 후 Portfolio와 AutoTrade Module로 확장한다.
+7. 필수 Redis Service를 cache와 coordination 용도로 연결한다.
+8. 필수 RabbitMQ Transport와 Worker를 연결한다.
+9. Outbox Relay로 DB 변경과 RabbitMQ 발행을 연결한다.
+10. Account 검증 후 Portfolio와 AutoTrade Module로 확장한다.
 
 ## 완료 조건
 

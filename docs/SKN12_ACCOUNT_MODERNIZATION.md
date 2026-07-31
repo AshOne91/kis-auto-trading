@@ -164,3 +164,7 @@ Fake Identity Dependency
 5. 외부 Identity Provider Adapter를 추가한다.
 6. BrokerageConnection과 SecretProvider 계약을 추가한다.
 7. Portfolio 초기화를 Profile transaction에서 분리하고 Event로 연결한다.
+
+Redis는 Account/Profile의 cache, rate limit과 idempotency를 담당하는 필수
+Service로 사용한다. 비동기 업무 Queue는 Redis에 직접 구현하지 않고 RabbitMQ
+Transport와 Worker로 분리한다.
