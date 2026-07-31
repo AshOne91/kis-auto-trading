@@ -101,8 +101,9 @@ Adapter로 교체한다. 실제 증권 계좌번호, KIS App Key와 Secret은 �
 
 ### Database 계약 초안
 
-DatabaseSpec의 기술 중립 계약은 `specifications/account.yaml`에 선언한다.
-SQLAlchemy와 실제 DB 연결은 아직 포함하지 않는다.
+DatabaseSpec의 기술 중립 계약은 `specifications/identity.yaml`과
+`specifications/account.yaml`에 선언한다. PostgreSQL 재현 SQL 생성까지
+완료했으며 SQLAlchemy Runtime 연결은 아직 포함하지 않는다.
 
 ```yaml
 database:
@@ -113,8 +114,9 @@ database:
     - name: UserProfileRepository
   placements:
     - table: user_profiles
-      store: identity
-      mode: global
+      store: profile
+      mode: sharded
+      partition_key: user_id
 ```
 
 ## 적용 순서
@@ -141,6 +143,16 @@ src/kis_auto_trading/modules/account/generated/fake_repository.py
 
 아직 실제 프로젝트 소스 트리에 적용하지 않았으며, SQLAlchemy/Alembic 경계와
 Project Scaffold 적용 순서를 확정한 뒤 격리 Workspace 검증을 거쳐 반영한다.
+
+### 2026-07-31 Global/Shard Database 기준선
+
+- `specifications/identity.yaml`: 로그인 인증정보를 Global 저장소에 배치한다.
+- `specifications/account.yaml`: 개인정보 Profile을 `user_id` 기준 Shard에 배치한다.
+- AutoForge가 생성한 PostgreSQL SQL을 `database/global/`과
+  `database/sharded/`에 저장하여 다른 로컬 환경에서도 스키마를 재현한다.
+- Shard 라우팅 실패는 오류이며 Global DB로 자동 대체하지 않는다.
+- SQLAlchemy Session, 실행 시점의 ShardRouter와 Alembic 적용은 다음 단계다.
+- 로그인 API, JWT 또는 외부 Identity Provider 연동은 아직 구현하지 않았다.
 
 ## 완료 조건
 

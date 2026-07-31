@@ -94,7 +94,7 @@ database:
         - save
   placements:
     - table: user_profiles
-      store: identity
-      mode: global
+      store: profile
+      mode: sharded
       partition_key: user_id
       unresolved_policy: error

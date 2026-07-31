@@ -1,0 +1,64 @@
+spec_version: "1"
+
+module:
+  name: identity
+  display_name: Identity
+  route_prefix: /api/identity
+
+models:
+  - name: LoginAccount
+    fields:
+      - name: user_id
+        type:
+          kind: uuid
+      - name: email
+        type:
+          kind: string
+      - name: password_hash
+        type:
+          kind: string
+      - name: is_active
+        type:
+          kind: boolean
+        default: true
+      - name: created_at
+        type:
+          kind: datetime
+
+endpoints: []
+
+database:
+  provider: agnostic
+  tables:
+    - name: login_accounts
+      columns:
+        - name: user_id
+          type:
+            kind: uuid
+          primary_key: true
+        - name: email
+          type:
+            kind: string
+          unique: true
+        - name: password_hash
+          type:
+            kind: string
+        - name: is_active
+          type:
+            kind: boolean
+          default: true
+        - name: created_at
+          type:
+            kind: datetime
+  repositories:
+    - name: LoginAccountRepository
+      aggregate: LoginAccount
+      table: login_accounts
+      operations:
+        - find_by_id
+        - save
+  placements:
+    - table: login_accounts
+      store: identity
+      mode: global
+      unresolved_policy: error
