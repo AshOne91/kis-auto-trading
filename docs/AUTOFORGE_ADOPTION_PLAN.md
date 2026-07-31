@@ -130,6 +130,18 @@ database:
 9. Outbox Relay로 DB 변경과 RabbitMQ 발행을 연결한다.
 10. Account 검증 후 Portfolio와 AutoTrade Module로 확장한다.
 
+현재 1단계와 2단계가 완료되었다. AutoForge의 Repository Generator가 실제
+`specifications/account.yaml`에서 다음 출력을 렌더링하고 Python 문법을
+검증했다.
+
+```text
+src/kis_auto_trading/modules/account/generated/repository.py
+src/kis_auto_trading/modules/account/generated/fake_repository.py
+```
+
+아직 실제 프로젝트 소스 트리에 적용하지 않았으며, SQLAlchemy/Alembic 경계와
+Project Scaffold 적용 순서를 확정한 뒤 격리 Workspace 검증을 거쳐 반영한다.
+
 ## 완료 조건
 
 - 같은 명세의 반복 생성 결과가 동일하다.
