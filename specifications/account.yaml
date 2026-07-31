@@ -1,0 +1,100 @@
+spec_version: "1"
+
+module:
+  name: account
+  display_name: Account
+  route_prefix: /api/account
+
+models:
+  - name: UserProfile
+    fields:
+      - name: user_id
+        type:
+          kind: uuid
+      - name: investment_experience
+        type:
+          kind: string
+        default: BEGINNER
+      - name: risk_tolerance
+        type:
+          kind: string
+        default: MODERATE
+      - name: investment_goal
+        type:
+          kind: string
+        default: GROWTH
+      - name: monthly_budget
+        type:
+          kind: number
+        default: 0.0
+      - name: profile_completed
+        type:
+          kind: boolean
+        default: false
+
+endpoints:
+  - name: get_profile
+    method: GET
+    path: /profile
+    response:
+      model: UserProfile
+    handler: get_profile
+  - name: update_profile
+    method: PUT
+    path: /profile
+    request:
+      fields:
+        - name: investment_experience
+          type:
+            kind: string
+        - name: risk_tolerance
+          type:
+            kind: string
+        - name: investment_goal
+          type:
+            kind: string
+        - name: monthly_budget
+          type:
+            kind: number
+    response:
+      model: UserProfile
+    handler: update_profile
+
+database:
+  provider: agnostic
+  tables:
+    - name: user_profiles
+      columns:
+        - name: user_id
+          type:
+            kind: uuid
+          primary_key: true
+        - name: investment_experience
+          type:
+            kind: string
+        - name: risk_tolerance
+          type:
+            kind: string
+        - name: investment_goal
+          type:
+            kind: string
+        - name: monthly_budget
+          type:
+            kind: number
+        - name: profile_completed
+          type:
+            kind: boolean
+          default: false
+  repositories:
+    - name: UserProfileRepository
+      aggregate: UserProfile
+      table: user_profiles
+      operations:
+        - find_by_id
+        - save
+  placements:
+    - table: user_profiles
+      store: identity
+      mode: global
+      partition_key: user_id
+      unresolved_policy: error

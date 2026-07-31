@@ -1,0 +1,12 @@
+spec_version: "1"
+
+project:
+  name: KIS Auto Trading
+  package_name: kis_auto_trading
+  version: "0.1.0"
+  description: AutoForge로 현대화하는 KIS 자동매매 FastAPI 서비스
+
+application:
+  framework: fastapi
+  modules:
+    - account
