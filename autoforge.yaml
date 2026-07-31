@@ -11,3 +11,8 @@ application:
   modules:
     - identity
     - account
+  services:
+    - name: session
+      kind: redis_session
+      namespace: kis_session
+      ttl_seconds: 3600

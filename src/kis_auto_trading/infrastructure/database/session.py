@@ -28,9 +28,8 @@ class AsyncSessionRegistry:
     ) -> AsyncIterator[AsyncSession]:
         engine = self._engine_for(target)
         factory = async_sessionmaker(engine, expire_on_commit=False)
-        async with factory() as session:
-            async with session.begin():
-                yield session
+        async with factory() as session, session.begin():
+            yield session
 
     def _engine_for(self, target: ShardTarget) -> AsyncEngine:
         if target.is_global:

@@ -1,9 +1,12 @@
 from uuid import UUID
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from kis_auto_trading.modules.identity.generated.models import LoginAccount
-from kis_auto_trading.modules.identity.generated.sqlalchemy_models import LoginAccountRecord
+from kis_auto_trading.modules.identity.generated.sqlalchemy_models import (
+    LoginAccountRecord,
+)
 
 
 class SQLAlchemyLoginAccountRepository:
@@ -37,3 +40,22 @@ class SQLAlchemyLoginAccountRepository:
             created_at=aggregate.created_at
         )
         await self._session.merge(record)
+
+    async def find_by_email(
+        self, email: str,
+    ) -> LoginAccount | None:
+        result = await self._session.execute(
+            select(LoginAccountRecord).where(
+                LoginAccountRecord.email == email
+            )
+        )
+        record = result.scalar_one_or_none()
+        if record is None:
+            return None
+        return LoginAccount(
+            user_id=record.user_id,
+            email=record.email,
+            password_hash=record.password_hash,
+            is_active=record.is_active,
+            created_at=record.created_at
+        )

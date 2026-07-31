@@ -25,7 +25,53 @@ models:
         type:
           kind: datetime
 
-endpoints: []
+endpoints:
+  - name: signup
+    method: POST
+    path: /signup
+    request:
+      fields:
+        - name: email
+          type:
+            kind: string
+        - name: password
+          type:
+            kind: string
+    response:
+      fields:
+        - name: user_id
+          type:
+            kind: uuid
+        - name: email
+          type:
+            kind: string
+        - name: is_active
+          type:
+            kind: boolean
+    handler: signup
+  - name: login
+    method: POST
+    path: /login
+    request:
+      fields:
+        - name: email
+          type:
+            kind: string
+        - name: password
+          type:
+            kind: string
+    response:
+      fields:
+        - name: user_id
+          type:
+            kind: uuid
+        - name: access_token
+          type:
+            kind: string
+        - name: token_type
+          type:
+            kind: string
+    handler: login
 
 database:
   provider: agnostic
@@ -57,6 +103,9 @@ database:
       operations:
         - find_by_id
         - save
+      queries:
+        - name: find_by_email
+          column: email
   placements:
     - table: login_accounts
       store: identity

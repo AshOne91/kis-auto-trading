@@ -3,7 +3,9 @@ from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from kis_auto_trading.modules.account.generated.models import UserProfile
-from kis_auto_trading.modules.account.generated.sqlalchemy_models import UserProfileRecord
+from kis_auto_trading.modules.account.generated.sqlalchemy_models import (
+    UserProfileRecord,
+)
 
 
 class SQLAlchemyUserProfileRepository:

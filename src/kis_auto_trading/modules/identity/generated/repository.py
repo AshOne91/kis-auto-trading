@@ -11,3 +11,6 @@ class LoginAccountRepository(Protocol):
     async def save(
         self, aggregate: LoginAccount,
     ) -> None: ...
+    async def find_by_email(
+        self, email: str,
+    ) -> LoginAccount | None: ...

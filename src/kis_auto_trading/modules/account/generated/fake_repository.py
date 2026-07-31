@@ -1,4 +1,5 @@
 from uuid import UUID
+
 from kis_auto_trading.modules.account.generated.models import UserProfile
 
 
