@@ -9,4 +9,5 @@ project:
 application:
   framework: fastapi
   modules:
+    - identity
     - account

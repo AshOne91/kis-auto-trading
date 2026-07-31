@@ -9,6 +9,7 @@ venv/
 .venv/
 pip-log.txt
 pip-delete-this-directory.txt
+*.egg-info/
 
 # === IDE 및 OS 관련 임시 파일 ===
 .idea/

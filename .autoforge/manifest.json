@@ -1,0 +1,508 @@
+{
+  "document_kind": "generation_job",
+  "format_version": "1",
+  "job_id": "f86e2db6-66b1-4a89-bbb4-171ed900bd3a",
+  "units": [
+    {
+      "kind": "project",
+      "manifest": {
+        "files": [
+          {
+            "content_hash": "051a8cac27abbc61ae91783a2f7900b1a8b29c789294432e3107617678b52dd0",
+            "error": null,
+            "generator_id": "autoforge.generator.fastapi.project",
+            "generator_version": "0.1.0",
+            "ownership": "scaffolded",
+            "previous_content_hash": "051a8cac27abbc61ae91783a2f7900b1a8b29c789294432e3107617678b52dd0",
+            "relative_path": "README.md",
+            "source": "project:kis_auto_trading",
+            "specification_hash": "4635251a65d9212781343bd400cdc85a885eb4815c9817899ac8d8f69ce99eef",
+            "status": "preserved"
+          },
+          {
+            "content_hash": "12fd3e3feb16b97e57efe689c7d63217b4f6855a3545bbaf966eee95766d3831",
+            "error": null,
+            "generator_id": "autoforge.generator.fastapi.project",
+            "generator_version": "0.1.0",
+            "ownership": "generated",
+            "previous_content_hash": "905a6ba2f1a0790011a5aaf0c469009735b1b94d6b7ebb71ede58ced5111a132",
+            "relative_path": "pyproject.toml",
+            "source": "project:kis_auto_trading",
+            "specification_hash": "4635251a65d9212781343bd400cdc85a885eb4815c9817899ac8d8f69ce99eef",
+            "status": "changed"
+          },
+          {
+            "content_hash": "91447944015cec709e8aa7655f7e9d64e1e4508e7023a57fe3746911c0fc6fed",
+            "error": null,
+            "generator_id": "autoforge.generator.fastapi.project",
+            "generator_version": "0.1.0",
+            "ownership": "generated",
+            "previous_content_hash": "91447944015cec709e8aa7655f7e9d64e1e4508e7023a57fe3746911c0fc6fed",
+            "relative_path": "src/kis_auto_trading/__init__.py",
+            "source": "project:kis_auto_trading",
+            "specification_hash": "4635251a65d9212781343bd400cdc85a885eb4815c9817899ac8d8f69ce99eef",
+            "status": "unchanged"
+          },
+          {
+            "content_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "error": null,
+            "generator_id": "autoforge.generator.fastapi.project",
+            "generator_version": "0.1.0",
+            "ownership": "generated",
+            "previous_content_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "relative_path": "src/kis_auto_trading/application/__init__.py",
+            "source": "project:kis_auto_trading",
+            "specification_hash": "4635251a65d9212781343bd400cdc85a885eb4815c9817899ac8d8f69ce99eef",
+            "status": "unchanged"
+          },
+          {
+            "content_hash": "278dc9cfe0cec2c5671b7923f9b772f6a57252a510efeb60980271c209938a8d",
+            "error": null,
+            "generator_id": "autoforge.generator.fastapi.project",
+            "generator_version": "0.1.0",
+            "ownership": "generated",
+            "previous_content_hash": "278dc9cfe0cec2c5671b7923f9b772f6a57252a510efeb60980271c209938a8d",
+            "relative_path": "src/kis_auto_trading/application/app_factory.py",
+            "source": "project:kis_auto_trading",
+            "specification_hash": "4635251a65d9212781343bd400cdc85a885eb4815c9817899ac8d8f69ce99eef",
+            "status": "unchanged"
+          },
+          {
+            "content_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "error": null,
+            "generator_id": "autoforge.generator.fastapi.project",
+            "generator_version": "0.1.0",
+            "ownership": "generated",
+            "previous_content_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "relative_path": "src/kis_auto_trading/application/generated/__init__.py",
+            "source": "project:kis_auto_trading",
+            "specification_hash": "4635251a65d9212781343bd400cdc85a885eb4815c9817899ac8d8f69ce99eef",
+            "status": "unchanged"
+          },
+          {
+            "content_hash": "ffee7bbe08b647c25140b953c14e8c43d7c28596502532546e0b191a3efffdb8",
+            "error": null,
+            "generator_id": "autoforge.generator.fastapi.project",
+            "generator_version": "0.1.0",
+            "ownership": "generated",
+            "previous_content_hash": "ffee7bbe08b647c25140b953c14e8c43d7c28596502532546e0b191a3efffdb8",
+            "relative_path": "src/kis_auto_trading/application/generated/module_registry.py",
+            "source": "project:kis_auto_trading",
+            "specification_hash": "4635251a65d9212781343bd400cdc85a885eb4815c9817899ac8d8f69ce99eef",
+            "status": "unchanged"
+          },
+          {
+            "content_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "error": null,
+            "generator_id": "autoforge.generator.sqlalchemy.infrastructure",
+            "generator_version": "0.1.0",
+            "ownership": "generated",
+            "previous_content_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "relative_path": "src/kis_auto_trading/infrastructure/__init__.py",
+            "source": "project:kis_auto_trading:sqlalchemy",
+            "specification_hash": "4635251a65d9212781343bd400cdc85a885eb4815c9817899ac8d8f69ce99eef",
+            "status": "unchanged"
+          },
+          {
+            "content_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "error": null,
+            "generator_id": "autoforge.generator.sqlalchemy.infrastructure",
+            "generator_version": "0.1.0",
+            "ownership": "generated",
+            "previous_content_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "relative_path": "src/kis_auto_trading/infrastructure/database/__init__.py",
+            "source": "project:kis_auto_trading:sqlalchemy",
+            "specification_hash": "4635251a65d9212781343bd400cdc85a885eb4815c9817899ac8d8f69ce99eef",
+            "status": "unchanged"
+          },
+          {
+            "content_hash": "987edfd9dfe38b2c49492c7d1a4e774015d16b72e2281b018e4160be6b47d560",
+            "error": null,
+            "generator_id": "autoforge.generator.sqlalchemy.infrastructure",
+            "generator_version": "0.1.0",
+            "ownership": "generated",
+            "previous_content_hash": "987edfd9dfe38b2c49492c7d1a4e774015d16b72e2281b018e4160be6b47d560",
+            "relative_path": "src/kis_auto_trading/infrastructure/database/base.py",
+            "source": "project:kis_auto_trading:sqlalchemy",
+            "specification_hash": "4635251a65d9212781343bd400cdc85a885eb4815c9817899ac8d8f69ce99eef",
+            "status": "unchanged"
+          },
+          {
+            "content_hash": "94632c64a9f0b5f399315a18cd7cb47fd600e6ff6f2b0c18811f3accb672e67f",
+            "error": null,
+            "generator_id": "autoforge.generator.sqlalchemy.infrastructure",
+            "generator_version": "0.1.0",
+            "ownership": "generated",
+            "previous_content_hash": "94632c64a9f0b5f399315a18cd7cb47fd600e6ff6f2b0c18811f3accb672e67f",
+            "relative_path": "src/kis_auto_trading/infrastructure/database/routing.py",
+            "source": "project:kis_auto_trading:sqlalchemy",
+            "specification_hash": "4635251a65d9212781343bd400cdc85a885eb4815c9817899ac8d8f69ce99eef",
+            "status": "unchanged"
+          },
+          {
+            "content_hash": "e188fd9f5d6b2b1734138ecc8ec08fa55b40313b1613b8ed8088af7a8f20d762",
+            "error": null,
+            "generator_id": "autoforge.generator.sqlalchemy.infrastructure",
+            "generator_version": "0.1.0",
+            "ownership": "generated",
+            "previous_content_hash": "e188fd9f5d6b2b1734138ecc8ec08fa55b40313b1613b8ed8088af7a8f20d762",
+            "relative_path": "src/kis_auto_trading/infrastructure/database/session.py",
+            "source": "project:kis_auto_trading:sqlalchemy",
+            "specification_hash": "4635251a65d9212781343bd400cdc85a885eb4815c9817899ac8d8f69ce99eef",
+            "status": "unchanged"
+          },
+          {
+            "content_hash": "e1485f9e386d38f48dd5ac93a91a123854def24a7ff2034fd8d48c84f01d0e99",
+            "error": null,
+            "generator_id": "autoforge.generator.fastapi.project",
+            "generator_version": "0.1.0",
+            "ownership": "generated",
+            "previous_content_hash": "e1485f9e386d38f48dd5ac93a91a123854def24a7ff2034fd8d48c84f01d0e99",
+            "relative_path": "src/kis_auto_trading/main.py",
+            "source": "project:kis_auto_trading",
+            "specification_hash": "4635251a65d9212781343bd400cdc85a885eb4815c9817899ac8d8f69ce99eef",
+            "status": "unchanged"
+          },
+          {
+            "content_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "error": null,
+            "generator_id": "autoforge.generator.fastapi.project",
+            "generator_version": "0.1.0",
+            "ownership": "generated",
+            "previous_content_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "relative_path": "src/kis_auto_trading/modules/__init__.py",
+            "source": "project:kis_auto_trading",
+            "specification_hash": "4635251a65d9212781343bd400cdc85a885eb4815c9817899ac8d8f69ce99eef",
+            "status": "unchanged"
+          },
+          {
+            "content_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "error": null,
+            "generator_id": "autoforge.generator.fastapi.project",
+            "generator_version": "0.1.0",
+            "ownership": "generated",
+            "previous_content_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "relative_path": "src/kis_auto_trading/routers/__init__.py",
+            "source": "project:kis_auto_trading",
+            "specification_hash": "4635251a65d9212781343bd400cdc85a885eb4815c9817899ac8d8f69ce99eef",
+            "status": "unchanged"
+          },
+          {
+            "content_hash": "9596142f11facbb7a2b62c894186b41e149f4a76f6d3a9363ca9cc40a1f4990e",
+            "error": null,
+            "generator_id": "autoforge.generator.fastapi.project",
+            "generator_version": "0.1.0",
+            "ownership": "generated",
+            "previous_content_hash": "9596142f11facbb7a2b62c894186b41e149f4a76f6d3a9363ca9cc40a1f4990e",
+            "relative_path": "src/kis_auto_trading/routers/health.py",
+            "source": "project:kis_auto_trading",
+            "specification_hash": "4635251a65d9212781343bd400cdc85a885eb4815c9817899ac8d8f69ce99eef",
+            "status": "unchanged"
+          },
+          {
+            "content_hash": "df891952425410faa356c093ffb8f8325b85da33243e53b2f468214dca52a72e",
+            "error": null,
+            "generator_id": "autoforge.generator.fastapi.project",
+            "generator_version": "0.1.0",
+            "ownership": "generated",
+            "previous_content_hash": "df891952425410faa356c093ffb8f8325b85da33243e53b2f468214dca52a72e",
+            "relative_path": "tests/test_health.py",
+            "source": "project:kis_auto_trading",
+            "specification_hash": "4635251a65d9212781343bd400cdc85a885eb4815c9817899ac8d8f69ce99eef",
+            "status": "unchanged"
+          }
+        ],
+        "job_id": "f86e2db6-66b1-4a89-bbb4-171ed900bd3a",
+        "specification_hash": "4635251a65d9212781343bd400cdc85a885eb4815c9817899ac8d8f69ce99eef",
+        "specification_version": "1"
+      },
+      "unit_id": "project"
+    },
+    {
+      "kind": "module",
+      "manifest": {
+        "files": [
+          {
+            "content_hash": "651620ca0c31b29be6b6ef211a0ed898e5dd39864a9ac604571901c532465a23",
+            "error": null,
+            "generator_id": "autoforge.generator.postgresql-ddl",
+            "generator_version": "0.1.0",
+            "ownership": "generated",
+            "previous_content_hash": "651620ca0c31b29be6b6ef211a0ed898e5dd39864a9ac604571901c532465a23",
+            "relative_path": "database/sharded/0001_account.sql",
+            "source": "module:account:postgresql-ddl",
+            "specification_hash": "e7ddb6ff4dbf6cde5a47394a0f536f75976c54666632348f006eea033b37e14e",
+            "status": "unchanged"
+          },
+          {
+            "content_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "error": null,
+            "generator_id": "autoforge.generator.fastapi.module",
+            "generator_version": "0.1.0",
+            "ownership": "generated",
+            "previous_content_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "relative_path": "src/kis_auto_trading/modules/account/__init__.py",
+            "source": "module:account",
+            "specification_hash": "e7ddb6ff4dbf6cde5a47394a0f536f75976c54666632348f006eea033b37e14e",
+            "status": "unchanged"
+          },
+          {
+            "content_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "error": null,
+            "generator_id": "autoforge.generator.fastapi.module",
+            "generator_version": "0.1.0",
+            "ownership": "generated",
+            "previous_content_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "relative_path": "src/kis_auto_trading/modules/account/generated/__init__.py",
+            "source": "module:account",
+            "specification_hash": "e7ddb6ff4dbf6cde5a47394a0f536f75976c54666632348f006eea033b37e14e",
+            "status": "unchanged"
+          },
+          {
+            "content_hash": "8f2c646e48e67d4458fcc352fc8aa5c07b49001e074f6e2ca24d9fbcdc2fce7f",
+            "error": null,
+            "generator_id": "autoforge.generator.repository",
+            "generator_version": "0.1.0",
+            "ownership": "generated",
+            "previous_content_hash": "8f2c646e48e67d4458fcc352fc8aa5c07b49001e074f6e2ca24d9fbcdc2fce7f",
+            "relative_path": "src/kis_auto_trading/modules/account/generated/fake_repository.py",
+            "source": "module:account:repository",
+            "specification_hash": "e7ddb6ff4dbf6cde5a47394a0f536f75976c54666632348f006eea033b37e14e",
+            "status": "unchanged"
+          },
+          {
+            "content_hash": "68d2579c1c73f80872138b37fa3330cca88be66a1184db59973e53509cc911ac",
+            "error": null,
+            "generator_id": "autoforge.generator.fastapi.module",
+            "generator_version": "0.1.0",
+            "ownership": "generated",
+            "previous_content_hash": "68d2579c1c73f80872138b37fa3330cca88be66a1184db59973e53509cc911ac",
+            "relative_path": "src/kis_auto_trading/modules/account/generated/models.py",
+            "source": "module:account",
+            "specification_hash": "e7ddb6ff4dbf6cde5a47394a0f536f75976c54666632348f006eea033b37e14e",
+            "status": "unchanged"
+          },
+          {
+            "content_hash": "4713cef28d6161e671a2585ada804b9684ff15b6eaa8f4d01e231db2c1bf8a64",
+            "error": null,
+            "generator_id": "autoforge.generator.repository",
+            "generator_version": "0.1.0",
+            "ownership": "generated",
+            "previous_content_hash": "4713cef28d6161e671a2585ada804b9684ff15b6eaa8f4d01e231db2c1bf8a64",
+            "relative_path": "src/kis_auto_trading/modules/account/generated/repository.py",
+            "source": "module:account:repository",
+            "specification_hash": "e7ddb6ff4dbf6cde5a47394a0f536f75976c54666632348f006eea033b37e14e",
+            "status": "unchanged"
+          },
+          {
+            "content_hash": "b02e27ccec2104f7d1d9fbf3bf150e8c69367027ed28185fa041517149c3df02",
+            "error": null,
+            "generator_id": "autoforge.generator.fastapi.module",
+            "generator_version": "0.1.0",
+            "ownership": "generated",
+            "previous_content_hash": "b02e27ccec2104f7d1d9fbf3bf150e8c69367027ed28185fa041517149c3df02",
+            "relative_path": "src/kis_auto_trading/modules/account/generated/router.py",
+            "source": "module:account",
+            "specification_hash": "e7ddb6ff4dbf6cde5a47394a0f536f75976c54666632348f006eea033b37e14e",
+            "status": "unchanged"
+          },
+          {
+            "content_hash": "0ffab535483b2b8b021454914493eab4ec2da9ff80871a41799ad6a8cf22a3b7",
+            "error": null,
+            "generator_id": "autoforge.generator.fastapi.module",
+            "generator_version": "0.1.0",
+            "ownership": "generated",
+            "previous_content_hash": "0ffab535483b2b8b021454914493eab4ec2da9ff80871a41799ad6a8cf22a3b7",
+            "relative_path": "src/kis_auto_trading/modules/account/generated/schemas.py",
+            "source": "module:account",
+            "specification_hash": "e7ddb6ff4dbf6cde5a47394a0f536f75976c54666632348f006eea033b37e14e",
+            "status": "unchanged"
+          },
+          {
+            "content_hash": "884dca3507d0e0915d889e1564aee206ad074667e5e938cf4f3eb36e5c131901",
+            "error": null,
+            "generator_id": "autoforge.generator.sqlalchemy.model",
+            "generator_version": "0.1.0",
+            "ownership": "generated",
+            "previous_content_hash": "884dca3507d0e0915d889e1564aee206ad074667e5e938cf4f3eb36e5c131901",
+            "relative_path": "src/kis_auto_trading/modules/account/generated/sqlalchemy_models.py",
+            "source": "module:account:sqlalchemy-model",
+            "specification_hash": "e7ddb6ff4dbf6cde5a47394a0f536f75976c54666632348f006eea033b37e14e",
+            "status": "unchanged"
+          },
+          {
+            "content_hash": "cd7e956d3e581a8dfccb626d9b4b8b6197dc922dd4a06863ef3ba3d2f55fe61c",
+            "error": null,
+            "generator_id": "autoforge.generator.sqlalchemy.model",
+            "generator_version": "0.1.0",
+            "ownership": "generated",
+            "previous_content_hash": "cd7e956d3e581a8dfccb626d9b4b8b6197dc922dd4a06863ef3ba3d2f55fe61c",
+            "relative_path": "src/kis_auto_trading/modules/account/generated/sqlalchemy_repositories.py",
+            "source": "module:account:sqlalchemy-model",
+            "specification_hash": "e7ddb6ff4dbf6cde5a47394a0f536f75976c54666632348f006eea033b37e14e",
+            "status": "unchanged"
+          },
+          {
+            "content_hash": "3c5ec64346175df944283a7cdcecd57d6cbd1f6f34b351691f684f5df46d92ac",
+            "error": null,
+            "generator_id": "autoforge.generator.fastapi.module",
+            "generator_version": "0.1.0",
+            "ownership": "scaffolded",
+            "previous_content_hash": "3c5ec64346175df944283a7cdcecd57d6cbd1f6f34b351691f684f5df46d92ac",
+            "relative_path": "src/kis_auto_trading/modules/account/handlers.py",
+            "source": "module:account",
+            "specification_hash": "e7ddb6ff4dbf6cde5a47394a0f536f75976c54666632348f006eea033b37e14e",
+            "status": "preserved"
+          }
+        ],
+        "job_id": "f86e2db6-66b1-4a89-bbb4-171ed900bd3a",
+        "specification_hash": "e7ddb6ff4dbf6cde5a47394a0f536f75976c54666632348f006eea033b37e14e",
+        "specification_version": "1"
+      },
+      "unit_id": "module:account"
+    },
+    {
+      "kind": "module",
+      "manifest": {
+        "files": [
+          {
+            "content_hash": "5d1b11913a41624d8e276362cf8f06537dc983b40877e33835b8cf8666cd93f9",
+            "error": null,
+            "generator_id": "autoforge.generator.postgresql-ddl",
+            "generator_version": "0.1.0",
+            "ownership": "generated",
+            "previous_content_hash": "5d1b11913a41624d8e276362cf8f06537dc983b40877e33835b8cf8666cd93f9",
+            "relative_path": "database/global/0001_identity.sql",
+            "source": "module:identity:postgresql-ddl",
+            "specification_hash": "818786ed67da2301853fa7481f03e6bd42a3cb78a1b4ab2a9d18d1e4de803e71",
+            "status": "unchanged"
+          },
+          {
+            "content_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "error": null,
+            "generator_id": "autoforge.generator.fastapi.module",
+            "generator_version": "0.1.0",
+            "ownership": "generated",
+            "previous_content_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "relative_path": "src/kis_auto_trading/modules/identity/__init__.py",
+            "source": "module:identity",
+            "specification_hash": "818786ed67da2301853fa7481f03e6bd42a3cb78a1b4ab2a9d18d1e4de803e71",
+            "status": "unchanged"
+          },
+          {
+            "content_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "error": null,
+            "generator_id": "autoforge.generator.fastapi.module",
+            "generator_version": "0.1.0",
+            "ownership": "generated",
+            "previous_content_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "relative_path": "src/kis_auto_trading/modules/identity/generated/__init__.py",
+            "source": "module:identity",
+            "specification_hash": "818786ed67da2301853fa7481f03e6bd42a3cb78a1b4ab2a9d18d1e4de803e71",
+            "status": "unchanged"
+          },
+          {
+            "content_hash": "f89225461cd36a89f20c1a8d1fbbbe931814b280c6f689541973a4af246c692e",
+            "error": null,
+            "generator_id": "autoforge.generator.repository",
+            "generator_version": "0.1.0",
+            "ownership": "generated",
+            "previous_content_hash": "f89225461cd36a89f20c1a8d1fbbbe931814b280c6f689541973a4af246c692e",
+            "relative_path": "src/kis_auto_trading/modules/identity/generated/fake_repository.py",
+            "source": "module:identity:repository",
+            "specification_hash": "818786ed67da2301853fa7481f03e6bd42a3cb78a1b4ab2a9d18d1e4de803e71",
+            "status": "unchanged"
+          },
+          {
+            "content_hash": "78ee7fe3c26e23304a6157c8da60bf10756586124fd57a47831909aa71008fd5",
+            "error": null,
+            "generator_id": "autoforge.generator.fastapi.module",
+            "generator_version": "0.1.0",
+            "ownership": "generated",
+            "previous_content_hash": "78ee7fe3c26e23304a6157c8da60bf10756586124fd57a47831909aa71008fd5",
+            "relative_path": "src/kis_auto_trading/modules/identity/generated/models.py",
+            "source": "module:identity",
+            "specification_hash": "818786ed67da2301853fa7481f03e6bd42a3cb78a1b4ab2a9d18d1e4de803e71",
+            "status": "unchanged"
+          },
+          {
+            "content_hash": "bfc21e0ab4bdc373b7a8cbfbda83edc8215cfa12c294db264b3e8237765cd671",
+            "error": null,
+            "generator_id": "autoforge.generator.repository",
+            "generator_version": "0.1.0",
+            "ownership": "generated",
+            "previous_content_hash": "bfc21e0ab4bdc373b7a8cbfbda83edc8215cfa12c294db264b3e8237765cd671",
+            "relative_path": "src/kis_auto_trading/modules/identity/generated/repository.py",
+            "source": "module:identity:repository",
+            "specification_hash": "818786ed67da2301853fa7481f03e6bd42a3cb78a1b4ab2a9d18d1e4de803e71",
+            "status": "unchanged"
+          },
+          {
+            "content_hash": "bd257c5061d676a14b211ae3919daf15a44a5376d765fd6b5e0fd611f8386e53",
+            "error": null,
+            "generator_id": "autoforge.generator.fastapi.module",
+            "generator_version": "0.1.0",
+            "ownership": "generated",
+            "previous_content_hash": "bd257c5061d676a14b211ae3919daf15a44a5376d765fd6b5e0fd611f8386e53",
+            "relative_path": "src/kis_auto_trading/modules/identity/generated/router.py",
+            "source": "module:identity",
+            "specification_hash": "818786ed67da2301853fa7481f03e6bd42a3cb78a1b4ab2a9d18d1e4de803e71",
+            "status": "unchanged"
+          },
+          {
+            "content_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "error": null,
+            "generator_id": "autoforge.generator.fastapi.module",
+            "generator_version": "0.1.0",
+            "ownership": "generated",
+            "previous_content_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "relative_path": "src/kis_auto_trading/modules/identity/generated/schemas.py",
+            "source": "module:identity",
+            "specification_hash": "818786ed67da2301853fa7481f03e6bd42a3cb78a1b4ab2a9d18d1e4de803e71",
+            "status": "unchanged"
+          },
+          {
+            "content_hash": "fe37a8ccd556c0778a8f3ba2e3ec4c6f45b2c7edd3920d4acc848c32d0c86304",
+            "error": null,
+            "generator_id": "autoforge.generator.sqlalchemy.model",
+            "generator_version": "0.1.0",
+            "ownership": "generated",
+            "previous_content_hash": "fe37a8ccd556c0778a8f3ba2e3ec4c6f45b2c7edd3920d4acc848c32d0c86304",
+            "relative_path": "src/kis_auto_trading/modules/identity/generated/sqlalchemy_models.py",
+            "source": "module:identity:sqlalchemy-model",
+            "specification_hash": "818786ed67da2301853fa7481f03e6bd42a3cb78a1b4ab2a9d18d1e4de803e71",
+            "status": "unchanged"
+          },
+          {
+            "content_hash": "bdb4cf5f255bb48af9a587ae9f0c7145539a936bc1894bb58c31b945311aa5bc",
+            "error": null,
+            "generator_id": "autoforge.generator.sqlalchemy.model",
+            "generator_version": "0.1.0",
+            "ownership": "generated",
+            "previous_content_hash": "bdb4cf5f255bb48af9a587ae9f0c7145539a936bc1894bb58c31b945311aa5bc",
+            "relative_path": "src/kis_auto_trading/modules/identity/generated/sqlalchemy_repositories.py",
+            "source": "module:identity:sqlalchemy-model",
+            "specification_hash": "818786ed67da2301853fa7481f03e6bd42a3cb78a1b4ab2a9d18d1e4de803e71",
+            "status": "unchanged"
+          },
+          {
+            "content_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "error": null,
+            "generator_id": "autoforge.generator.fastapi.module",
+            "generator_version": "0.1.0",
+            "ownership": "scaffolded",
+            "previous_content_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "relative_path": "src/kis_auto_trading/modules/identity/handlers.py",
+            "source": "module:identity",
+            "specification_hash": "818786ed67da2301853fa7481f03e6bd42a3cb78a1b4ab2a9d18d1e4de803e71",
+            "status": "preserved"
+          }
+        ],
+        "job_id": "f86e2db6-66b1-4a89-bbb4-171ed900bd3a",
+        "specification_hash": "818786ed67da2301853fa7481f03e6bd42a3cb78a1b4ab2a9d18d1e4de803e71",
+        "specification_version": "1"
+      },
+      "unit_id": "module:identity"
+    }
+  ]
+}
