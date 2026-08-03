@@ -1,5 +1,3 @@
----
-
 # 🚀 High-Availability K8s Trading Infrastructure (`kis-auto-trading`)
 
 > **Automated Stock Trading Infrastructure with K8s High-Availability Architecture, Dynamic Reverse Proxy, and Zero-Trust Secret Management.**
