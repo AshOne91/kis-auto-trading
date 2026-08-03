@@ -49,7 +49,10 @@ docker compose -f compose.integration.yaml down -v
 사용하지 않는다. 두 인스턴스는 완전히 같은 애플리케이션 이미지를 실행한다.
 
 PostgreSQL 데이터는 Compose named volume에 저장하고 초기 스키마 SQL은 읽기 전용으로
-마운트한다. 따라서 컨테이너만 재시작해도 데이터는 유지되며, 깨끗한 초기화가 필요할 때만
+마운트하지 않는다. `migrate` Job이 Global DB와 모든 Shard DB에 store별 Alembic
+revision을 적용하고 성공한 뒤에만 API가 시작한다. 생성 SQL은 검토와 별도 설치 도구를
+위한 재현 산출물로 저장소에 계속 보존한다. 컨테이너만 재시작해도 데이터와
+`alembic_version`은 유지되며, 깨끗한 초기화가 필요할 때만
 이 Compose 프로젝트에 한정해 `down -v`를 실행한다. 애플리케이션 컨테이너에는 영속
 볼륨을 두지 않는다.
 

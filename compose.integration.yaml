@@ -1,11 +1,14 @@
 name: kis-scale-out-test
 
-x-api-environment: &api-environment
-  APP_ENV: integration
-  REDIS_SENTINEL_URLS: sentinel-1:26379,sentinel-2:26379,sentinel-3:26379
+x-database-environment: &database-environment
   IDENTITY_DATABASE_URL: postgresql+asyncpg://kis_test:kis_test@identity-db:5432/identity
   ACCOUNT_SHARD_1_DATABASE_URL: postgresql+asyncpg://kis_test:kis_test@account-db-1:5432/account
   ACCOUNT_SHARD_2_DATABASE_URL: postgresql+asyncpg://kis_test:kis_test@account-db-2:5432/account
+
+x-api-environment: &api-environment
+  <<: *database-environment
+  APP_ENV: integration
+  REDIS_SENTINEL_URLS: sentinel-1:26379,sentinel-2:26379,sentinel-3:26379
 
 x-api: &api
   build:
@@ -29,6 +32,8 @@ x-api: &api
       condition: service_healthy
     account-db-2:
       condition: service_healthy
+    migrate:
+      condition: service_completed_successfully
   healthcheck:
     test:
       - CMD
@@ -114,7 +119,6 @@ services:
       POSTGRES_DB: identity
     volumes:
       - identity-db-data:/var/lib/postgresql/data
-      - ./database/global/0001_identity.sql:/docker-entrypoint-initdb.d/0001_identity.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U kis_test -d identity"]
       interval: 2s
@@ -131,7 +135,6 @@ services:
       POSTGRES_DB: account
     volumes:
       - account-db-1-data:/var/lib/postgresql/data
-      - ./database/sharded/0001_account.sql:/docker-entrypoint-initdb.d/0001_account.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U kis_test -d account"]
       interval: 2s
@@ -148,7 +151,6 @@ services:
       POSTGRES_DB: account
     volumes:
       - account-db-2-data:/var/lib/postgresql/data
-      - ./database/sharded/0001_account.sql:/docker-entrypoint-initdb.d/0001_account.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U kis_test -d account"]
       interval: 2s
@@ -156,6 +158,20 @@ services:
       retries: 30
     ports:
       - "15434:5432"
+
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment: *database-environment
+    command: ["python", "scripts/migrate.py"]
+    depends_on:
+      identity-db:
+        condition: service_healthy
+      account-db-1:
+        condition: service_healthy
+      account-db-2:
+        condition: service_healthy
 
   api-1:
     <<: *api

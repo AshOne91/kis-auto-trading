@@ -17,7 +17,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-test = ["httpx2", "pytest"]
+test = ["httpx", "pytest"]
 
 [tool.setuptools]
 package-dir = {"" = "src"}
