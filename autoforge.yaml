@@ -16,3 +16,4 @@ application:
       kind: redis_session
       namespace: kis_session
       ttl_seconds: 3600
+      url_env: REDIS_URL

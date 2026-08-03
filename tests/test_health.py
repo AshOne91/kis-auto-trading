@@ -1,9 +1,11 @@
+import pytest
 from fastapi.testclient import TestClient
 
 from kis_auto_trading.main import app
 
 
-def test_health() -> None:
+def test_health(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("REDIS_URL", "redis://localhost:6379/0")
     with TestClient(app) as client:
         response = client.get("/health")
 

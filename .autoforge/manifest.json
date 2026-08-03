@@ -1,7 +1,7 @@
 {
   "document_kind": "generation_job",
   "format_version": "1",
-  "job_id": "ec86691a-092c-44c5-81db-294cf00e282d",
+  "job_id": "336ffa64-90d9-4abe-85f6-965972b1877c",
   "units": [
     {
       "kind": "project",
@@ -16,7 +16,7 @@
             "previous_content_hash": "051a8cac27abbc61ae91783a2f7900b1a8b29c789294432e3107617678b52dd0",
             "relative_path": "README.md",
             "source": "project:kis_auto_trading",
-            "specification_hash": "006f7e096082eee482456234e848b11c434d7c42e7d039b77cd48a7578c88f24",
+            "specification_hash": "3597ae8eac8407dafc59d803caecd53709cc08b582de48a916e99602bc26d087",
             "status": "preserved"
           },
           {
@@ -28,7 +28,7 @@
             "previous_content_hash": "7241b06f50a106d8f7a9db3e54988551e111c4589a38fa6e4663084af4f97997",
             "relative_path": "pyproject.toml",
             "source": "project:kis_auto_trading",
-            "specification_hash": "006f7e096082eee482456234e848b11c434d7c42e7d039b77cd48a7578c88f24",
+            "specification_hash": "3597ae8eac8407dafc59d803caecd53709cc08b582de48a916e99602bc26d087",
             "status": "unchanged"
           },
           {
@@ -40,7 +40,7 @@
             "previous_content_hash": "91447944015cec709e8aa7655f7e9d64e1e4508e7023a57fe3746911c0fc6fed",
             "relative_path": "src/kis_auto_trading/__init__.py",
             "source": "project:kis_auto_trading",
-            "specification_hash": "006f7e096082eee482456234e848b11c434d7c42e7d039b77cd48a7578c88f24",
+            "specification_hash": "3597ae8eac8407dafc59d803caecd53709cc08b582de48a916e99602bc26d087",
             "status": "unchanged"
           },
           {
@@ -52,20 +52,20 @@
             "previous_content_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "relative_path": "src/kis_auto_trading/application/__init__.py",
             "source": "project:kis_auto_trading",
-            "specification_hash": "006f7e096082eee482456234e848b11c434d7c42e7d039b77cd48a7578c88f24",
+            "specification_hash": "3597ae8eac8407dafc59d803caecd53709cc08b582de48a916e99602bc26d087",
             "status": "unchanged"
           },
           {
-            "content_hash": "278dc9cfe0cec2c5671b7923f9b772f6a57252a510efeb60980271c209938a8d",
+            "content_hash": "c3296278aeaf8f6ac1975b1515db1bbc260137b533d9dc47b8ba1f6ebfe47beb",
             "error": null,
             "generator_id": "autoforge.generator.fastapi.project",
             "generator_version": "0.1.0",
             "ownership": "generated",
-            "previous_content_hash": "278dc9cfe0cec2c5671b7923f9b772f6a57252a510efeb60980271c209938a8d",
+            "previous_content_hash": "358f56c809ecf91875261785cee172a17d2c69f80766fc0a65d219ad8e107d75",
             "relative_path": "src/kis_auto_trading/application/app_factory.py",
             "source": "project:kis_auto_trading",
-            "specification_hash": "006f7e096082eee482456234e848b11c434d7c42e7d039b77cd48a7578c88f24",
-            "status": "unchanged"
+            "specification_hash": "3597ae8eac8407dafc59d803caecd53709cc08b582de48a916e99602bc26d087",
+            "status": "changed"
           },
           {
             "content_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -76,7 +76,19 @@
             "previous_content_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "relative_path": "src/kis_auto_trading/application/generated/__init__.py",
             "source": "project:kis_auto_trading",
-            "specification_hash": "006f7e096082eee482456234e848b11c434d7c42e7d039b77cd48a7578c88f24",
+            "specification_hash": "3597ae8eac8407dafc59d803caecd53709cc08b582de48a916e99602bc26d087",
+            "status": "unchanged"
+          },
+          {
+            "content_hash": "dd90c2ed4d56761249acb40ff58ea5e44cf24bb72df1273cee5942b7cdf8e07e",
+            "error": null,
+            "generator_id": "autoforge.generator.fastapi.project",
+            "generator_version": "0.1.0",
+            "ownership": "generated",
+            "previous_content_hash": "dd90c2ed4d56761249acb40ff58ea5e44cf24bb72df1273cee5942b7cdf8e07e",
+            "relative_path": "src/kis_auto_trading/application/generated/lifespan.py",
+            "source": "project:kis_auto_trading",
+            "specification_hash": "3597ae8eac8407dafc59d803caecd53709cc08b582de48a916e99602bc26d087",
             "status": "unchanged"
           },
           {
@@ -88,7 +100,7 @@
             "previous_content_hash": "d1e55f01f029b92b0a603955f820852df822ed17274818554d166fe8ed397a39",
             "relative_path": "src/kis_auto_trading/application/generated/module_registry.py",
             "source": "project:kis_auto_trading",
-            "specification_hash": "006f7e096082eee482456234e848b11c434d7c42e7d039b77cd48a7578c88f24",
+            "specification_hash": "3597ae8eac8407dafc59d803caecd53709cc08b582de48a916e99602bc26d087",
             "status": "unchanged"
           },
           {
@@ -100,7 +112,7 @@
             "previous_content_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "relative_path": "src/kis_auto_trading/infrastructure/__init__.py",
             "source": "project:kis_auto_trading:sqlalchemy",
-            "specification_hash": "006f7e096082eee482456234e848b11c434d7c42e7d039b77cd48a7578c88f24",
+            "specification_hash": "3597ae8eac8407dafc59d803caecd53709cc08b582de48a916e99602bc26d087",
             "status": "unchanged"
           },
           {
@@ -112,7 +124,7 @@
             "previous_content_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "relative_path": "src/kis_auto_trading/infrastructure/database/__init__.py",
             "source": "project:kis_auto_trading:sqlalchemy",
-            "specification_hash": "006f7e096082eee482456234e848b11c434d7c42e7d039b77cd48a7578c88f24",
+            "specification_hash": "3597ae8eac8407dafc59d803caecd53709cc08b582de48a916e99602bc26d087",
             "status": "unchanged"
           },
           {
@@ -124,7 +136,7 @@
             "previous_content_hash": "987edfd9dfe38b2c49492c7d1a4e774015d16b72e2281b018e4160be6b47d560",
             "relative_path": "src/kis_auto_trading/infrastructure/database/base.py",
             "source": "project:kis_auto_trading:sqlalchemy",
-            "specification_hash": "006f7e096082eee482456234e848b11c434d7c42e7d039b77cd48a7578c88f24",
+            "specification_hash": "3597ae8eac8407dafc59d803caecd53709cc08b582de48a916e99602bc26d087",
             "status": "unchanged"
           },
           {
@@ -136,7 +148,7 @@
             "previous_content_hash": "94632c64a9f0b5f399315a18cd7cb47fd600e6ff6f2b0c18811f3accb672e67f",
             "relative_path": "src/kis_auto_trading/infrastructure/database/routing.py",
             "source": "project:kis_auto_trading:sqlalchemy",
-            "specification_hash": "006f7e096082eee482456234e848b11c434d7c42e7d039b77cd48a7578c88f24",
+            "specification_hash": "3597ae8eac8407dafc59d803caecd53709cc08b582de48a916e99602bc26d087",
             "status": "unchanged"
           },
           {
@@ -148,7 +160,7 @@
             "previous_content_hash": "33043b1c631b67fb796488a99249ed80c0c6e21d83077fb18aeb26db5d27dd78",
             "relative_path": "src/kis_auto_trading/infrastructure/database/session.py",
             "source": "project:kis_auto_trading:sqlalchemy",
-            "specification_hash": "006f7e096082eee482456234e848b11c434d7c42e7d039b77cd48a7578c88f24",
+            "specification_hash": "3597ae8eac8407dafc59d803caecd53709cc08b582de48a916e99602bc26d087",
             "status": "unchanged"
           },
           {
@@ -160,7 +172,7 @@
             "previous_content_hash": "05b55bb6e1396d1960dad806fc6b3cc1b86879f27d25e5c8b8a078ced312f0e4",
             "relative_path": "src/kis_auto_trading/infrastructure/session_store/__init__.py",
             "source": "project:kis_auto_trading:session-store",
-            "specification_hash": "006f7e096082eee482456234e848b11c434d7c42e7d039b77cd48a7578c88f24",
+            "specification_hash": "3597ae8eac8407dafc59d803caecd53709cc08b582de48a916e99602bc26d087",
             "status": "unchanged"
           },
           {
@@ -172,7 +184,7 @@
             "previous_content_hash": "58d041dfb75e8678ddec279fabe24bb2e39ed81d6ff0bd8c15f8d2a4ab1ac425",
             "relative_path": "src/kis_auto_trading/infrastructure/session_store/fake.py",
             "source": "project:kis_auto_trading:session-store",
-            "specification_hash": "006f7e096082eee482456234e848b11c434d7c42e7d039b77cd48a7578c88f24",
+            "specification_hash": "3597ae8eac8407dafc59d803caecd53709cc08b582de48a916e99602bc26d087",
             "status": "unchanged"
           },
           {
@@ -184,7 +196,19 @@
             "previous_content_hash": "81402b13cad1405b8c28848a242645bbdb2b5884d378f4f2a4570ec3031d917f",
             "relative_path": "src/kis_auto_trading/infrastructure/session_store/protocol.py",
             "source": "project:kis_auto_trading:session-store",
-            "specification_hash": "006f7e096082eee482456234e848b11c434d7c42e7d039b77cd48a7578c88f24",
+            "specification_hash": "3597ae8eac8407dafc59d803caecd53709cc08b582de48a916e99602bc26d087",
+            "status": "unchanged"
+          },
+          {
+            "content_hash": "431331621aa8fcf20ad9b994ea1aaa63f4ebc998a78d1f03c117c7cf55218f8e",
+            "error": null,
+            "generator_id": "autoforge.generator.service.session_store",
+            "generator_version": "0.1.0",
+            "ownership": "generated",
+            "previous_content_hash": "431331621aa8fcf20ad9b994ea1aaa63f4ebc998a78d1f03c117c7cf55218f8e",
+            "relative_path": "src/kis_auto_trading/infrastructure/session_store/provider.py",
+            "source": "project:kis_auto_trading:session-store",
+            "specification_hash": "3597ae8eac8407dafc59d803caecd53709cc08b582de48a916e99602bc26d087",
             "status": "unchanged"
           },
           {
@@ -196,7 +220,7 @@
             "previous_content_hash": "cc4f75b37ec84b9bef58791d4f74ba2d527c53e59c00b3906875a4419839ba5a",
             "relative_path": "src/kis_auto_trading/infrastructure/session_store/redis.py",
             "source": "project:kis_auto_trading:session-store",
-            "specification_hash": "006f7e096082eee482456234e848b11c434d7c42e7d039b77cd48a7578c88f24",
+            "specification_hash": "3597ae8eac8407dafc59d803caecd53709cc08b582de48a916e99602bc26d087",
             "status": "unchanged"
           },
           {
@@ -208,7 +232,7 @@
             "previous_content_hash": "e1485f9e386d38f48dd5ac93a91a123854def24a7ff2034fd8d48c84f01d0e99",
             "relative_path": "src/kis_auto_trading/main.py",
             "source": "project:kis_auto_trading",
-            "specification_hash": "006f7e096082eee482456234e848b11c434d7c42e7d039b77cd48a7578c88f24",
+            "specification_hash": "3597ae8eac8407dafc59d803caecd53709cc08b582de48a916e99602bc26d087",
             "status": "unchanged"
           },
           {
@@ -220,7 +244,7 @@
             "previous_content_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "relative_path": "src/kis_auto_trading/modules/__init__.py",
             "source": "project:kis_auto_trading",
-            "specification_hash": "006f7e096082eee482456234e848b11c434d7c42e7d039b77cd48a7578c88f24",
+            "specification_hash": "3597ae8eac8407dafc59d803caecd53709cc08b582de48a916e99602bc26d087",
             "status": "unchanged"
           },
           {
@@ -232,7 +256,7 @@
             "previous_content_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "relative_path": "src/kis_auto_trading/routers/__init__.py",
             "source": "project:kis_auto_trading",
-            "specification_hash": "006f7e096082eee482456234e848b11c434d7c42e7d039b77cd48a7578c88f24",
+            "specification_hash": "3597ae8eac8407dafc59d803caecd53709cc08b582de48a916e99602bc26d087",
             "status": "unchanged"
           },
           {
@@ -244,24 +268,24 @@
             "previous_content_hash": "9596142f11facbb7a2b62c894186b41e149f4a76f6d3a9363ca9cc40a1f4990e",
             "relative_path": "src/kis_auto_trading/routers/health.py",
             "source": "project:kis_auto_trading",
-            "specification_hash": "006f7e096082eee482456234e848b11c434d7c42e7d039b77cd48a7578c88f24",
+            "specification_hash": "3597ae8eac8407dafc59d803caecd53709cc08b582de48a916e99602bc26d087",
             "status": "unchanged"
           },
           {
-            "content_hash": "df891952425410faa356c093ffb8f8325b85da33243e53b2f468214dca52a72e",
+            "content_hash": "233839f572367a07320c0beb3c54dc13dcdee587159ca89335c7dd789520e57b",
             "error": null,
             "generator_id": "autoforge.generator.fastapi.project",
             "generator_version": "0.1.0",
             "ownership": "generated",
-            "previous_content_hash": "df891952425410faa356c093ffb8f8325b85da33243e53b2f468214dca52a72e",
+            "previous_content_hash": "233839f572367a07320c0beb3c54dc13dcdee587159ca89335c7dd789520e57b",
             "relative_path": "tests/test_health.py",
             "source": "project:kis_auto_trading",
-            "specification_hash": "006f7e096082eee482456234e848b11c434d7c42e7d039b77cd48a7578c88f24",
+            "specification_hash": "3597ae8eac8407dafc59d803caecd53709cc08b582de48a916e99602bc26d087",
             "status": "unchanged"
           }
         ],
-        "job_id": "ec86691a-092c-44c5-81db-294cf00e282d",
-        "specification_hash": "006f7e096082eee482456234e848b11c434d7c42e7d039b77cd48a7578c88f24",
+        "job_id": "336ffa64-90d9-4abe-85f6-965972b1877c",
+        "specification_hash": "3597ae8eac8407dafc59d803caecd53709cc08b582de48a916e99602bc26d087",
         "specification_version": "1"
       },
       "unit_id": "project"
@@ -403,7 +427,7 @@
             "status": "preserved"
           }
         ],
-        "job_id": "ec86691a-092c-44c5-81db-294cf00e282d",
+        "job_id": "336ffa64-90d9-4abe-85f6-965972b1877c",
         "specification_hash": "5d74a5081346ce7770051d1d4b0b0551e3ca1e99a6c35656c42d1a3c7692b91c",
         "specification_version": "1"
       },
@@ -527,11 +551,11 @@
             "generator_id": "autoforge.generator.sqlalchemy.model",
             "generator_version": "0.1.0",
             "ownership": "generated",
-            "previous_content_hash": "c0d10c3d68911d9d7388e009c5e89b3500999e06f8c70bbb86fce0fb438922ae",
+            "previous_content_hash": "b3f8edcfed733d3dd22eb49289cbb715d23ba0f6d4cd7585a84d8d21a98e046c",
             "relative_path": "src/kis_auto_trading/modules/identity/generated/sqlalchemy_repositories.py",
             "source": "module:identity:sqlalchemy-model",
             "specification_hash": "b0b330f2b12dd2d35ecab6da7d8b9dc1322da4cae6f17b2ab7ded1525298525d",
-            "status": "changed"
+            "status": "unchanged"
           },
           {
             "content_hash": "8ed364e209f902957961e94a75f7d3b7b718c3b1a78502952e36cea36448eb69",
@@ -546,7 +570,7 @@
             "status": "preserved"
           }
         ],
-        "job_id": "ec86691a-092c-44c5-81db-294cf00e282d",
+        "job_id": "336ffa64-90d9-4abe-85f6-965972b1877c",
         "specification_hash": "b0b330f2b12dd2d35ecab6da7d8b9dc1322da4cae6f17b2ab7ded1525298525d",
         "specification_version": "1"
       },
