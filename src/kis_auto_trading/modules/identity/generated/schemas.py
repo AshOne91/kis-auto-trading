@@ -25,3 +25,12 @@ class LoginResponse(BaseModel):
     user_id: UUID
     access_token: str
     token_type: str
+
+
+class ValidateSessionRequest(BaseModel):
+    access_token: str
+
+
+class ValidateSessionResponse(BaseModel):
+    user_id: UUID
+    shard_id: str

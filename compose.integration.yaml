@@ -1,0 +1,187 @@
+name: kis-scale-out-test
+
+x-api-environment: &api-environment
+  APP_ENV: integration
+  REDIS_SENTINEL_URLS: sentinel-1:26379,sentinel-2:26379,sentinel-3:26379
+  IDENTITY_DATABASE_URL: postgresql+asyncpg://kis_test:kis_test@identity-db:5432/identity
+  ACCOUNT_SHARD_1_DATABASE_URL: postgresql+asyncpg://kis_test:kis_test@account-db-1:5432/account
+  ACCOUNT_SHARD_2_DATABASE_URL: postgresql+asyncpg://kis_test:kis_test@account-db-2:5432/account
+
+x-api: &api
+  build:
+    context: .
+    dockerfile: Dockerfile
+  environment: *api-environment
+  depends_on:
+    redis-primary:
+      condition: service_healthy
+    redis-replica:
+      condition: service_healthy
+    sentinel-1:
+      condition: service_healthy
+    sentinel-2:
+      condition: service_healthy
+    sentinel-3:
+      condition: service_healthy
+    identity-db:
+      condition: service_healthy
+    account-db-1:
+      condition: service_healthy
+    account-db-2:
+      condition: service_healthy
+  healthcheck:
+    test:
+      - CMD
+      - python
+      - -c
+      - "import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=2)"
+    interval: 3s
+    timeout: 3s
+    retries: 20
+    start_period: 5s
+  restart: unless-stopped
+
+services:
+  redis-primary:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis-primary-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 2s
+      retries: 20
+    ports:
+      - "16379:6379"
+    networks:
+      default:
+        ipv4_address: 172.28.0.10
+
+  redis-replica:
+    image: redis:7-alpine
+    command:
+      - redis-server
+      - --replicaof
+      - redis-primary
+      - "6379"
+      - --appendonly
+      - "yes"
+    volumes:
+      - redis-replica-data:/data
+    depends_on:
+      redis-primary:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 2s
+      retries: 20
+    networks:
+      default:
+        ipv4_address: 172.28.0.11
+
+  sentinel-1: &sentinel
+    image: redis:7-alpine
+    command:
+      - sh
+      - -c
+      - cp /sentinel-template/sentinel.conf /tmp/sentinel.conf && exec redis-sentinel /tmp/sentinel.conf
+    volumes:
+      - ./deploy/redis/sentinel.conf:/sentinel-template/sentinel.conf:ro
+    depends_on:
+      redis-primary:
+        condition: service_healthy
+      redis-replica:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "redis-cli", "-p", "26379", "ping"]
+      interval: 2s
+      timeout: 2s
+      retries: 20
+
+  sentinel-2:
+    <<: *sentinel
+
+  sentinel-3:
+    <<: *sentinel
+
+  identity-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: kis_test
+      POSTGRES_PASSWORD: kis_test
+      POSTGRES_DB: identity
+    volumes:
+      - identity-db-data:/var/lib/postgresql/data
+      - ./database/global/0001_identity.sql:/docker-entrypoint-initdb.d/0001_identity.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kis_test -d identity"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+    ports:
+      - "15432:5432"
+
+  account-db-1:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: kis_test
+      POSTGRES_PASSWORD: kis_test
+      POSTGRES_DB: account
+    volumes:
+      - account-db-1-data:/var/lib/postgresql/data
+      - ./database/sharded/0001_account.sql:/docker-entrypoint-initdb.d/0001_account.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kis_test -d account"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+    ports:
+      - "15433:5432"
+
+  account-db-2:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: kis_test
+      POSTGRES_PASSWORD: kis_test
+      POSTGRES_DB: account
+    volumes:
+      - account-db-2-data:/var/lib/postgresql/data
+      - ./database/sharded/0001_account.sql:/docker-entrypoint-initdb.d/0001_account.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kis_test -d account"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+    ports:
+      - "15434:5432"
+
+  api-1:
+    <<: *api
+    environment:
+      <<: *api-environment
+      INSTANCE_ID: api-1
+    ports:
+      - "18001:8000"
+
+  api-2:
+    <<: *api
+    environment:
+      <<: *api-environment
+      INSTANCE_ID: api-2
+    ports:
+      - "18002:8000"
+
+volumes:
+  redis-primary-data:
+  redis-replica-data:
+  identity-db-data:
+  account-db-1-data:
+  account-db-2-data:
+
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: 172.28.0.0/24

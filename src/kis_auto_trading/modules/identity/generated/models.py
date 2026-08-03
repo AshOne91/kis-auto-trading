@@ -11,4 +11,5 @@ class LoginAccount(BaseModel):
     email: str
     password_hash: str
     is_active: bool = True
+    shard_id: str
     created_at: datetime

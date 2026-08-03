@@ -21,6 +21,9 @@ models:
         type:
           kind: boolean
         default: true
+      - name: shard_id
+        type:
+          kind: string
       - name: created_at
         type:
           kind: datetime
@@ -49,6 +52,8 @@ endpoints:
           type:
             kind: boolean
     handler: signup
+    dependencies:
+      - database_session_registry
   - name: login
     method: POST
     path: /login
@@ -74,6 +79,26 @@ endpoints:
     handler: login
     dependencies:
       - session_store
+      - database_session_registry
+  - name: validate_session
+    method: POST
+    path: /session/validate
+    request:
+      fields:
+        - name: access_token
+          type:
+            kind: string
+    response:
+      fields:
+        - name: user_id
+          type:
+            kind: uuid
+        - name: shard_id
+          type:
+            kind: string
+    handler: validate_session
+    dependencies:
+      - session_store
 
 database:
   provider: agnostic
@@ -95,6 +120,9 @@ database:
           type:
             kind: boolean
           default: true
+        - name: shard_id
+          type:
+            kind: string
         - name: created_at
           type:
             kind: datetime

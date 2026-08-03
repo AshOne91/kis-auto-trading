@@ -17,6 +17,9 @@ application:
       namespace: kis_session
       ttl_seconds: 3600
       url_env: REDIS_URL
+      mode: sentinel
+      sentinel_urls_env: REDIS_SENTINEL_URLS
+      sentinel_master: kis-session
   databases:
     - name: identity
       global_url_env: IDENTITY_DATABASE_URL
@@ -24,3 +27,5 @@ application:
       shards:
         - shard_id: "1"
           url_env: ACCOUNT_SHARD_1_DATABASE_URL
+        - shard_id: "2"
+          url_env: ACCOUNT_SHARD_2_DATABASE_URL

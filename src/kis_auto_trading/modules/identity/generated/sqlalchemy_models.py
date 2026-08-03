@@ -20,4 +20,6 @@ class LoginAccountRecord(Base):
 
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text('TRUE'))
 
+    shard_id: Mapped[str] = mapped_column(Text, nullable=False)
+
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
