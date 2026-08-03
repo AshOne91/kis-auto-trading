@@ -24,6 +24,9 @@ AutoForge와 이 저장소는 독립 Git 저장소로 유지한다.
 - Nginx 2개와 FastAPI 3개 replica를 선언한 Kubernetes manifest
 - 정식 Domain, Application Handler, Repository와 DB 계층은 아직 없음
 - `test.py`는 pytest가 아니라 실행 중인 서버를 호출하는 수동 probe
+- `base_server/`와 루트 `test.py`는 역사적 비교 자료이므로 제품 Ruff 검사에서
+  제외한다. 수동 probe가 다시 필요해지면 `scripts/` 아래의 인자·timeout·명시적
+  종료 코드를 가진 운영 도구로 새로 작성한다.
 
 기존 프로토타입은 첫 생성 검증이 끝날 때까지 삭제하거나 덮어쓰지 않는다.
 

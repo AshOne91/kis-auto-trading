@@ -30,5 +30,8 @@ where = ["src"]
 pythonpath = ["src"]
 testpaths = ["tests"]
 
+[tool.ruff]
+extend-exclude = ["base_server", "test.py"]
+
 [tool.ruff.lint.isort]
 known-first-party = ["kis_auto_trading"]

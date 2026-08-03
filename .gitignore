@@ -10,6 +10,9 @@ venv/
 pip-log.txt
 pip-delete-this-directory.txt
 *.egg-info/
+build/
+dist/
+.autoforge/dist/
 
 # === IDE 및 OS 관련 임시 파일 ===
 .idea/

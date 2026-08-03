@@ -1,5 +1,10 @@
 spec_version: "1"
 
+tooling:
+  ruff_exclude:
+    - base_server
+    - test.py
+
 project:
   name: KIS Auto Trading
   package_name: kis_auto_trading

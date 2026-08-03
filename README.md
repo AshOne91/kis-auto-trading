@@ -10,6 +10,9 @@ Outbox를 실제 Docker 환경에서 검증한다.
 - `AutoForge`: 명세, Generator, Manifest, 공통 infrastructure와 검증 계약을 소유한다.
 - `kis-auto-trading`: 투자 도메인 규칙, handler, 배포 설정과 실제 운영 workflow를 소유한다.
 - `base_server/`: SKN12 원본 기능과 과거 K8s 프로토타입을 참고하기 위한 보존 영역이다.
+- `base_server/`와 루트 `test.py`는 실행 제품이 아닌 보존 자료이므로 Ruff 대상에서
+  제외한다. 제품 품질 게이트는 `src/`, `tests/`, `scripts/`, `migrations/`와 배포
+  설정을 대상으로 한다.
 
 AutoForge가 생성한 파일을 무조건 수정하지 않는다. `.autoforge/manifest.json`의
 `GENERATED`, `SCAFFOLDED`, `USER_OWNED` 소유권을 기준으로 변경한다.
