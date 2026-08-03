@@ -6,6 +6,8 @@ from fastapi import HTTPException, status
 
 from kis_auto_trading.infrastructure.database.routing import ShardTarget
 from kis_auto_trading.infrastructure.database.session import AsyncSessionRegistry
+from kis_auto_trading.infrastructure.messaging.protocol import EventMessage
+from kis_auto_trading.infrastructure.outbox.repository import OutboxWriter
 from kis_auto_trading.infrastructure.session_store.protocol import SessionData
 from kis_auto_trading.modules.account.generated.models import UserProfile
 from kis_auto_trading.modules.account.generated.schemas import UpdateProfileRequest
@@ -47,6 +49,22 @@ async def update_profile(
     async with session_registry.session(target) as session:
         repository = SQLAlchemyUserProfileRepository(session)
         await repository.save(profile)
+        OutboxWriter(session).add(
+            EventMessage(
+                event_type="account.profile.updated",
+                aggregate_id=str(user_id),
+                routing_key="account.profile.updated",
+                payload={
+                    "user_id": str(user_id),
+                    "shard_id": target.shard_id or "",
+                    "investment_experience": profile.investment_experience,
+                    "risk_tolerance": profile.risk_tolerance,
+                    "investment_goal": profile.investment_goal,
+                    "monthly_budget": profile.monthly_budget,
+                    "profile_completed": profile.profile_completed,
+                },
+            )
+        )
     return profile
 
 

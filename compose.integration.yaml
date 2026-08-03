@@ -10,6 +10,10 @@ x-api-environment: &api-environment
   APP_ENV: integration
   REDIS_CLUSTER_URL: redis://redis-node-1:6379
 
+x-messaging-environment: &messaging-environment
+  <<: *database-environment
+  RABBITMQ_URL: amqp://kis_test:kis_test@rabbitmq:5672/
+
 x-api: &api
   build:
     context: .
@@ -39,6 +43,26 @@ x-api: &api
   restart: unless-stopped
 
 services:
+  rabbitmq:
+    image: rabbitmq:4.1-management-alpine
+    hostname: rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: kis_test
+      RABBITMQ_DEFAULT_PASS: kis_test
+      RABBITMQ_NODENAME: rabbit@rabbitmq
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+      - ./deploy/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "check_port_connectivity"]
+      interval: 3s
+      timeout: 5s
+      retries: 30
+      start_period: 10s
+    ports:
+      - "15672:15672"
+      - "15673:5672"
+
   redis-node-1: &redis-cluster-node
     image: redis:7-alpine
     command:
@@ -281,6 +305,32 @@ services:
       account-db-2:
         condition: service_healthy
 
+  outbox-relay:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment: *messaging-environment
+    command: ["python", "scripts/run_outbox_relay.py"]
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  message-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment: *messaging-environment
+    command: ["python", "scripts/run_message_worker.py"]
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
   api-1:
     <<: *api
     environment:
@@ -298,6 +348,7 @@ services:
       - "18002:8000"
 
 volumes:
+  rabbitmq-data:
   redis-node-1-data:
   redis-node-2-data:
   redis-node-3-data:

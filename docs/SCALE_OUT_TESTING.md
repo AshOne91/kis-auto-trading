@@ -100,3 +100,25 @@ Failover로 교체한다. 애플리케이션은 `SessionStore`와 Cluster endpoi
 AutoForge는 `SessionStore` 업무 계약을 유지하면서 standalone, sentinel, cluster,
 managed 연결 공급자를 선택할 수 있게 생성해야 한다. Redis 배치 방식이 Identity Handler나
 Account Handler의 업무 코드로 새어 나가면 안 된다.
+
+## RabbitMQ와 Transactional Outbox
+
+현재 통합 토폴로지는 RabbitMQ 1대, Outbox Relay 1대와 Message Worker 1대를 추가로
+실행한다. 이 단계는 broker 자체 cluster 검증 전의 전달 신뢰성 수직 슬라이스다.
+
+Profile 저장과 `outbox_events` 추가는 선택된 Account shard의 같은 SQLAlchemy
+transaction에서 수행한다. API는 RabbitMQ에 직접 연결하지 않으므로 broker가 중단되어도
+업무 저장은 성공하고 event는 `pending`으로 남는다.
+
+Outbox Relay는 `FOR UPDATE SKIP LOCKED`로 batch를 선점하고 publisher confirm이 성공한
+event만 `published`로 바꾼다. Worker는 manual ACK 전에 같은 shard의
+`processed_messages`에 event ID를 `ON CONFLICT DO NOTHING`으로 claim한다. relay가
+confirm 직후 DB commit 전에 죽어 같은 message를 다시 보내도 두 번째 처리는 건너뛴다.
+
+`scripts/verify_scale_out.py`는 실제로 RabbitMQ를 중단한 상태에서 Profile 저장,
+pending Outbox 확인, broker 재시작 후 발행/소비, 같은 event 재발행 후 Inbox 한 행 유지를
+수행한다. RabbitMQ node name은 `rabbit@rabbitmq`로 고정하고 named volume을 사용하므로
+컨테이너를 재생성해도 durable queue가 복구된다.
+
+RabbitMQ cluster와 quorum queue 복제는 후속 전체 HA 단계에서 별도로 검증한다. 현재
+검증 결과를 broker 다중화 완료로 과장하지 않는다.

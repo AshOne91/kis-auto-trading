@@ -19,6 +19,17 @@ application:
       url_env: REDIS_URL
       mode: cluster
       cluster_url_env: REDIS_CLUSTER_URL
+    - name: domain_events
+      kind: rabbitmq
+      connection_url_env: RABBITMQ_URL
+      exchange: kis.domain.events
+      queue: kis.profile.events
+      routing_key: account.profile.#
+      dead_letter_exchange: kis.domain.events.dlx
+      dead_letter_queue: kis.profile.events.dead-letter
+      prefetch_count: 32
+      outbox_stores:
+        - account
   databases:
     - name: identity
       global_url_env: IDENTITY_DATABASE_URL

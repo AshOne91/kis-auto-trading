@@ -186,6 +186,15 @@ def wait_for_cluster_promotion(service: str, node_id: str) -> None:
 
 
 def profile_count(service: str, user_id: str) -> int:
+    return int(
+        account_scalar(
+            service,
+            f"SELECT count(*) FROM user_profiles WHERE user_id = '{user_id}'",
+        )
+    )
+
+
+def account_scalar(service: str, statement: str) -> str:
     result = compose(
         "exec",
         "-T",
@@ -196,9 +205,93 @@ def profile_count(service: str, user_id: str) -> int:
         "-d",
         "account",
         "-tAc",
-        f"SELECT count(*) FROM user_profiles WHERE user_id = '{user_id}'",
+        statement,
     )
-    return int(result.stdout.strip())
+    return result.stdout.strip()
+
+
+def wait_for_rabbitmq() -> None:
+    last_error: subprocess.CalledProcessError | None = None
+    for _ in range(45):
+        try:
+            compose("exec", "-T", "rabbitmq", "rabbitmq-diagnostics", "-q", "ping")
+            return
+        except subprocess.CalledProcessError as error:
+            last_error = error
+            time.sleep(RETRY_SECONDS)
+    raise RuntimeError("RabbitMQ did not recover") from last_error
+
+
+def latest_outbox_event(service: str, user_id: str) -> tuple[str, str] | None:
+    value = account_scalar(
+        service,
+        "SELECT event_id || '|' || status FROM outbox_events "
+        f"WHERE aggregate_id = '{user_id}' "
+        "ORDER BY occurred_at DESC LIMIT 1",
+    )
+    if not value:
+        return None
+    event_id, separator, status = value.partition("|")
+    if not separator:
+        raise RuntimeError(f"Unexpected outbox row: {value!r}")
+    return event_id, status
+
+
+def processed_count(service: str, event_id: str) -> int:
+    return int(
+        account_scalar(
+            service,
+            "SELECT count(*) FROM processed_messages "
+            f"WHERE event_id = '{event_id}'",
+        )
+    )
+
+
+def rabbitmq_queue_messages(queue_name: str) -> int:
+    result = compose(
+        "exec",
+        "-T",
+        "rabbitmq",
+        "rabbitmqctl",
+        "list_queues",
+        "name",
+        "messages",
+        "--formatter",
+        "json",
+    )
+    queues = json.loads(result.stdout)
+    for queue in queues:
+        if queue["name"] == queue_name:
+            return int(queue["messages"])
+    raise RuntimeError(f"RabbitMQ queue was not declared: {queue_name}")
+
+
+def wait_for_dead_letter(queue_name: str) -> None:
+    for _ in range(30):
+        if rabbitmq_queue_messages(queue_name) >= 1:
+            return
+        time.sleep(RETRY_SECONDS)
+    raise RuntimeError(f"Poison message did not reach DLQ: {queue_name}")
+
+
+def wait_for_outbox_delivery(
+    service: str,
+    user_id: str,
+    expected_event_id: str | None = None,
+) -> str:
+    last_state: tuple[str, str] | None = None
+    for _ in range(90):
+        last_state = latest_outbox_event(service, user_id)
+        if last_state is not None:
+            event_id, status = last_state
+            if (
+                status == "published"
+                and processed_count(service, event_id) == 1
+                and (expected_event_id is None or event_id == expected_event_id)
+            ):
+                return event_id
+        time.sleep(RETRY_SECONDS)
+    raise RuntimeError(f"Outbox event was not delivered: {last_state!r}")
 
 
 def main() -> None:
@@ -240,6 +333,7 @@ def main() -> None:
         "investment_goal": "GROWTH",
         "monthly_budget": 1_000_000,
     }
+    compose("stop", "rabbitmq")
     updated_profile = authenticated_json(
         "PUT",
         "http://localhost:18002/api/account/profile",
@@ -262,9 +356,76 @@ def main() -> None:
         raise RuntimeError("Profile was not stored in the selected account shard")
     if profile_count(other_service, user_id) != 0:
         raise RuntimeError("Profile leaked into the non-selected account shard")
+    pending_event = latest_outbox_event(expected_service, user_id)
+    if pending_event is None or pending_event[1] != "pending":
+        raise RuntimeError(
+            "Profile transaction did not leave a pending outbox event "
+            f"while RabbitMQ was down: {pending_event!r}"
+        )
+    event_id = pending_event[0]
+    if processed_count(expected_service, event_id) != 0:
+        raise RuntimeError("Outbox event was processed while RabbitMQ was down")
     print(
         "cross-instance account shard verified: "
         f"api-2 write -> api-1 read, store={expected_service}"
+    )
+    print(
+        "RabbitMQ outage write verified: profile + pending outbox committed, "
+        f"event_id={event_id}"
+    )
+
+    compose("start", "rabbitmq")
+    wait_for_rabbitmq()
+    delivered_event_id = wait_for_outbox_delivery(
+        expected_service, user_id, event_id
+    )
+    print(
+        "RabbitMQ recovery verified: outbox published and worker processed, "
+        f"event_id={delivered_event_id}"
+    )
+
+    account_scalar(
+        expected_service,
+        "UPDATE outbox_events SET status = 'pending', published_at = NULL, "
+        "available_at = NOW() "
+        f"WHERE event_id = '{event_id}' RETURNING event_id",
+    )
+    wait_for_outbox_delivery(expected_service, user_id, event_id)
+    if processed_count(expected_service, event_id) != 1:
+        raise RuntimeError("Duplicate event produced more than one inbox record")
+    print(
+        "duplicate delivery verified: repeated publish kept one inbox record, "
+        f"event_id={event_id}"
+    )
+
+    poison_event_id = str(uuid4())
+    shard_id = str(validated["shard_id"])
+    account_scalar(
+        expected_service,
+        "INSERT INTO outbox_events ("
+        "event_id, event_type, event_version, aggregate_id, routing_key, "
+        "payload, status, attempts, available_at, occurred_at"
+        ") VALUES ("
+        f"'{poison_event_id}', 'account.profile.unsupported', 1, '{user_id}', "
+        "'account.profile.unsupported', "
+        f"'{{\"shard_id\":\"{shard_id}\"}}'::jsonb, "
+        "'pending', 0, NOW(), NOW()"
+        ") RETURNING event_id",
+    )
+    wait_for_dead_letter("kis.profile.events.dead-letter")
+    if processed_count(expected_service, poison_event_id) != 0:
+        raise RuntimeError("Poison event was incorrectly claimed as processed")
+    compose(
+        "exec",
+        "-T",
+        "rabbitmq",
+        "rabbitmqctl",
+        "purge_queue",
+        "kis.profile.events.dead-letter",
+    )
+    print(
+        "dead-letter verified: unsupported event rejected without inbox claim, "
+        f"event_id={poison_event_id}"
     )
 
     routing_tag = access_token.partition(".")[0]

@@ -8,20 +8,30 @@ from fastapi import HTTPException
 
 from kis_auto_trading.infrastructure.database.routing import ShardTarget
 from kis_auto_trading.infrastructure.database.session import AsyncSessionRegistry
+from kis_auto_trading.infrastructure.outbox.models import OutboxEventRecord
 from kis_auto_trading.infrastructure.session_store.protocol import SessionData
 from kis_auto_trading.modules.account import handlers
 from kis_auto_trading.modules.account.generated.models import UserProfile
 from kis_auto_trading.modules.account.generated.schemas import UpdateProfileRequest
 
 
+class RecordingSession:
+    def __init__(self) -> None:
+        self.added: list[object] = []
+
+    def add(self, value: object) -> None:
+        self.added.append(value)
+
+
 class RecordingSessionRegistry:
     def __init__(self) -> None:
         self.targets: list[ShardTarget] = []
+        self.recording_session = RecordingSession()
 
     @asynccontextmanager
     async def session(self, target: ShardTarget) -> AsyncIterator[object]:
         self.targets.append(target)
-        yield object()
+        yield self.recording_session
 
 
 class MemoryProfileRepository:
@@ -78,6 +88,22 @@ async def test_update_and_get_profile_use_session_shard() -> None:
         ShardTarget(store="account", shard_id="2"),
         ShardTarget(store="account", shard_id="2"),
     ]
+    assert len(registry.recording_session.added) == 1
+    outbox = registry.recording_session.added[0]
+    assert isinstance(outbox, OutboxEventRecord)
+    assert outbox.event_type == "account.profile.updated"
+    assert outbox.routing_key == "account.profile.updated"
+    assert outbox.aggregate_id == str(user_id)
+    assert outbox.payload == {
+        "user_id": str(user_id),
+        "shard_id": "2",
+        "investment_experience": "ADVANCED",
+        "risk_tolerance": "AGGRESSIVE",
+        "investment_goal": "INCOME",
+        "monthly_budget": 1_000_000,
+        "profile_completed": True,
+    }
+    assert outbox.status == "pending"
 
 
 @pytest.mark.anyio

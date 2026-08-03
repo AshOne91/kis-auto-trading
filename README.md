@@ -1,164 +1,117 @@
-# 🚀 High-Availability K8s Trading Infrastructure (`kis-auto-trading`)
+# KIS Auto Trading
 
-> **Automated Stock Trading Infrastructure with K8s High-Availability Architecture, Dynamic Reverse Proxy, and Zero-Trust Secret Management.**
+KIS Auto Trading은 AutoForge가 생성한 FastAPI 골격을 실제 업무 코드와 결합하여
+검증하는 수평 확장형 자동매매 서비스다. 현재 첫 수직 기능은 Identity 로그인과
+Account Profile이며, Global DB, shard DB, Redis Cluster, RabbitMQ와 Transactional
+Outbox를 실제 Docker 환경에서 검증한다.
 
-본 프로젝트는 한국투자증권(KIS) Open API 기반의 **24/7 무중단 주식 자동매매 시스템**을 위한 **고가용성(High-Availability) 마이크로서비스 인프라**입니다.
-외부 트래픽 제어, 동적 헤더 주입, 로드밸런싱, k8s Secret 기반 보안, hostPath 볼륨 마운트를 통한 로깅 보존까지 프로덕션 레벨의 안정성을 갖추도록 설계되었습니다.
+## 프로젝트 관계
 
-또한, 본 명세서는 **인프라 자동 생성 AI 에이전트 및 IaC(Infrastructure as Code) 자동화 프로젝트**가 본 시스템의 토폴로지를 분석하고 표준 템플릿으로 재복제할 수 있도록 제공되는 **System Architecture Blueprint Reference**입니다.
+- `AutoForge`: 명세, Generator, Manifest, 공통 infrastructure와 검증 계약을 소유한다.
+- `kis-auto-trading`: 투자 도메인 규칙, handler, 배포 설정과 실제 운영 workflow를 소유한다.
+- `base_server/`: SKN12 원본 기능과 과거 K8s 프로토타입을 참고하기 위한 보존 영역이다.
 
----
+AutoForge가 생성한 파일을 무조건 수정하지 않는다. `.autoforge/manifest.json`의
+`GENERATED`, `SCAFFOLDED`, `USER_OWNED` 소유권을 기준으로 변경한다.
 
-## 📋 System Topology & Traffic Flow
-
-```text
-[ External Client / Probe (test.py) ]
-                 │ (HTTP Request via http://127.0.0.1:8080)
-                 ▼
-[ Service: king-load-balancer (Type: LoadBalancer / Port: 8080 -> TargetPort: 80) ]
-                 │
-                 ▼
-[ Nginx Reverse Proxy Layer (HA: 2 Replicas) ]
-  ├── Pod 1: instance-web-nginx-deploy-xxxx1
-  └── Pod 2: instance-web-nginx-deploy-xxxx2
-                 │ (Injects Dynamic Header: X-Instance-Name from k8s Secret)
-                 ▼
-[ Internal Service: backend-service (ClusterIP / Port: 8000) ]
-                 │ (Round-Robin Load Balancing)
-                 ▼
-[ FastAPI Application Engine Layer (Scale-out: 3 Replicas) ]
-  ├── Pod 1: instance-web-fastapi-deploy-yyyy1
-  ├── Pod 2: instance-web-fastapi-deploy-yyyy2
-  └── Pod 3: instance-web-fastapi-deploy-yyyy3
-                 │
-                 ▼ (Appends Execution Logs with Unbuffered I/O)
-[ Persistent Volume: Volume Mount (/app/logs) ──► Host Path (/run/desktop/mnt/host/c/kis-auto-trading/logs) ]
-
-```
-
----
-
-## 📂 Project Structure & Module Boundaries
+## 현재 실행 구조
 
 ```text
-C:\kis-auto-trading\
- ├── base_server/                 # Microservice Backend & Proxy Sources
- │    ├── template/
- │    │    └── template_common.py # Unified JSON Response Formatter
- │    ├── service/
- │    │    └── stock_service.py   # Core Trading Engine Business Logic
- │    ├── application/
- │    │    └── base_web_server/
- │    │         └── main.py       # FastAPI Entry Point (Unbuffered File Logging)
- │    ├── nginx.conf.template     # Dynamic Nginx Configuration Blueprint
- │    ├── Dockerfile.web          # Python 3.10-slim Container Spec (PYTHONPATH=/app)
- │    └── Dockerfile.nginx        # Custom Nginx Image with Template Auto-Substitution
- │
- ├── logs/                        # [Git-Ignored] Host-Side Persistent Log Storage
- ├── kis_secret.env               # [Git-Ignored] Local Master Secret File (App Keys, Instances)
- ├── .gitignore                   # Security Enforcement Rules (*.env, logs/, venv/ exclusion)
- ├── requirements.txt             # Frozen Dependencies (fastapi, uvicorn, httpx)
- ├── kis-instances.yaml           # Fully Decoupled Production K8s Manifest (No Hardcoded Secrets)
- └── test.py                      # System Health Probe & Integration Test Script
+Client
+  ├─ API 1 ─┐
+  └─ API 2 ─┴─ Redis Cluster (3 Primary + 3 Replica)
+              ├─ Identity Global PostgreSQL
+              ├─ Account PostgreSQL Shard 1
+              └─ Account PostgreSQL Shard 2
 
+Profile transaction
+  ├─ user_profiles 저장
+  └─ outbox_events 저장
+         ↓ Outbox Relay
+      RabbitMQ durable topic exchange/queue
+         ↓ manual ACK
+      Message Worker
+         ↓ event_id unique claim
+      processed_messages (선택된 Account shard)
 ```
 
----
+Redis는 session/cache/coordination, RabbitMQ는 외부 durable message transport,
+PostgreSQL은 업무 상태의 원장을 담당한다. 서로의 책임을 대체하지 않는다.
 
-## 🔒 Security Architecture & Zero-Trust Secret Lifecycle
+## AutoForge 생성 범위
 
-1. **Separation of Concerns**: `kis-instances.yaml` 설계도 내에는 **그 어떠한 민감 정보(App Key, Instance Name)도 하드코딩하지 않습니다.**
-2. **K8s Native Secret Integration**:
-* 로컬 개발 환경의 `kis_secret.env` 파라미터를 읽어 메모리 상의 `Secret` 인프라 객체(`my-kis-gold-bar`)로 수동 주입합니다.
-* Deployment 스펙은 `secretKeyRef`를 사용하여 런타임에 유기적으로 환경변수를 바인딩합니다.
+`autoforge.yaml`과 `specifications/*.yaml`을 입력으로 다음 파일을 생성한다.
 
+- FastAPI application/module 골격
+- SQLAlchemy async model/repository와 shard session registry
+- Store별 Alembic 환경과 immutable baseline/outbox revision
+- Redis standalone/Sentinel/Cluster session adapter
+- RabbitMQ publisher/consumer와 durable topology
+- Transactional Outbox writer/relay와 Processed Message Inbox
+- 실행 script와 generation manifest
 
-3. **Source Control Integrity**:
-* `.gitignore`가 `*.env` 및 `logs/`를 전역 차단하여 Github 등 원격 저장소 노출을 원천 방지합니다.
-
-
-
----
-
-## 💾 Storage & Self-Healing Log Management
-
-* **Host-Path Volume Binding**: Windows Docker Desktop 환경의 호스트 경로 (`/run/desktop/mnt/host/c/kis-auto-trading/logs`)와 컨테이너 내부(`/app/logs`)를 직접 연동합니다.
-* **Unbuffered I/O Policy**: FastAPI 로깅 시 `f.flush()` 및 `buffering=1` 스펙을 강제 적용하여, 파드가 비정상 종료(Crash)되더라도 데이터 손실 없는 실시간 영구 기록을 보장합니다.
-
----
-
-## 🛠️ Quick Start & Deployment Guide
-
-### 1. Master Secret File Configuration
-
-프로젝트 루트 디렉토리에 `kis_secret.env` 파일 생성:
-
-```text
-INSTANCE_NAME=SECURE-KING-BANANA-AAAA
-KIS_API_URL=https://openapi.koreainvestment.com:9443
-
-```
-
-### 2. Container Images Build
+재생성 명령:
 
 ```powershell
-cd C:\kis-auto-trading\base_server
-docker build -f Dockerfile.web -t kis-fastapi-web:v3 .
-docker build -f Dockerfile.nginx -t kis-nginx:v4 .
-cd ..
-
+python -m autoforge.main generate `
+  --project autoforge.yaml `
+  --specifications specifications `
+  --output .
 ```
 
-### 3. K8s Infrastructure Deployment
+## 로컬 검증
+
+Python 3.12 환경에서:
 
 ```powershell
-# Create persistent host log directory
-mkdir logs -ErrorAction SilentlyContinue
-
-# Clear existing instances & inject Secret Gold Bar
-kubectl delete -f kis-instances.yaml --ignore-not-found=true
-kubectl delete secret my-kis-gold-bar --ignore-not-found=true
-kubectl create secret generic my-kis-gold-bar --from-env-file=kis_secret.env
-
-# Apply Manifests
-kubectl apply -f kis-instances.yaml
-
+python -m pip install -e ".[test]"
+python -m ruff check --no-cache src tests scripts
+pytest -p no:cacheprovider
 ```
 
-### 4. Verification
+전체 다중화 통합 검증:
 
 ```powershell
-# Pod status check (Expect: 2 Nginx Pods, 3 FastAPI Pods)
-kubectl get pods
-
-# Health Probe Execution
-python test.py
-
-# Confirm execution log persistence
-Get-Content C:\kis-auto-trading\logs\trading_history.log
-
+docker compose -f compose.integration.yaml up -d --build
+python scripts/verify_scale_out.py
 ```
 
----
+검증 스크립트는 다음을 실제로 수행한다.
 
-## 🤖 Instructions for Auto-Generation AI Agents / Infrastructure Builders
+1. API 2대의 health를 확인한다.
+2. API 1 로그인 session을 API 2에서 검증한다.
+3. API 2가 Profile을 선택된 shard에 저장하고 API 1이 조회한다.
+4. RabbitMQ 중단 중 Profile과 pending Outbox가 함께 commit되는지 확인한다.
+5. RabbitMQ 복구 후 relay 발행과 worker 소비를 확인한다.
+6. 같은 event를 재발행해 Inbox row가 하나만 남는지 확인한다.
+7. 실제 Redis primary를 중단해 replica 승격, 기존 읽기와 신규 쓰기를 확인한다.
 
-If you are an AI Agent tasked with extending, cloning, or automating this infrastructure:
+통합 환경의 `kis_test` 계정과 비밀번호는 격리된 로컬 테스트 전용이다. 운영 Secret으로
+재사용하지 않는다. volume 삭제가 필요할 때만 대상 Compose 프로젝트를 확인한 뒤
+명시적으로 `down -v`를 실행한다.
 
-1. **Strict Architecture Enforcement**:
-* Do NOT collapse the Nginx reverse proxy layer into FastAPI. The two-tier separation (Proxy -> Backend) is required for dynamic header injection and security boundaries.
-* Maintain service exposure via `king-load-balancer` (External: `8080`, Internal Target: `80`).
+## 현재 완료 범위
 
+- Identity Global DB와 Account 2-shard Alembic migration
+- Bearer session과 Profile shard 저장
+- Redis Cluster 3 Primary + 3 Replica 장애 전환
+- RabbitMQ publisher confirm, persistent message, manual ACK와 DLQ
+- Profile transaction + Outbox 원자성
+- relay 재시도와 consumer Inbox 멱등성
+- RabbitMQ container 재생성 시 durable queue volume 복구
 
-2. **Decoupling Rule**:
-* Any new trading strategies or API connections MUST be implemented in `base_server/service/`.
-* Never embed credentials into `.yaml` manifests. Always reference `my-kis-gold-bar` or additional Secret objects.
+## 다음 순서
 
+1. EventBus를 generic transport로 유지하면서 Job/Pipeline 실행 event를 구현한다.
+2. 영속 Job 상태와 idempotent trigger/status API를 구현한다.
+3. Airflow로 News 수집과 RAG 적재 workflow를 조정한다.
+4. Git/Webhook/CI-CD 자동화와 AWS HA 배포 계약을 구현한다.
+5. RabbitMQ cluster, DB/Redis Multi-AZ와 보안·장애 검증을 확장한다.
 
-3. **Stateless Scale-Out Guarantee**:
-* All backend FastAPIs MUST remain stateless.
-* Session or execution states MUST be offloaded to persistent volumes or external datastores.
+## 문서
 
-
-
----
+- [프로젝트 역할과 경계](docs/PROJECT_BOUNDARIES.md)
+- [AutoForge 적용 계획](docs/AUTOFORGE_ADOPTION_PLAN.md)
+- [다중화 통합 테스트](docs/SCALE_OUT_TESTING.md)
+- [SKN12 Account 현대화](docs/SKN12_ACCOUNT_MODERNIZATION.md)
+- [Airflow News/RAG 전환 계획](docs/AIRFLOW_NEWS_RAG_PLAN.md)
