@@ -39,8 +39,10 @@ docker compose -f compose.integration.yaml down -v
 
 검증 스크립트는 API 1에서 회원가입과 로그인을 수행하고, 발급된 Redis session을 API 2가
 조회해 같은 `user_id`와 `shard_id`를 반환하는지 확인한다. 이는 API 로컬 메모리가 아니라
-공유 Redis와 Global DB를 사용한다는 최소 교차 인스턴스 증거다. 개인정보를 실제 shard에
-저장하고 분리 여부를 확인하는 테스트는 Account/Profile Handler 구현 단계에서 추가한다.
+공유 Redis와 Global DB를 사용한다는 최소 교차 인스턴스 증거다. 이어서 API 2가 Bearer
+session의 `user_id`와 `shard_id`로 Profile을 선택된 Account DB에 저장하고 API 1이 같은
+Profile을 조회한다. 스크립트는 선택된 shard의 `user_profiles`에만 1행이 있고 반대
+shard에는 0행인 것도 직접 확인한다.
 
 ## 환경과 볼륨의 경계
 

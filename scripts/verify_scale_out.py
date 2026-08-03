@@ -46,6 +46,28 @@ def post_json(url: str, payload: dict[str, str]) -> dict[str, object]:
         return json.loads(response.read().decode("utf-8"))
 
 
+def authenticated_json(
+    method: str,
+    url: str,
+    access_token: str,
+    payload: dict[str, object] | None = None,
+) -> dict[str, object]:
+    data = None if payload is None else json.dumps(payload).encode("utf-8")
+    request = urllib.request.Request(
+        url,
+        data=data,
+        headers={
+            "Authorization": f"Bearer {access_token}",
+            "Content-Type": "application/json",
+        },
+        method=method,
+    )
+    with urllib.request.urlopen(request, timeout=10) as response:
+        if response.status != 200:
+            raise RuntimeError(f"Unexpected HTTP status: {response.status}")
+        return json.loads(response.read().decode("utf-8"))
+
+
 def wait_for_post_json(
     url: str,
     payload: dict[str, str],
@@ -94,6 +116,22 @@ def wait_for_replica_promotion() -> str:
     raise RuntimeError(f"Redis replica was not promoted; master={last_master}")
 
 
+def profile_count(service: str, user_id: str) -> int:
+    result = compose(
+        "exec",
+        "-T",
+        service,
+        "psql",
+        "-U",
+        "kis_test",
+        "-d",
+        "account",
+        "-tAc",
+        f"SELECT count(*) FROM user_profiles WHERE user_id = '{user_id}'",
+    )
+    return int(result.stdout.strip())
+
+
 def main() -> None:
     results = {url: wait_for_health(url) for url in API_URLS}
     if len(results) != 2:
@@ -124,6 +162,40 @@ def main() -> None:
     print(
         "cross-instance session verified: "
         f"api-1 login -> api-2 validation, shard={validated['shard_id']}"
+    )
+
+    access_token = str(login["access_token"])
+    profile_payload: dict[str, object] = {
+        "investment_experience": "INTERMEDIATE",
+        "risk_tolerance": "MODERATE",
+        "investment_goal": "GROWTH",
+        "monthly_budget": 1_000_000,
+    }
+    updated_profile = authenticated_json(
+        "PUT",
+        "http://localhost:18002/api/account/profile",
+        access_token,
+        profile_payload,
+    )
+    loaded_profile = authenticated_json(
+        "GET",
+        "http://localhost:18001/api/account/profile",
+        access_token,
+    )
+    if updated_profile != loaded_profile:
+        raise RuntimeError("API instances resolved different account profiles")
+    expected_service = f"account-db-{validated['shard_id']}"
+    other_service = (
+        "account-db-2" if expected_service == "account-db-1" else "account-db-1"
+    )
+    user_id = str(login["user_id"])
+    if profile_count(expected_service, user_id) != 1:
+        raise RuntimeError("Profile was not stored in the selected account shard")
+    if profile_count(other_service, user_id) != 0:
+        raise RuntimeError("Profile leaked into the non-selected account shard")
+    print(
+        "cross-instance account shard verified: "
+        f"api-2 write -> api-1 read, store={expected_service}"
     )
 
     compose("exec", "-T", "redis-primary", "redis-cli", "WAIT", "1", "5000")

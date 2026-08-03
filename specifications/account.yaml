@@ -39,6 +39,9 @@ endpoints:
     response:
       model: UserProfile
     handler: get_profile
+    dependencies:
+      - current_session
+      - database_session_registry
   - name: update_profile
     method: PUT
     path: /profile
@@ -59,6 +62,9 @@ endpoints:
     response:
       model: UserProfile
     handler: update_profile
+    dependencies:
+      - current_session
+      - database_session_registry
 
 database:
   provider: agnostic

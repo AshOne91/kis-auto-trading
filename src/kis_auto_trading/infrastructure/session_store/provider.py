@@ -1,11 +1,13 @@
 import os
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from typing import Annotated
 
-from fastapi import FastAPI, Request
+from fastapi import Depends, FastAPI, HTTPException, Request, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from redis.asyncio.sentinel import Sentinel
 
-from .protocol import SessionStore, SessionStoreError
+from .protocol import SessionData, SessionStore, SessionStoreError
 from .redis import RedisSessionStore
 
 REDIS_SENTINEL_URLS_ENV = "REDIS_SENTINEL_URLS"
@@ -69,3 +71,26 @@ def get_session_store(request: Request) -> SessionStore:
         raise SessionStoreError(
             "SessionStore is not initialized"
         ) from error
+
+
+bearer_scheme = HTTPBearer(auto_error=False)
+
+
+async def get_current_session(
+    credentials: Annotated[
+        HTTPAuthorizationCredentials | None, Depends(bearer_scheme)
+    ],
+    session_store: Annotated[SessionStore, Depends(get_session_store)],
+) -> SessionData:
+    if credentials is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Bearer session is required",
+        )
+    session = await session_store.get(credentials.credentials)
+    if session is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid session",
+        )
+    return session
