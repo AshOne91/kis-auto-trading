@@ -28,3 +28,6 @@ where = ["src"]
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 testpaths = ["tests"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["kis_auto_trading"]

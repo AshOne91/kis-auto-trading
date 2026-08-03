@@ -17,3 +17,10 @@ application:
       namespace: kis_session
       ttl_seconds: 3600
       url_env: REDIS_URL
+  databases:
+    - name: identity
+      global_url_env: IDENTITY_DATABASE_URL
+    - name: account
+      shards:
+        - shard_id: "1"
+          url_env: ACCOUNT_SHARD_1_DATABASE_URL

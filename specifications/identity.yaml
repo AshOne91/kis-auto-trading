@@ -72,6 +72,8 @@ endpoints:
           type:
             kind: string
     handler: login
+    dependencies:
+      - session_store
 
 database:
   provider: agnostic

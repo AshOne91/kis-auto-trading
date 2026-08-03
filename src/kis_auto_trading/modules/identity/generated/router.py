@@ -1,5 +1,9 @@
-from fastapi import APIRouter
+from typing import Annotated
 
+from fastapi import APIRouter, Depends
+
+from kis_auto_trading.infrastructure.session_store.protocol import SessionStore
+from kis_auto_trading.infrastructure.session_store.provider import get_session_store
 from kis_auto_trading.modules.identity import handlers
 from kis_auto_trading.modules.identity.generated.schemas import (
     LoginRequest,
@@ -21,5 +25,6 @@ async def signup(
 @router.post("/login", response_model=LoginResponse)
 async def login(
     request: LoginRequest,
+    session_store: Annotated[SessionStore, Depends(get_session_store)],
 ) -> LoginResponse:
-    return await handlers.login(request)
+    return await handlers.login(request, session_store)
