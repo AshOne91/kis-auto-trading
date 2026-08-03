@@ -6,7 +6,7 @@ KIS Auto Trading은 단일 서버에서 먼저 완성한 뒤 확장하지 않는
 ## 최소 통합 토폴로지
 
 ```text
-API instance 1 ─┬─ Redis
+API instance 1 ─┬─ Redis Cluster (3 Primary + 3 Replica)
 API instance 2 ─┤
                 ├─ Identity Global PostgreSQL
                 ├─ Account PostgreSQL Shard 1
@@ -44,6 +44,11 @@ session의 `user_id`와 `shard_id`로 Profile을 선택된 Account DB에 저장�
 Profile을 조회한다. 스크립트는 선택된 shard의 `user_profiles`에만 1행이 있고 반대
 shard에는 0행인 것도 직접 확인한다.
 
+세션 ID는 `사용자 routing tag.랜덤 secret` 형식이며 routing tag는 URL-safe Base64로
+인코딩한다. 세션 본문 키와 사용자별 session index 키는 동일한 `{routing-tag}`를 포함해
+Redis Cluster의 같은 hash slot에 배치된다. 따라서 생성·갱신·폐기 transaction이
+`CROSSSLOT` 없이 원자적으로 실행된다.
+
 ## 환경과 볼륨의 경계
 
 통합 환경은 `APP_ENV=integration`을 사용한다. 두 API에는 각각 `INSTANCE_ID=api-1`,
@@ -76,16 +81,21 @@ revision을 적용하고 성공한 뒤에만 API가 시작한다. 생성 SQL은 
 헬스체크 후 배포 원칙은 유지한다. 반면 호스트 로그 디렉터리 공유, 이미지 안의 비밀번호,
 API 서버별 로컬 DB/Redis는 수평 확장 시 상태가 갈라지므로 계승하지 않는다.
 
-## Redis 고가용성 목표
+## Redis Cluster 고가용성
 
-통합 환경은 Redis Primary 1대, Replica 1대, Sentinel 3대를 실행한다. 검증 스크립트는
-로그인 session이 Replica에 복제된 것을 확인한 뒤 Primary를 중지한다. Sentinel quorum이
-Replica를 새 Primary로 승격하면 기존 session 읽기와 새 로그인 session 쓰기를 다시
-검증한다.
+현재 통합 환경은 Redis Cluster Primary 3대와 각 Primary의 Replica 1대, 총 6개 노드를
+실행한다. 초기화 Job은 16,384 slot 전체가 세 Primary에 배치됐는지 확인하며 기존 volume의
+Cluster가 있으면 재생성하지 않고 정상 상태를 기다린다.
 
-AWS에서는 자체 Sentinel 대신 ElastiCache Multi-AZ Automatic Failover로 교체한다.
-단일 Primary의 용량 한계가 측정된 뒤에는 Redis Cluster 3 Primary + 3 Replica 통합
-토폴로지와 hash-tag 키 규칙을 별도 단계로 추가한다.
+검증 스크립트는 로그인 session의 실제 hash slot과 담당 Primary/Replica를 동적으로 찾는다.
+해당 Primary를 중지한 뒤 Replica 승격, 기존 session 읽기, 새 session 쓰기를 검증한다.
+검증 당시 3개 Primary의 slot 수는 5,461/5,462/5,461개였고 전체 slot coverage가
+확인됐다. 이전 단계의 Primary 1대, Replica 1대, Sentinel 3대 장애 전환 검증 이력과
+설정 파일은 비교·회귀 근거로 보존한다.
+
+AWS에서는 자체 Cluster 노드 대신 ElastiCache Cluster Mode와 Multi-AZ Automatic
+Failover로 교체한다. 애플리케이션은 `SessionStore`와 Cluster endpoint만 사용하고 개별
+노드 주소나 역할을 업무 코드에서 알지 않는다.
 
 AutoForge는 `SessionStore` 업무 계약을 유지하면서 standalone, sentinel, cluster,
 managed 연결 공급자를 선택할 수 있게 생성해야 한다. Redis 배치 방식이 Identity Handler나

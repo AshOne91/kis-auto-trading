@@ -1,19 +1,31 @@
 import json
 
 from redis.asyncio import Redis
+from redis.asyncio.cluster import RedisCluster
 from redis.exceptions import RedisError
 
-from .protocol import SessionData, SessionStoreError
+from .protocol import (
+    SessionData,
+    SessionStoreError,
+    _session_routing_tag,
+    _user_routing_tag,
+)
 
 
 class RedisSessionStore:
     _namespace = "kis_session"
     _ttl_seconds = 3600
 
-    def __init__(self, client: Redis) -> None:
+    def __init__(self, client: Redis | RedisCluster) -> None:
         self._client = client
 
     async def create(self, session: SessionData) -> None:
+        if _session_routing_tag(session.session_id) != _user_routing_tag(
+            session.user_id
+        ):
+            raise SessionStoreError(
+                "Session ID does not belong to the session user"
+            )
         payload = json.dumps(
             {"user_id": session.user_id, "data": session.data},
             separators=(",", ":"),
@@ -91,7 +103,9 @@ class RedisSessionStore:
             raise SessionStoreError("Redis user session revoke failed") from error
 
     def _session_key(self, session_id: str) -> str:
-        return f"{self._namespace}:session:{session_id}"
+        routing_tag = _session_routing_tag(session_id)
+        return f"{self._namespace}:{{{routing_tag}}}:session:{session_id}"
 
     def _user_key(self, user_id: str) -> str:
-        return f"{self._namespace}:user-sessions:{user_id}"
+        routing_tag = _user_routing_tag(user_id)
+        return f"{self._namespace}:{{{routing_tag}}}:user-sessions"

@@ -5,54 +5,29 @@ from typing import Annotated
 
 from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from redis.asyncio.sentinel import Sentinel
+from redis.asyncio.cluster import RedisCluster
 
 from .protocol import SessionData, SessionStore, SessionStoreError
 from .redis import RedisSessionStore
 
-REDIS_SENTINEL_URLS_ENV = "REDIS_SENTINEL_URLS"
-REDIS_SENTINEL_MASTER = "kis-session"
-
-
-def _sentinel_endpoints(value: str) -> list[tuple[str, int]]:
-    endpoints: list[tuple[str, int]] = []
-    for item in value.split(','):
-        host, separator, port_text = item.strip().rpartition(':')
-        if not separator or not host:
-            raise SessionStoreError(
-                f"Invalid Redis Sentinel endpoint: {item!r}"
-            )
-        try:
-            port = int(port_text)
-        except ValueError as error:
-            raise SessionStoreError(
-                f"Invalid Redis Sentinel port: {item!r}"
-            ) from error
-        endpoints.append((host, port))
-    if not endpoints:
-        raise SessionStoreError("Redis Sentinel endpoints are empty")
-    return endpoints
+REDIS_CLUSTER_URL_ENV = "REDIS_CLUSTER_URL"
 
 
 @asynccontextmanager
 async def session_store_lifespan(
     app: FastAPI,
 ) -> AsyncIterator[None]:
-    raw_urls = os.environ.get(REDIS_SENTINEL_URLS_ENV)
-    if not raw_urls:
+    cluster_url = os.environ.get(REDIS_CLUSTER_URL_ENV)
+    if not cluster_url:
         raise SessionStoreError(
             f"Required environment variable is missing: "
-            f"{REDIS_SENTINEL_URLS_ENV}"
+            f"{REDIS_CLUSTER_URL_ENV}"
         )
-    sentinel = Sentinel(
-        _sentinel_endpoints(raw_urls),
-        socket_timeout=2,
+    client = RedisCluster.from_url(
+        cluster_url,
         decode_responses=True,
-    )
-    client = sentinel.master_for(
-        REDIS_SENTINEL_MASTER,
-        socket_timeout=2,
-        decode_responses=True,
+        require_full_coverage=True,
+        reinitialize_steps=1,
     )
     app.state.session_store = RedisSessionStore(client)
     try:
@@ -60,8 +35,6 @@ async def session_store_lifespan(
     finally:
         del app.state.session_store
         await client.aclose()
-        for sentinel_client in sentinel.sentinels:
-            await sentinel_client.aclose()
 
 
 def get_session_store(request: Request) -> SessionStore:

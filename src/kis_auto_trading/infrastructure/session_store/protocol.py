@@ -1,9 +1,35 @@
+import base64
+import secrets
 from dataclasses import dataclass
 from typing import Protocol
 
 
 class SessionStoreError(RuntimeError):
     pass
+
+
+def _user_routing_tag(user_id: str) -> str:
+    if not user_id:
+        raise ValueError("user_id must not be empty")
+    return base64.urlsafe_b64encode(user_id.encode("utf-8")).decode(
+        "ascii"
+    ).rstrip("=")
+
+
+def _session_routing_tag(session_id: str) -> str:
+    tag, separator, secret = session_id.partition(".")
+    if not separator or not tag or not secret:
+        raise ValueError(
+            "session_id must be created by create_session_id"
+        )
+    return tag
+
+
+def create_session_id(user_id: str) -> str:
+    return (
+        f"{_user_routing_tag(user_id)}."
+        f"{secrets.token_urlsafe(32)}"
+    )
 
 
 @dataclass(frozen=True, slots=True)

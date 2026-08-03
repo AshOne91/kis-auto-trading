@@ -8,7 +8,7 @@ x-database-environment: &database-environment
 x-api-environment: &api-environment
   <<: *database-environment
   APP_ENV: integration
-  REDIS_SENTINEL_URLS: sentinel-1:26379,sentinel-2:26379,sentinel-3:26379
+  REDIS_CLUSTER_URL: redis://redis-node-1:6379
 
 x-api: &api
   build:
@@ -16,16 +16,8 @@ x-api: &api
     dockerfile: Dockerfile
   environment: *api-environment
   depends_on:
-    redis-primary:
-      condition: service_healthy
-    redis-replica:
-      condition: service_healthy
-    sentinel-1:
-      condition: service_healthy
-    sentinel-2:
-      condition: service_healthy
-    sentinel-3:
-      condition: service_healthy
+    redis-cluster-init:
+      condition: service_completed_successfully
     identity-db:
       condition: service_healthy
     account-db-1:
@@ -47,11 +39,26 @@ x-api: &api
   restart: unless-stopped
 
 services:
-  redis-primary:
+  redis-node-1: &redis-cluster-node
     image: redis:7-alpine
-    command: ["redis-server", "--appendonly", "yes"]
+    command:
+      - redis-server
+      - --cluster-enabled
+      - "yes"
+      - --cluster-config-file
+      - nodes.conf
+      - --cluster-node-timeout
+      - "5000"
+      - --appendonly
+      - "yes"
+      - --cluster-announce-ip
+      - 172.29.0.10
+      - --cluster-announce-port
+      - "6379"
+      - --cluster-announce-bus-port
+      - "16379"
     volumes:
-      - redis-primary-data:/data
+      - redis-node-1-data:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 2s
@@ -61,55 +68,156 @@ services:
       - "16379:6379"
     networks:
       default:
-        ipv4_address: 172.28.0.10
+        ipv4_address: 172.29.0.10
 
-  redis-replica:
-    image: redis:7-alpine
+  redis-node-2:
+    <<: *redis-cluster-node
     command:
       - redis-server
-      - --replicaof
-      - redis-primary
-      - "6379"
+      - --cluster-enabled
+      - "yes"
+      - --cluster-config-file
+      - nodes.conf
+      - --cluster-node-timeout
+      - "5000"
       - --appendonly
       - "yes"
+      - --cluster-announce-ip
+      - 172.29.0.11
+      - --cluster-announce-port
+      - "6379"
+      - --cluster-announce-bus-port
+      - "16379"
     volumes:
-      - redis-replica-data:/data
-    depends_on:
-      redis-primary:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 2s
-      timeout: 2s
-      retries: 20
+      - redis-node-2-data:/data
+    ports: []
     networks:
       default:
-        ipv4_address: 172.28.0.11
+        ipv4_address: 172.29.0.11
 
-  sentinel-1: &sentinel
+  redis-node-3:
+    <<: *redis-cluster-node
+    command:
+      - redis-server
+      - --cluster-enabled
+      - "yes"
+      - --cluster-config-file
+      - nodes.conf
+      - --cluster-node-timeout
+      - "5000"
+      - --appendonly
+      - "yes"
+      - --cluster-announce-ip
+      - 172.29.0.12
+      - --cluster-announce-port
+      - "6379"
+      - --cluster-announce-bus-port
+      - "16379"
+    volumes:
+      - redis-node-3-data:/data
+    ports: []
+    networks:
+      default:
+        ipv4_address: 172.29.0.12
+
+  redis-node-4:
+    <<: *redis-cluster-node
+    command:
+      - redis-server
+      - --cluster-enabled
+      - "yes"
+      - --cluster-config-file
+      - nodes.conf
+      - --cluster-node-timeout
+      - "5000"
+      - --appendonly
+      - "yes"
+      - --cluster-announce-ip
+      - 172.29.0.13
+      - --cluster-announce-port
+      - "6379"
+      - --cluster-announce-bus-port
+      - "16379"
+    volumes:
+      - redis-node-4-data:/data
+    ports: []
+    networks:
+      default:
+        ipv4_address: 172.29.0.13
+
+  redis-node-5:
+    <<: *redis-cluster-node
+    command:
+      - redis-server
+      - --cluster-enabled
+      - "yes"
+      - --cluster-config-file
+      - nodes.conf
+      - --cluster-node-timeout
+      - "5000"
+      - --appendonly
+      - "yes"
+      - --cluster-announce-ip
+      - 172.29.0.14
+      - --cluster-announce-port
+      - "6379"
+      - --cluster-announce-bus-port
+      - "16379"
+    volumes:
+      - redis-node-5-data:/data
+    ports: []
+    networks:
+      default:
+        ipv4_address: 172.29.0.14
+
+  redis-node-6:
+    <<: *redis-cluster-node
+    command:
+      - redis-server
+      - --cluster-enabled
+      - "yes"
+      - --cluster-config-file
+      - nodes.conf
+      - --cluster-node-timeout
+      - "5000"
+      - --appendonly
+      - "yes"
+      - --cluster-announce-ip
+      - 172.29.0.15
+      - --cluster-announce-port
+      - "6379"
+      - --cluster-announce-bus-port
+      - "16379"
+    volumes:
+      - redis-node-6-data:/data
+    ports: []
+    networks:
+      default:
+        ipv4_address: 172.29.0.15
+
+  redis-cluster-init:
     image: redis:7-alpine
     command:
       - sh
       - -c
-      - cp /sentinel-template/sentinel.conf /tmp/sentinel.conf && exec redis-sentinel /tmp/sentinel.conf
-    volumes:
-      - ./deploy/redis/sentinel.conf:/sentinel-template/sentinel.conf:ro
+      - |
+        known_nodes=$$(redis-cli -h 172.29.0.10 cluster info | awk -F: '/cluster_known_nodes/ {gsub("\r", "", $$2); print $$2}')
+        if [ "$${known_nodes:-1}" -gt 1 ]; then
+          until redis-cli -h 172.29.0.10 cluster info | grep -q 'cluster_state:ok'; do sleep 1; done
+          echo 'Redis Cluster already configured'
+          exit 0
+        fi
+        redis-cli --cluster create \
+          172.29.0.10:6379 172.29.0.11:6379 172.29.0.12:6379 \
+          172.29.0.13:6379 172.29.0.14:6379 172.29.0.15:6379 \
+          --cluster-replicas 1 --cluster-yes
     depends_on:
-      redis-primary:
-        condition: service_healthy
-      redis-replica:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "redis-cli", "-p", "26379", "ping"]
-      interval: 2s
-      timeout: 2s
-      retries: 20
-
-  sentinel-2:
-    <<: *sentinel
-
-  sentinel-3:
-    <<: *sentinel
+      redis-node-1: {condition: service_healthy}
+      redis-node-2: {condition: service_healthy}
+      redis-node-3: {condition: service_healthy}
+      redis-node-4: {condition: service_healthy}
+      redis-node-5: {condition: service_healthy}
+      redis-node-6: {condition: service_healthy}
 
   identity-db:
     image: postgres:16-alpine
@@ -190,8 +298,12 @@ services:
       - "18002:8000"
 
 volumes:
-  redis-primary-data:
-  redis-replica-data:
+  redis-node-1-data:
+  redis-node-2-data:
+  redis-node-3-data:
+  redis-node-4-data:
+  redis-node-5-data:
+  redis-node-6-data:
   identity-db-data:
   account-db-1-data:
   account-db-2-data:
@@ -200,4 +312,4 @@ networks:
   default:
     ipam:
       config:
-        - subnet: 172.28.0.0/24
+        - subnet: 172.29.0.0/24

@@ -6,7 +6,7 @@ from kis_auto_trading.main import app
 
 @pytest.fixture(autouse=True)
 def configure_runtime(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("REDIS_SENTINEL_URLS", "localhost:26379")
+    monkeypatch.setenv("REDIS_CLUSTER_URL", "redis://localhost:16379")
     database_url = "postgresql+asyncpg://user:password@localhost/database"
     monkeypatch.setenv("IDENTITY_DATABASE_URL", database_url)
     monkeypatch.setenv("ACCOUNT_SHARD_1_DATABASE_URL", database_url)
@@ -23,7 +23,7 @@ def test_identity_routes_are_registered() -> None:
 def test_unimplemented_signup_is_not_reported_as_success(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    monkeypatch.setenv("REDIS_SENTINEL_URLS", "localhost:26379")
+    monkeypatch.setenv("REDIS_CLUSTER_URL", "redis://localhost:16379")
 
     with TestClient(app, raise_server_exceptions=False) as client:
         response = client.post(
@@ -37,7 +37,7 @@ def test_unimplemented_signup_is_not_reported_as_success(
 def test_login_resolves_session_store_before_calling_handler(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    monkeypatch.setenv("REDIS_SENTINEL_URLS", "localhost:26379")
+    monkeypatch.setenv("REDIS_CLUSTER_URL", "redis://localhost:16379")
 
     with TestClient(app, raise_server_exceptions=False) as client:
         response = client.post(

@@ -17,9 +17,8 @@ application:
       namespace: kis_session
       ttl_seconds: 3600
       url_env: REDIS_URL
-      mode: sentinel
-      sentinel_urls_env: REDIS_SENTINEL_URLS
-      sentinel_master: kis-session
+      mode: cluster
+      cluster_url_env: REDIS_CLUSTER_URL
   databases:
     - name: identity
       global_url_env: IDENTITY_DATABASE_URL

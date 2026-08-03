@@ -5,6 +5,7 @@ import subprocess
 import time
 import urllib.error
 import urllib.request
+from dataclasses import dataclass
 from uuid import uuid4
 
 API_URLS = (
@@ -14,6 +15,34 @@ API_URLS = (
 MAX_ATTEMPTS = 30
 RETRY_SECONDS = 1.0
 COMPOSE = ("docker", "compose", "-f", "compose.integration.yaml")
+REDIS_SERVICES = {
+    "172.29.0.10": "redis-node-1",
+    "172.29.0.11": "redis-node-2",
+    "172.29.0.12": "redis-node-3",
+    "172.29.0.13": "redis-node-4",
+    "172.29.0.14": "redis-node-5",
+    "172.29.0.15": "redis-node-6",
+}
+
+
+@dataclass(frozen=True, slots=True)
+class ClusterNodeInfo:
+    node_id: str
+    address: str
+    flags: frozenset[str]
+    master_id: str
+    slots: tuple[str, ...]
+
+    def owns(self, slot: int) -> bool:
+        for item in self.slots:
+            if item.startswith("["):
+                continue
+            start_text, separator, end_text = item.partition("-")
+            start = int(start_text)
+            end = int(end_text) if separator else start
+            if start <= slot <= end:
+                return True
+        return False
 
 
 def wait_for_health(url: str) -> dict[str, str]:
@@ -92,28 +121,68 @@ def compose(*arguments: str) -> subprocess.CompletedProcess[str]:
     )
 
 
-def wait_for_replica_promotion() -> str:
-    last_master = "unknown"
-    for _ in range(30):
-        result = compose(
-            "exec",
-            "-T",
-            "sentinel-1",
-            "redis-cli",
-            "-p",
-            "26379",
-            "--raw",
-            "SENTINEL",
-            "get-master-addr-by-name",
-            "kis-session",
+def cluster_nodes(service: str = "redis-node-1") -> list[ClusterNodeInfo]:
+    result = compose(
+        "exec", "-T", service, "redis-cli", "--raw", "CLUSTER", "NODES"
+    )
+    nodes = []
+    for line in result.stdout.splitlines():
+        fields = line.split()
+        if len(fields) < 8:
+            continue
+        nodes.append(
+            ClusterNodeInfo(
+                node_id=fields[0],
+                address=fields[1].split("@", maxsplit=1)[0].split(":")[0],
+                flags=frozenset(fields[2].split(",")),
+                master_id=fields[3],
+                slots=tuple(fields[8:]),
+            )
         )
-        values = [line.strip() for line in result.stdout.splitlines() if line.strip()]
-        if len(values) >= 2:
-            last_master = f"{values[0]}:{values[1]}"
-            if values[0] == "172.28.0.11":
-                return last_master
+    return nodes
+
+
+def cluster_slot(key: str) -> int:
+    result = compose(
+        "exec",
+        "-T",
+        "redis-node-1",
+        "redis-cli",
+        "--raw",
+        "CLUSTER",
+        "KEYSLOT",
+        key,
+    )
+    return int(result.stdout.strip())
+
+
+def cluster_failover_target(slot: int) -> tuple[str, str, str]:
+    nodes = cluster_nodes()
+    primary = next(
+        node for node in nodes if "master" in node.flags and node.owns(slot)
+    )
+    replica = next(node for node in nodes if node.master_id == primary.node_id)
+    return (
+        REDIS_SERVICES[primary.address],
+        REDIS_SERVICES[replica.address],
+        replica.node_id,
+    )
+
+
+def wait_for_cluster_promotion(service: str, node_id: str) -> None:
+    last_flags: frozenset[str] = frozenset()
+    for _ in range(45):
+        try:
+            node = next(item for item in cluster_nodes(service) if item.node_id == node_id)
+            last_flags = node.flags
+            if "master" in node.flags and "fail" not in node.flags:
+                return
+        except (StopIteration, subprocess.CalledProcessError):
+            pass
         time.sleep(RETRY_SECONDS)
-    raise RuntimeError(f"Redis replica was not promoted; master={last_master}")
+    raise RuntimeError(
+        f"Redis Cluster replica was not promoted: {service}, flags={last_flags}"
+    )
 
 
 def profile_count(service: str, user_id: str) -> int:
@@ -198,9 +267,18 @@ def main() -> None:
         f"api-2 write -> api-1 read, store={expected_service}"
     )
 
-    compose("exec", "-T", "redis-primary", "redis-cli", "WAIT", "1", "5000")
-    compose("stop", "redis-primary")
-    promoted_master = wait_for_replica_promotion()
+    routing_tag = access_token.partition(".")[0]
+    session_key = f"kis_session:{{{routing_tag}}}:session:{access_token}"
+    user_key = f"kis_session:{{{routing_tag}}}:user-sessions"
+    session_slot = cluster_slot(session_key)
+    if cluster_slot(user_key) != session_slot:
+        raise RuntimeError("Session keys do not share one Redis Cluster slot")
+    primary_service, replica_service, replica_id = cluster_failover_target(
+        session_slot
+    )
+    compose("exec", "-T", primary_service, "redis-cli", "WAIT", "1", "5000")
+    compose("stop", primary_service)
+    wait_for_cluster_promotion(replica_service, replica_id)
     recovered = wait_for_post_json(
         "http://localhost:18002/api/identity/session/validate",
         {"access_token": str(login["access_token"])},
@@ -216,8 +294,9 @@ def main() -> None:
         {"access_token": str(second_login["access_token"])},
     )
     print(
-        "Redis Sentinel failover verified: "
-        f"redis-primary stopped -> {promoted_master}, old read + new write passed"
+        "Redis Cluster failover verified: "
+        f"slot={session_slot}, {primary_service} stopped -> "
+        f"{replica_service} promoted, old read + new write passed"
     )
 
 

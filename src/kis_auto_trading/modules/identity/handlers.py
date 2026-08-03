@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import asyncio
-import secrets
 from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
@@ -12,6 +11,7 @@ from kis_auto_trading.infrastructure.database.session import AsyncSessionRegistr
 from kis_auto_trading.infrastructure.session_store.protocol import (
     SessionData,
     SessionStore,
+    create_session_id,
 )
 from kis_auto_trading.modules.identity.generated.models import LoginAccount
 from kis_auto_trading.modules.identity.generated.schemas import (
@@ -82,7 +82,7 @@ async def login(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid credentials",
         )
-    access_token = secrets.token_urlsafe(32)
+    access_token = create_session_id(str(account.user_id))
     await session_store.create(
         SessionData(
             session_id=access_token,
