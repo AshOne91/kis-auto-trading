@@ -24,3 +24,7 @@ Thumbs.db
 *.env
 secret_*.json
 key.txt
+
+.code-review-graph/
+.pytest_cache/
+.ruff_cache/
