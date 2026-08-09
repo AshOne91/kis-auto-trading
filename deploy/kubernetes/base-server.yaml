@@ -1,0 +1,181 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kis-auto-trading-nginx
+  namespace: default
+data:
+  default.conf.template: |
+    server {
+      listen 80;
+      location / {
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Instance-Name $hostname;
+        proxy_pass http://${UPSTREAM_HOST}:8000;
+      }
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kis-auto-trading
+  namespace: default
+  labels:
+    app.kubernetes.io/name: kis-auto-trading
+    app.kubernetes.io/component: application
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: kis-auto-trading
+      app.kubernetes.io/component: application
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: kis-auto-trading
+        app.kubernetes.io/component: application
+    spec:
+      containers:
+      - name: application
+        image: kis-auto-trading:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: http
+          containerPort: 8000
+        env:
+        - name: INSTANCE_ID
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: ACCOUNT_SHARD_1_DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: my-kis-gold-bar
+              key: ACCOUNT_SHARD_1_DATABASE_URL
+        - name: ACCOUNT_SHARD_2_DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: my-kis-gold-bar
+              key: ACCOUNT_SHARD_2_DATABASE_URL
+        - name: AUTOMATION_DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: my-kis-gold-bar
+              key: AUTOMATION_DATABASE_URL
+        - name: IDENTITY_DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: my-kis-gold-bar
+              key: IDENTITY_DATABASE_URL
+        - name: RABBITMQ_URL
+          valueFrom:
+            secretKeyRef:
+              name: my-kis-gold-bar
+              key: RABBITMQ_URL
+        - name: REDIS_CLUSTER_URL
+          valueFrom:
+            secretKeyRef:
+              name: my-kis-gold-bar
+              key: REDIS_CLUSTER_URL
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 3
+          periodSeconds: 5
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        volumeMounts:
+        - name: execution-logs
+          mountPath: /app/logs
+      volumes:
+      - name: execution-logs
+        hostPath:
+          path: /run/desktop/mnt/host/c/kis-auto-trading/logs
+          type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kis-auto-trading-backend
+  namespace: default
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: kis-auto-trading
+    app.kubernetes.io/component: application
+  ports:
+  - name: http
+    port: 8000
+    targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kis-auto-trading-nginx
+  namespace: default
+  labels:
+    app.kubernetes.io/name: kis-auto-trading
+    app.kubernetes.io/component: proxy
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: kis-auto-trading
+      app.kubernetes.io/component: proxy
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: kis-auto-trading
+        app.kubernetes.io/component: proxy
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.27-alpine
+        ports:
+        - name: http
+          containerPort: 80
+        env:
+        - name: UPSTREAM_HOST
+          value: kis-auto-trading-backend
+        - name: NGINX_ENVSUBST_FILTER
+          value: UPSTREAM_HOST
+        volumeMounts:
+        - name: nginx-template
+          mountPath: /etc/nginx/templates/default.conf.template
+          subPath: default.conf.template
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 3
+          periodSeconds: 5
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 10
+          periodSeconds: 10
+      volumes:
+      - name: nginx-template
+        configMap:
+          name: kis-auto-trading-nginx
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kis-auto-trading-load-balancer
+  namespace: default
+spec:
+  type: LoadBalancer
+  selector:
+    app.kubernetes.io/name: kis-auto-trading
+    app.kubernetes.io/component: proxy
+  ports:
+  - name: http
+    port: 8080
+    targetPort: http

@@ -1,6 +1,11 @@
 spec_version: "1"
 
 tooling:
+  kubernetes:
+    enabled: true
+    image: kis-auto-trading:latest
+    secret_name: my-kis-gold-bar
+    log_host_path: /run/desktop/mnt/host/c/kis-auto-trading/logs
   local_environment:
     enabled: true
   ruff_exclude:
