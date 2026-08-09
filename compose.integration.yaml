@@ -2,6 +2,7 @@ name: kis-scale-out-test
 
 x-database-environment: &database-environment
   IDENTITY_DATABASE_URL: postgresql+asyncpg://kis_test:kis_test@identity-db:5432/identity
+  AUTOMATION_DATABASE_URL: postgresql+asyncpg://kis_test:kis_test@automation-db:5432/automation
   ACCOUNT_SHARD_1_DATABASE_URL: postgresql+asyncpg://kis_test:kis_test@account-db-1:5432/account
   ACCOUNT_SHARD_2_DATABASE_URL: postgresql+asyncpg://kis_test:kis_test@account-db-2:5432/account
 
@@ -23,6 +24,8 @@ x-api: &api
     redis-cluster-init:
       condition: service_completed_successfully
     identity-db:
+      condition: service_healthy
+    automation-db:
       condition: service_healthy
     account-db-1:
       condition: service_healthy
@@ -259,6 +262,22 @@ services:
     ports:
       - "15432:5432"
 
+  automation-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: kis_test
+      POSTGRES_PASSWORD: kis_test
+      POSTGRES_DB: automation
+    volumes:
+      - automation-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kis_test -d automation"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+    ports:
+      - "15435:5432"
+
   account-db-1:
     image: postgres:16-alpine
     environment:
@@ -299,6 +318,8 @@ services:
     command: ["python", "scripts/migrate.py"]
     depends_on:
       identity-db:
+        condition: service_healthy
+      automation-db:
         condition: service_healthy
       account-db-1:
         condition: service_healthy
@@ -356,6 +377,7 @@ volumes:
   redis-node-5-data:
   redis-node-6-data:
   identity-db-data:
+  automation-db-data:
   account-db-1-data:
   account-db-2-data:
 

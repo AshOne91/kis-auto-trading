@@ -9,13 +9,14 @@ KIS Auto Trading은 단일 서버에서 먼저 완성한 뒤 확장하지 않는
 API instance 1 ─┬─ Redis Cluster (3 Primary + 3 Replica)
 API instance 2 ─┤
                 ├─ Identity Global PostgreSQL
+                ├─ Automation Global PostgreSQL
                 ├─ Account PostgreSQL Shard 1
                 └─ Account PostgreSQL Shard 2
 ```
 
-API 컨테이너는 서로의 메모리를 공유하지 않는다. 세션은 Redis에, 계정은 Global DB에,
-개인정보는 선택된 shard DB에 저장한다. 어느 API가 요청을 받아도 동일한 사용자 세션과
-shard 위치를 찾아야 한다.
+API 컨테이너는 서로의 메모리를 공유하지 않는다. 세션은 Redis에, 계정 정보와 자동화
+Job/Outbox 메타데이터는 각각 Global DB에, 개인정보는 선택된 shard DB에 저장한다. 어느
+API가 요청을 받아도 동일한 사용자 세션과 shard 위치를 찾아야 한다.
 
 ## 실행
 
