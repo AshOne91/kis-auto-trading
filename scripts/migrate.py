@@ -5,7 +5,7 @@ import os
 from alembic import command
 from alembic.config import Config
 
-DATABASE_TARGETS = [["identity", "IDENTITY_DATABASE_URL"], ["account", "ACCOUNT_SHARD_1_DATABASE_URL"], ["account", "ACCOUNT_SHARD_2_DATABASE_URL"]]
+DATABASE_TARGETS = [["identity", "IDENTITY_DATABASE_URL"], ["automation", "AUTOMATION_DATABASE_URL"], ["account", "ACCOUNT_SHARD_1_DATABASE_URL"], ["account", "ACCOUNT_SHARD_2_DATABASE_URL"]]
 
 
 def migrate(store: str, environment_name: str) -> None:

@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 
 from kis_auto_trading.infrastructure.database.session import AsyncSessionRegistry
 
-GLOBAL_DATABASES = [('identity', 'IDENTITY_DATABASE_URL')]
+GLOBAL_DATABASES = [('identity', 'IDENTITY_DATABASE_URL'), ('automation', 'AUTOMATION_DATABASE_URL')]
 SHARD_DATABASES = [('account', '1', 'ACCOUNT_SHARD_1_DATABASE_URL'), ('account', '2', 'ACCOUNT_SHARD_2_DATABASE_URL')]
 
 

@@ -9,6 +9,7 @@ def configure_runtime(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("REDIS_CLUSTER_URL", "redis://localhost:16379")
     database_url = "postgresql+asyncpg://user:password@localhost/database"
     monkeypatch.setenv("IDENTITY_DATABASE_URL", database_url)
+    monkeypatch.setenv("AUTOMATION_DATABASE_URL", database_url)
     monkeypatch.setenv("ACCOUNT_SHARD_1_DATABASE_URL", database_url)
     monkeypatch.setenv("ACCOUNT_SHARD_2_DATABASE_URL", database_url)
 

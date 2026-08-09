@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from kis_auto_trading.infrastructure.messaging.rabbitmq import RabbitMQPublisher
 from kis_auto_trading.infrastructure.outbox.relay import OutboxRelay
 
-DATABASE_URL_ENVS = ["ACCOUNT_SHARD_1_DATABASE_URL", "ACCOUNT_SHARD_2_DATABASE_URL"]
+DATABASE_URL_ENVS = ["AUTOMATION_DATABASE_URL", "ACCOUNT_SHARD_1_DATABASE_URL", "ACCOUNT_SHARD_2_DATABASE_URL"]
 RABBITMQ_URL_ENV = "RABBITMQ_URL"
 
 

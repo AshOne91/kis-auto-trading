@@ -35,12 +35,21 @@ application:
       prefetch_count: 32
       outbox_stores:
         - account
+        - automation
   databases:
     - name: identity
       global_url_env: IDENTITY_DATABASE_URL
+    - name: automation
+      global_url_env: AUTOMATION_DATABASE_URL
     - name: account
       shards:
         - shard_id: "1"
           url_env: ACCOUNT_SHARD_1_DATABASE_URL
         - shard_id: "2"
           url_env: ACCOUNT_SHARD_2_DATABASE_URL
+  durable_jobs:
+    - name: news_collection
+      store: automation
+      event_type: news.collection.requested
+      routing_key: news.collection.requested
+      schedule: "0 * * * *"
