@@ -1,0 +1,110 @@
+name: kis_auto_trading-integration
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-autoforge}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me}
+      POSTGRES_DB: postgres
+    ports:
+      - "${POSTGRES_PORT:-25432}:5432"
+    volumes:
+      - ./postgres-init/00-databases.sql:/docker-entrypoint-initdb.d/00-databases.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d postgres"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  redis-7000:
+    image: redis:7-alpine
+    command:
+      - redis-server
+      - --port
+      - "7000"
+      - --cluster-enabled
+      - yes
+      - --cluster-config-file
+      - nodes.conf
+      - --cluster-node-timeout
+      - "5000"
+      - --appendonly
+      - no
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -p 7000 ping | grep -q PONG"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  redis-7001:
+    image: redis:7-alpine
+    command:
+      - redis-server
+      - --port
+      - "7001"
+      - --cluster-enabled
+      - yes
+      - --cluster-config-file
+      - nodes.conf
+      - --cluster-node-timeout
+      - "5000"
+      - --appendonly
+      - no
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -p 7001 ping | grep -q PONG"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  redis-7002:
+    image: redis:7-alpine
+    command:
+      - redis-server
+      - --port
+      - "7002"
+      - --cluster-enabled
+      - yes
+      - --cluster-config-file
+      - nodes.conf
+      - --cluster-node-timeout
+      - "5000"
+      - --appendonly
+      - no
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -p 7002 ping | grep -q PONG"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  redis-cluster-init:
+    image: redis:7-alpine
+    depends_on:
+      redis-7000:
+        condition: service_healthy
+      redis-7001:
+        condition: service_healthy
+      redis-7002:
+        condition: service_healthy
+    command:
+      - /bin/sh
+      - -c
+      - >
+        redis-cli -h redis-7000 -p 7000 cluster info | grep -q 'cluster_state:ok' ||
+        redis-cli --cluster create redis-7000:7000 redis-7001:7001 redis-7002:7002
+        --cluster-replicas 0 --cluster-yes
+    restart: "no"
+
+  rabbitmq:
+    image: rabbitmq:4.1-management-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-autoforge}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-change-me}
+    ports:
+      - "${RABBITMQ_AMQP_PORT:-25672}:5672"
+      - "${RABBITMQ_MANAGEMENT_PORT:-25673}:15672"
+    healthcheck:
+      test: ["CMD-SHELL", "rabbitmq-diagnostics -q ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
