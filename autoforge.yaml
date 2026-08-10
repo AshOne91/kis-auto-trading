@@ -11,6 +11,7 @@ tooling:
   elk:
     enabled: true
     version: "8.19.17"
+    kubernetes_collector_enabled: true
   ruff_exclude:
     - base_server
     - test.py
