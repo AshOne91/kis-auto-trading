@@ -47,6 +47,8 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.name
+        - name: LOG_DIRECTORY
+          value: /app/logs
         - name: ACCOUNT_SHARD_1_DATABASE_URL
           valueFrom:
             secretKeyRef:

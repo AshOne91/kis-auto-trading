@@ -5,6 +5,7 @@ x-database-environment: &database-environment
   AUTOMATION_DATABASE_URL: postgresql+asyncpg://kis_test:kis_test@automation-db:5432/automation
   ACCOUNT_SHARD_1_DATABASE_URL: postgresql+asyncpg://kis_test:kis_test@account-db-1:5432/account
   ACCOUNT_SHARD_2_DATABASE_URL: postgresql+asyncpg://kis_test:kis_test@account-db-2:5432/account
+  LOG_DIRECTORY: /app/logs
 
 x-api-environment: &api-environment
   <<: *database-environment
@@ -316,6 +317,10 @@ services:
       dockerfile: Dockerfile
     environment: *database-environment
     command: ["python", "scripts/migrate.py"]
+    volumes:
+      - type: bind
+        source: ${LOG_ROOT:-./logs}/migrate
+        target: /app/logs
     depends_on:
       identity-db:
         condition: service_healthy
@@ -332,6 +337,10 @@ services:
       dockerfile: Dockerfile
     environment: *messaging-environment
     command: ["python", "scripts/run_outbox_relay.py"]
+    volumes:
+      - type: bind
+        source: ${LOG_ROOT:-./logs}/outbox-relay
+        target: /app/logs
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -345,6 +354,10 @@ services:
       dockerfile: Dockerfile
     environment: *messaging-environment
     command: ["python", "scripts/run_message_worker.py"]
+    volumes:
+      - type: bind
+        source: ${LOG_ROOT:-./logs}/message-worker
+        target: /app/logs
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -357,6 +370,10 @@ services:
     environment:
       <<: *api-environment
       INSTANCE_ID: api-1
+    volumes:
+      - type: bind
+        source: ${LOG_ROOT:-./logs}/api-1
+        target: /app/logs
     ports:
       - "18001:8000"
 
@@ -365,6 +382,10 @@ services:
     environment:
       <<: *api-environment
       INSTANCE_ID: api-2
+    volumes:
+      - type: bind
+        source: ${LOG_ROOT:-./logs}/api-2
+        target: /app/logs
     ports:
       - "18002:8000"
 

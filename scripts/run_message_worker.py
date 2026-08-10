@@ -1,10 +1,10 @@
 import asyncio
-import logging
 import os
 
 import aio_pika
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 
+from kis_auto_trading.application.observability import LOGGER, configure_logging
 from kis_auto_trading.infrastructure.database.routing import ShardTarget
 from kis_auto_trading.infrastructure.database.session import AsyncSessionRegistry
 from kis_auto_trading.infrastructure.messaging.protocol import EventMessage
@@ -16,7 +16,7 @@ ACCOUNT_SHARD_URL_ENVS = {
     "1": "ACCOUNT_SHARD_1_DATABASE_URL",
     "2": "ACCOUNT_SHARD_2_DATABASE_URL",
 }
-logger = logging.getLogger(__name__)
+logger = LOGGER
 
 
 class ApplicationMessageHandler:
@@ -59,7 +59,8 @@ def build_account_engines() -> dict[tuple[str, str], AsyncEngine]:
 
 
 async def main() -> None:
-    logging.basicConfig(level=logging.INFO)
+    configure_logging()
+    logger.info("message worker starting")
     shard_engines = build_account_engines()
     session_registry = AsyncSessionRegistry({}, shard_engines)
     connection = await aio_pika.connect_robust(
@@ -73,6 +74,7 @@ async def main() -> None:
         await connection.close()
         for engine in shard_engines.values():
             await engine.dispose()
+        logger.info("message worker stopped")
 
 
 if __name__ == '__main__':

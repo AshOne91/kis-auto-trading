@@ -13,6 +13,7 @@ pip-delete-this-directory.txt
 build/
 dist/
 .autoforge/dist/
+logs/
 
 # === IDE 및 OS 관련 임시 파일 ===
 .idea/

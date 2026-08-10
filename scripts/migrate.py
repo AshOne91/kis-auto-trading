@@ -5,6 +5,11 @@ import os
 from alembic import command
 from alembic.config import Config
 
+from kis_auto_trading.application.observability import (
+    LOGGER,
+    configure_logging,
+)
+
 DATABASE_TARGETS = [["identity", "IDENTITY_DATABASE_URL"], ["automation", "AUTOMATION_DATABASE_URL"], ["account", "ACCOUNT_SHARD_1_DATABASE_URL"], ["account", "ACCOUNT_SHARD_2_DATABASE_URL"]]
 
 
@@ -21,7 +26,9 @@ def migrate(store: str, environment_name: str) -> None:
 
 
 def main() -> None:
+    configure_logging()
     for store, environment_name in DATABASE_TARGETS:
+        LOGGER.info('migration starting', extra={'store': store})
         migrate(store, environment_name)
 
 

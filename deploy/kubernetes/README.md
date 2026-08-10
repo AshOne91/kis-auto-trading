@@ -19,7 +19,14 @@ The Secret must provide these keys before the Deployment starts:
 - `IDENTITY_DATABASE_URL`
 - `RABBITMQ_URL`
 - `REDIS_CLUSTER_URL`
-Create or rotate it outside Git, for example:
+Start from the generated zero-value template, fill it locally,
+and keep the completed file out of Git:
+
+```powershell
+Copy-Item secret.env.example kis_secret.env
+```
+
+Create or rotate the Secret only after filling the values:
 
 ```powershell
 kubectl create secret generic my-kis-gold-bar --namespace default --from-env-file=kis_secret.env
@@ -34,5 +41,8 @@ kubectl rollout status --namespace default deployment/kis-auto-trading-nginx
 ```
 
 `base-server.yaml` uses a local hostPath for `/app/logs` only when the
-specification requests one. Replace it with a PVC/PV or centralized logging
-before production deployment.
+specification requests one. It is suitable only for single-node local
+development (such as Docker Desktop): a hostPath is node-local and cannot
+preserve one replica's files when another node runs it. Production deployments
+must centralize stdout through a log collector. If a file-retention policy is
+also required, use a PVC/PV with an access mode appropriate for the replicas.

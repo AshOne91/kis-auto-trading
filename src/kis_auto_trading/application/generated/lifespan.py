@@ -3,6 +3,7 @@ from contextlib import AsyncExitStack, asynccontextmanager
 
 from fastapi import FastAPI
 
+from kis_auto_trading.application.observability import LOGGER
 from kis_auto_trading.infrastructure.database.provider import (
     database_lifespan,
 )
@@ -13,7 +14,11 @@ from kis_auto_trading.infrastructure.session_store.provider import (
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+    LOGGER.info('application starting')
     async with AsyncExitStack() as stack:
         await stack.enter_async_context(database_lifespan(app))
         await stack.enter_async_context(session_store_lifespan(app))
-        yield
+        try:
+            yield
+        finally:
+            LOGGER.info('application stopping')

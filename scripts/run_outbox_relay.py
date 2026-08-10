@@ -4,6 +4,10 @@ import os
 import aio_pika
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
+from kis_auto_trading.application.observability import (
+    LOGGER,
+    configure_logging,
+)
 from kis_auto_trading.infrastructure.messaging.rabbitmq import RabbitMQPublisher
 from kis_auto_trading.infrastructure.outbox.relay import OutboxRelay
 
@@ -12,6 +16,8 @@ RABBITMQ_URL_ENV = "RABBITMQ_URL"
 
 
 async def main() -> None:
+    configure_logging()
+    LOGGER.info('outbox relay starting')
     rabbitmq_url = os.environ[RABBITMQ_URL_ENV]
     connection = await aio_pika.connect_robust(rabbitmq_url)
     publisher = RabbitMQPublisher(connection)
@@ -34,6 +40,7 @@ async def main() -> None:
         for engine in engines:
             await engine.dispose()
         await connection.close()
+        LOGGER.info('outbox relay stopped')
 
 
 if __name__ == '__main__':
