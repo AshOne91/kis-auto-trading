@@ -108,3 +108,111 @@ services:
       interval: 3s
       timeout: 3s
       retries: 20
+
+  migrate:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    image: ${APPLICATION_IMAGE:-kis-auto-trading:local}
+    pull_policy: never
+    command: ["python", "scripts/migrate.py"]
+    environment:
+      IDENTITY_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-autoforge}:${POSTGRES_PASSWORD:-change-me}@postgres:5432/identity
+      AUTOMATION_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-autoforge}:${POSTGRES_PASSWORD:-change-me}@postgres:5432/automation
+      ACCOUNT_SHARD_1_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-autoforge}:${POSTGRES_PASSWORD:-change-me}@postgres:5432/account_shard_1
+      ACCOUNT_SHARD_2_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-autoforge}:${POSTGRES_PASSWORD:-change-me}@postgres:5432/account_shard_2
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  application:
+    image: ${APPLICATION_IMAGE:-kis-auto-trading:local}
+    pull_policy: never
+    environment:
+      IDENTITY_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-autoforge}:${POSTGRES_PASSWORD:-change-me}@postgres:5432/identity
+      AUTOMATION_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-autoforge}:${POSTGRES_PASSWORD:-change-me}@postgres:5432/automation
+      ACCOUNT_SHARD_1_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-autoforge}:${POSTGRES_PASSWORD:-change-me}@postgres:5432/account_shard_1
+      ACCOUNT_SHARD_2_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-autoforge}:${POSTGRES_PASSWORD:-change-me}@postgres:5432/account_shard_2
+      REDIS_CLUSTER_URL: ${REDIS_CLUSTER_URL:-redis://redis-7000:7000}
+      DURABLE_JOB_API_TOKEN: ${DURABLE_JOB_API_TOKEN:?set DURABLE_JOB_API_TOKEN}
+      LOG_DIRECTORY: /app/logs
+    ports:
+      - "${APPLICATION_PORT:-28000}:8000"
+    volumes:
+      - ../logs:/app/logs
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis-cluster-init:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "python", "-c", "from urllib.request import urlopen; urlopen('http://127.0.0.1:8000/health').read()"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  outbox-relay:
+    image: ${APPLICATION_IMAGE:-kis-auto-trading:local}
+    pull_policy: never
+    command: ["python", "scripts/run_outbox_relay.py"]
+    environment:
+      IDENTITY_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-autoforge}:${POSTGRES_PASSWORD:-change-me}@postgres:5432/identity
+      AUTOMATION_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-autoforge}:${POSTGRES_PASSWORD:-change-me}@postgres:5432/automation
+      ACCOUNT_SHARD_1_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-autoforge}:${POSTGRES_PASSWORD:-change-me}@postgres:5432/account_shard_1
+      ACCOUNT_SHARD_2_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-autoforge}:${POSTGRES_PASSWORD:-change-me}@postgres:5432/account_shard_2
+      RABBITMQ_URL: ${RABBITMQ_URL:?set RABBITMQ_URL}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      rabbitmq:
+        condition: service_healthy
+
+  durable-job-worker:
+    image: ${APPLICATION_IMAGE:-kis-auto-trading:local}
+    pull_policy: never
+    command: ["python", "scripts/run_durable_job_worker.py"]
+    environment:
+      IDENTITY_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-autoforge}:${POSTGRES_PASSWORD:-change-me}@postgres:5432/identity
+      AUTOMATION_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-autoforge}:${POSTGRES_PASSWORD:-change-me}@postgres:5432/automation
+      ACCOUNT_SHARD_1_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-autoforge}:${POSTGRES_PASSWORD:-change-me}@postgres:5432/account_shard_1
+      ACCOUNT_SHARD_2_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-autoforge}:${POSTGRES_PASSWORD:-change-me}@postgres:5432/account_shard_2
+      RABBITMQ_URL: ${RABBITMQ_URL:?set RABBITMQ_URL}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      rabbitmq:
+        condition: service_healthy
+
+  airflow:
+    image: apache/airflow:2.10.5-python3.12
+    depends_on:
+      postgres:
+        condition: service_healthy
+      application:
+        condition: service_healthy
+      outbox-relay:
+        condition: service_started
+      durable-job-worker:
+        condition: service_started
+    environment:
+      AIRFLOW__CORE__EXECUTOR: SequentialExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER:-autoforge}:${POSTGRES_PASSWORD:-change-me}@postgres:5432/airflow
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "true"
+      DURABLE_JOB_API_URL: ${DURABLE_JOB_API_URL:-http://application:8000}
+      DURABLE_JOB_API_TOKEN: ${DURABLE_JOB_API_TOKEN:?set DURABLE_JOB_API_TOKEN}
+    volumes:
+      - ../airflow/dags:/opt/airflow/dags:ro
+      - airflow-home:/opt/airflow
+    ports:
+      - "${AIRFLOW_PORT:-28080}:8080"
+    command: standalone
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail http://localhost:8080/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+
+volumes:
+  airflow-home:

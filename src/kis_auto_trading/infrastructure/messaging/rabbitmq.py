@@ -27,6 +27,9 @@ PREFETCH_COUNT = 32
 
 async def declare_topology(
     connection: AbstractRobustConnection,
+    *,
+    queue_name: str = QUEUE_NAME,
+    routing_keys: tuple[str, ...] = (ROUTING_KEY,),
 ) -> tuple[AbstractRobustExchange, AbstractRobustQueue]:
     channel = await connection.channel(
         publisher_confirms=True, on_return_raises=True
@@ -43,11 +46,12 @@ async def declare_topology(
         EXCHANGE_NAME, aio_pika.ExchangeType.TOPIC, durable=True
     )
     queue = await channel.declare_queue(
-        QUEUE_NAME,
+        queue_name,
         durable=True,
         arguments={'x-dead-letter-exchange': DEAD_LETTER_EXCHANGE},
     )
-    await queue.bind(exchange, routing_key=ROUTING_KEY)
+    for routing_key in routing_keys:
+        await queue.bind(exchange, routing_key=routing_key)
     return exchange, queue
 
 
@@ -98,8 +102,16 @@ class RabbitMQConsumer:
     def __init__(self, connection: AbstractRobustConnection) -> None:
         self._connection = connection
 
-    async def consume(self, handler: MessageHandler) -> None:
-        _, queue = await declare_topology(self._connection)
+    async def consume(
+        self,
+        handler: MessageHandler,
+        *,
+        queue_name: str = QUEUE_NAME,
+        routing_keys: tuple[str, ...] = (ROUTING_KEY,),
+    ) -> None:
+        _, queue = await declare_topology(
+            self._connection, queue_name=queue_name, routing_keys=routing_keys
+        )
 
         async def process(message: AbstractIncomingMessage) -> None:
             try:

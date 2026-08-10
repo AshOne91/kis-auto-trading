@@ -64,6 +64,11 @@ spec:
             secretKeyRef:
               name: my-kis-gold-bar
               key: AUTOMATION_DATABASE_URL
+        - name: DURABLE_JOB_API_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: my-kis-gold-bar
+              key: DURABLE_JOB_API_TOKEN
         - name: IDENTITY_DATABASE_URL
           valueFrom:
             secretKeyRef:

@@ -18,10 +18,14 @@ TIMEOUT_SECONDS = int(os.getenv('DURABLE_JOB_TIMEOUT_SECONDS', '3600'))
 
 def _request(method: str, path: str, body: dict[str, object] | None = None) -> dict[str, object]:
     base_url = os.environ['DURABLE_JOB_API_URL'].rstrip('/')
+    api_token = os.environ['DURABLE_JOB_API_TOKEN']
     data = json.dumps(body).encode() if body is not None else None
     request = Request(
         f'{base_url}{path}', data=data, method=method,
-        headers={'Content-Type': 'application/json'},
+        headers={
+            'Authorization': f'Bearer {api_token}',
+            'Content-Type': 'application/json',
+        },
     )
     with urlopen(request, timeout=TIMEOUT_SECONDS) as response:
         payload = json.load(response)
