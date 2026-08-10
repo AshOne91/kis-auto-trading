@@ -1,7 +1,7 @@
 {
   "document_kind": "generation_job",
   "format_version": "1",
-  "job_id": "abe62a8a-7ea5-446f-83c8-e5ed6b06f6b5",
+  "job_id": "424c58cd-1a2d-4111-be81-0bed9c52aef7",
   "units": [
     {
       "kind": "project",
@@ -61,11 +61,11 @@
             "generator_id": "autoforge.generator.kubernetes-base-server",
             "generator_version": "0.1.0",
             "ownership": "generated",
-            "previous_content_hash": "0808f38c4b6b0c7ff71c39fd38f3c2fd2258b14c86a40610da867db85e7aa266",
+            "previous_content_hash": "a5d68ba00ab582d707dfcf3005331d1e75f292a5a0fc70943a7daf878c3d1253",
             "relative_path": "deploy/kubernetes/README.md",
             "source": "project:kubernetes-base-server",
             "specification_hash": "0505621ff661e4a337fda78277b28b958c75660021e0de70885c79e5db207b0b",
-            "status": "changed"
+            "status": "unchanged"
           },
           {
             "content_hash": "ab1af90b8bc1594963ef0c6de90dfe6261f652bba167cfbcb9dc74e1d7ab244c",
@@ -85,11 +85,11 @@
             "generator_id": "autoforge.generator.kubernetes-base-server",
             "generator_version": "0.1.0",
             "ownership": "generated",
-            "previous_content_hash": null,
+            "previous_content_hash": "e919dc3856929d83ebdd1a7315e1c35276034516706bb32d1cab3ec711d4840d",
             "relative_path": "deploy/kubernetes/observability-filebeat.yaml",
             "source": "project:kubernetes-base-server",
             "specification_hash": "0505621ff661e4a337fda78277b28b958c75660021e0de70885c79e5db207b0b",
-            "status": "created"
+            "status": "unchanged"
           },
           {
             "content_hash": "117a7dc4d7e97793df839da0d21ec43a34cef1e0d445f12e1897b518385f6b6e",
@@ -97,11 +97,11 @@
             "generator_id": "autoforge.generator.kubernetes-base-server",
             "generator_version": "0.1.0",
             "ownership": "generated",
-            "previous_content_hash": "a3eda78d1d2632c3b94beceb92f26202118a3896cf89aefdda1e5ad9d5161505",
+            "previous_content_hash": "117a7dc4d7e97793df839da0d21ec43a34cef1e0d445f12e1897b518385f6b6e",
             "relative_path": "deploy/kubernetes/secret.env.example",
             "source": "project:kubernetes-base-server",
             "specification_hash": "0505621ff661e4a337fda78277b28b958c75660021e0de70885c79e5db207b0b",
-            "status": "changed"
+            "status": "unchanged"
           },
           {
             "content_hash": "75e989f60f90d32d5e41c600a19e7bdf244b5fb0e2325065024d90a332e9c569",
@@ -109,11 +109,11 @@
             "generator_id": "autoforge.generator.elk",
             "generator_version": "0.1.0",
             "ownership": "generated",
-            "previous_content_hash": "53cbac4294e108255fc7a2c5b9e43b33d868685ef40b4000c762670a40f19689",
+            "previous_content_hash": "75e989f60f90d32d5e41c600a19e7bdf244b5fb0e2325065024d90a332e9c569",
             "relative_path": "deploy/observability/README.md",
             "source": "project:elk",
             "specification_hash": "0505621ff661e4a337fda78277b28b958c75660021e0de70885c79e5db207b0b",
-            "status": "changed"
+            "status": "unchanged"
           },
           {
             "content_hash": "b51fc4548dcfc834c5ed702867788228e132bf848358af1f2effea1adefb0253",
@@ -800,7 +800,7 @@
             "status": "unchanged"
           }
         ],
-        "job_id": "abe62a8a-7ea5-446f-83c8-e5ed6b06f6b5",
+        "job_id": "424c58cd-1a2d-4111-be81-0bed9c52aef7",
         "specification_hash": "0505621ff661e4a337fda78277b28b958c75660021e0de70885c79e5db207b0b",
         "specification_version": "1"
       },
@@ -955,7 +955,7 @@
             "status": "preserved"
           }
         ],
-        "job_id": "abe62a8a-7ea5-446f-83c8-e5ed6b06f6b5",
+        "job_id": "424c58cd-1a2d-4111-be81-0bed9c52aef7",
         "specification_hash": "9929ac59ec5025ee885d10888dd72a1bf18c3b52571cf1e698227bd3a97ff0a3",
         "specification_version": "1"
       },
@@ -1110,7 +1110,7 @@
             "status": "preserved"
           }
         ],
-        "job_id": "abe62a8a-7ea5-446f-83c8-e5ed6b06f6b5",
+        "job_id": "424c58cd-1a2d-4111-be81-0bed9c52aef7",
         "specification_hash": "ffcbba6369441bc33b33e85b52aacc18fd43545bdbdd72e6cdc3bdd4957151aa",
         "specification_version": "1"
       },
