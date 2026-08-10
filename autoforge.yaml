@@ -8,6 +8,9 @@ tooling:
     log_host_path: /run/desktop/mnt/host/c/kis-auto-trading/logs
   local_environment:
     enabled: true
+  elk:
+    enabled: true
+    version: "8.19.17"
   ruff_exclude:
     - base_server
     - test.py

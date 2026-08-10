@@ -1,0 +1,18 @@
+filebeat.inputs:
+  - type: filestream
+    id: kis_auto_trading-application-json
+    enabled: true
+    paths:
+      - /var/log/application/*/*.log
+    parsers:
+      - ndjson:
+          target: ""
+          add_error_key: true
+
+fields_under_root: true
+fields:
+  autoforge.project: kis_auto_trading
+  autoforge.environment: development
+
+output.elasticsearch:
+  hosts: ["http://elasticsearch:9200"]
