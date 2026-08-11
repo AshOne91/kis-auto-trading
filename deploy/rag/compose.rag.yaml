@@ -1,0 +1,36 @@
+name: kis_auto_trading-rag
+
+services:
+  qdrant:
+    profiles: ["rag"]
+    image: qdrant/qdrant:v1.18.3
+    ports:
+      - "${LOCAL_BIND_ADDRESS:-127.0.0.1}:${QDRANT_HTTP_PORT:-49450}:6333"
+      - "${LOCAL_BIND_ADDRESS:-127.0.0.1}:${QDRANT_GRPC_PORT:-49451}:6334"
+    volumes:
+      - qdrant-storage:/qdrant/storage
+
+  elasticsearch:
+    profiles: ["rag"]
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.19.17
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: "false"
+      ES_JAVA_OPTS: -Xms512m -Xmx512m
+    ports:
+      - "${LOCAL_BIND_ADDRESS:-127.0.0.1}:${ELASTICSEARCH_PORT:-49460}:9200"
+    volumes:
+      - rag-elasticsearch-data:/usr/share/elasticsearch/data
+
+  ollama:
+    profiles: ["inference"]
+    image: ollama/ollama:0.32.5
+    ports:
+      - "${LOCAL_BIND_ADDRESS:-127.0.0.1}:${OLLAMA_PORT:-49470}:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+
+volumes:
+  qdrant-storage:
+  rag-elasticsearch-data:
+  ollama-data:
