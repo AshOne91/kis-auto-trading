@@ -11,18 +11,19 @@ services:
     volumes:
       - qdrant-storage:/qdrant/storage
 
-  elasticsearch:
+  opensearch:
     profiles: ["rag"]
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.19.17
+    image: opensearchproject/opensearch:2.19.6
     networks: [rag]
     environment:
       discovery.type: single-node
-      xpack.security.enabled: "false"
-      ES_JAVA_OPTS: -Xms512m -Xmx512m
+      DISABLE_INSTALL_DEMO_CONFIG: "true"
+      DISABLE_SECURITY_PLUGIN: "true"
+      OPENSEARCH_JAVA_OPTS: -Xms512m -Xmx512m
     ports:
-      - "${LOCAL_BIND_ADDRESS:-127.0.0.1}:${ELASTICSEARCH_PORT:-49460}:9200"
+      - "${LOCAL_BIND_ADDRESS:-127.0.0.1}:${OPENSEARCH_PORT:-49460}:9200"
     volumes:
-      - rag-elasticsearch-data:/usr/share/elasticsearch/data
+      - rag-opensearch-data:/usr/share/opensearch/data
 
   ollama:
     profiles: ["inference"]
@@ -40,5 +41,5 @@ networks:
 
 volumes:
   qdrant-storage:
-  rag-elasticsearch-data:
+  rag-opensearch-data:
   ollama-data:

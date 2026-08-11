@@ -1,7 +1,7 @@
 # Generated local RAG infrastructure
 
 This optional overlay provides a local vector store (Qdrant), keyword search
-(Elasticsearch), and local inference runtime (Ollama) for
+(Opensearch), and local inference runtime (Ollama) for
 `kis_auto_trading`. It does not create collections, indexes,
 documents, embeddings, prompts, or models.
 
@@ -29,8 +29,8 @@ docker compose --env-file deploy/rag/.env -f deploy/rag/compose.rag.yaml --profi
 docker compose --env-file deploy/rag/.env -f deploy/rag/compose.rag.yaml exec ollama ollama pull <selected-model>
 ```
 
-Qdrant and Elasticsearch use named Docker volumes because they own persistent
+Qdrant and Opensearch use named Docker volumes because they own persistent
 data. Ports bind to `LOCAL_BIND_ADDRESS` and default to the configured local
-port block. `xpack.security.enabled` is disabled only for this local overlay.
+port block. Search-engine security is disabled only for this local overlay.
 Production requires authenticated, backed-up, cluster-aware service deployment;
 do not use this Compose file as a production topology.
