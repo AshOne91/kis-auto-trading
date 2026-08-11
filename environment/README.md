@@ -9,8 +9,6 @@ docker compose --env-file .env -f compose.integration.yml down
 ```
 
 Run application containers on the Compose network. The Redis Cluster URL uses
-Docker service DNS and is intentionally not a host-process URL. Airflow is
-generated paused and reads the durable-job API token from .env. When the
-application profile is enabled, the outbox relay and durable-job worker run
-from the same local image.
-When Docker is enabled, migrations run before the generated application starts.
+Docker service DNS and is intentionally not a host-process URL.
+The generated application is built from Dockerfile. When Docker is enabled, migrations run before the generated application starts.
+Airflow is generated paused and reads the durable-job API token from .env. The outbox relay and durable-job worker run from the same local image.

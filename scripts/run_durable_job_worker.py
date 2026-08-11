@@ -5,7 +5,7 @@ import aio_pika
 from sqlalchemy.ext.asyncio import create_async_engine
 
 from kis_auto_trading.application.durable_job_handler import (
-    ApplicationDurableJobHandler,
+    create_durable_job_handler,
 )
 from kis_auto_trading.application.observability import LOGGER, configure_logging
 from kis_auto_trading.infrastructure.database.session import AsyncSessionRegistry
@@ -28,7 +28,9 @@ async def main() -> None:
     registry = AsyncSessionRegistry(engines, {})
     connection = await aio_pika.connect_robust(os.environ[RABBITMQ_URL_ENV])
     consumer = RabbitMQConsumer(connection)
-    handler = DurableJobMessageHandler(registry, ApplicationDurableJobHandler())
+    handler = DurableJobMessageHandler(
+        registry, create_durable_job_handler(registry)
+    )
     try:
         await consumer.consume(
             handler,
