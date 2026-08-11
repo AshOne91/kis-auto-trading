@@ -1,0 +1,79 @@
+spec_version: "1"
+
+module:
+  name: news
+  display_name: News
+  route_prefix: /api/news
+
+models:
+  - name: NewsArticle
+    fields:
+      - name: source_key
+        type:
+          kind: string
+      - name: source_url
+        type:
+          kind: string
+      - name: provider
+        type:
+          kind: string
+      - name: title
+        type:
+          kind: string
+      - name: symbol
+        type:
+          kind: string
+      - name: published_at
+        type:
+          kind: datetime
+      - name: publisher
+        type:
+          kind: string
+      - name: collected_at
+        type:
+          kind: datetime
+
+database:
+  provider: agnostic
+  tables:
+    - name: news_articles
+      columns:
+        - name: source_key
+          type:
+            kind: string
+          primary_key: true
+        - name: source_url
+          type:
+            kind: string
+        - name: provider
+          type:
+            kind: string
+        - name: title
+          type:
+            kind: string
+        - name: symbol
+          type:
+            kind: string
+        - name: published_at
+          type:
+            kind: datetime
+          nullable: true
+        - name: publisher
+          type:
+            kind: string
+          nullable: true
+        - name: collected_at
+          type:
+            kind: datetime
+  repositories:
+    - name: NewsArticleRepository
+      aggregate: NewsArticle
+      table: news_articles
+      operations:
+        - find_by_id
+        - save
+  placements:
+    - table: news_articles
+      store: automation
+      mode: global
+      unresolved_policy: error
