@@ -15,6 +15,7 @@ dependencies = [
     "redis>=5,<7",
     "sqlalchemy>=2.0,<3",
     "uvicorn",
+    "httpx>=0.28,<1",
     "yfinance>=0.2,<1",
 ]
 

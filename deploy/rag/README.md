@@ -5,6 +5,16 @@ This optional overlay provides a local vector store (Qdrant), keyword search
 `kis_auto_trading`. It does not create collections, indexes,
 documents, embeddings, prompts, or models.
 
+Create the shared network once before starting either the RAG overlay or the
+generated local environment. It lets separately managed Compose projects use
+service DNS without exposing internal container ports through the host.
+
+```powershell
+if (-not (docker network inspect kis_auto_trading-rag 2>$null)) {
+  docker network create kis_auto_trading-rag
+}
+```
+
 ```powershell
 Copy-Item deploy/rag/.env.example deploy/rag/.env
 docker compose --env-file deploy/rag/.env -f deploy/rag/compose.rag.yaml --profile rag up -d

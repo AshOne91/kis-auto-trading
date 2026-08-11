@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -14,9 +15,16 @@ class NewsArticleRepository:
     async def insert_many(
         self, articles: list[NewsArticle], *, collected_at: datetime
     ) -> int:
+        return len(
+            await self.insert_many_returning_keys(articles, collected_at=collected_at)
+        )
+
+    async def insert_many_returning_keys(
+        self, articles: list[NewsArticle], *, collected_at: datetime
+    ) -> list[str]:
         unique_articles = {article.source_key: article for article in articles}
         if not unique_articles:
-            return 0
+            return []
 
         statement = (
             insert(NewsArticleRecord)
@@ -39,4 +47,25 @@ class NewsArticleRepository:
             .returning(NewsArticleRecord.source_key)
         )
         result = await self._session.execute(statement)
-        return len(result.scalars().all())
+        return list(result.scalars())
+
+    async def find_by_source_keys(self, source_keys: list[str]) -> list[NewsArticle]:
+        if not source_keys:
+            return []
+        result = await self._session.execute(
+            select(NewsArticleRecord).where(
+                NewsArticleRecord.source_key.in_(source_keys)
+            )
+        )
+        return [
+            NewsArticle(
+                source_key=record.source_key,
+                source_url=record.source_url,
+                provider=record.provider,
+                title=record.title,
+                symbol=record.symbol,
+                published_at=record.published_at,
+                publisher=record.publisher,
+            )
+            for record in result.scalars()
+        ]

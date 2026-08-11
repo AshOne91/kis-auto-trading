@@ -136,11 +136,17 @@ services:
       ACCOUNT_SHARD_2_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-autoforge}:${POSTGRES_PASSWORD:-change-me}@postgres:5432/account_shard_2
       REDIS_CLUSTER_URL: ${REDIS_CLUSTER_URL:-redis://redis-7000:7000}
       DURABLE_JOB_API_TOKEN: ${DURABLE_JOB_API_TOKEN:?set DURABLE_JOB_API_TOKEN}
+      RAG_ELASTICSEARCH_URL: ${RAG_ELASTICSEARCH_URL:-http://elasticsearch:9200}
+      RAG_OLLAMA_URL: ${RAG_OLLAMA_URL:-http://ollama:11434}
+      RAG_EMBEDDING_MODEL: ${RAG_EMBEDDING_MODEL:-embeddinggemma}
       LOG_DIRECTORY: /app/logs
     ports:
       - "${LOCAL_BIND_ADDRESS:-127.0.0.1}:${APPLICATION_PORT:-28000}:8000"
     volumes:
       - ../logs:/app/logs
+    networks:
+      - default
+      - rag
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -171,6 +177,7 @@ services:
   durable-job-worker:
     image: ${APPLICATION_IMAGE:-kis-auto-trading:local}
     pull_policy: never
+    restart: unless-stopped
     command: ["python", "scripts/run_durable_job_worker.py"]
     environment:
       IDENTITY_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-autoforge}:${POSTGRES_PASSWORD:-change-me}@postgres:5432/identity
@@ -178,6 +185,12 @@ services:
       ACCOUNT_SHARD_1_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-autoforge}:${POSTGRES_PASSWORD:-change-me}@postgres:5432/account_shard_1
       ACCOUNT_SHARD_2_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-autoforge}:${POSTGRES_PASSWORD:-change-me}@postgres:5432/account_shard_2
       RABBITMQ_URL: ${RABBITMQ_URL:?set RABBITMQ_URL}
+      RAG_ELASTICSEARCH_URL: ${RAG_ELASTICSEARCH_URL:-http://elasticsearch:9200}
+      RAG_OLLAMA_URL: ${RAG_OLLAMA_URL:-http://ollama:11434}
+      RAG_EMBEDDING_MODEL: ${RAG_EMBEDDING_MODEL:-embeddinggemma}
+    networks:
+      - default
+      - rag
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -213,6 +226,11 @@ services:
       interval: 10s
       timeout: 5s
       retries: 30
+
+networks:
+  rag:
+    name: ${RAG_NETWORK_NAME:-kis_auto_trading-rag}
+    external: true
 
 volumes:
   airflow-home:

@@ -2,8 +2,10 @@ from datetime import UTC, datetime
 
 from kis_auto_trading.infrastructure.database.routing import ShardTarget
 from kis_auto_trading.infrastructure.database.session import AsyncSessionRegistry
+from kis_auto_trading.infrastructure.durable_jobs.repository import DurableJobRepository
 from kis_auto_trading.infrastructure.durable_jobs.worker import DurableJobExecution
 from kis_auto_trading.modules.news.persistence import NewsArticleRepository
+from kis_auto_trading.modules.news.search import NewsSearchIndexer
 from kis_auto_trading.modules.news.yahoo import YahooFinanceNewsProvider
 
 
@@ -12,16 +14,24 @@ class ApplicationDurableJobHandler:
         self,
         session_registry: AsyncSessionRegistry,
         provider: YahooFinanceNewsProvider | None = None,
+        indexer: NewsSearchIndexer | None = None,
     ) -> None:
         self._session_registry = session_registry
         self._provider = provider or YahooFinanceNewsProvider()
+        self._indexer = indexer
 
     async def handle(
         self, execution: DurableJobExecution
     ) -> dict[str, object] | None:
-        if execution.job_type != "news_collection":
-            raise ValueError(f"unsupported durable job type: {execution.job_type}")
+        if execution.job_type == "news_collection":
+            return await self._collect_news(execution)
+        if execution.job_type == "news_index":
+            return await self._index_news(execution)
+        raise ValueError(f"unsupported durable job type: {execution.job_type}")
 
+    async def _collect_news(
+        self, execution: DurableJobExecution
+    ) -> dict[str, object]:
         symbols = _symbols_from_payload(execution.payload)
         articles = []
         for symbol in symbols:
@@ -30,14 +40,36 @@ class ApplicationDurableJobHandler:
         async with self._session_registry.session(
             ShardTarget(store="automation")
         ) as session:
-            inserted = await NewsArticleRepository(session).insert_many(
+            source_keys = await NewsArticleRepository(session).insert_many_returning_keys(
                 articles, collected_at=datetime.now(UTC)
+            )
+            index_job = await DurableJobRepository(session).request(
+                job_type="news_index",
+                run_key=f"news-index:{execution.job_id}",
+                payload={"source_keys": source_keys},
             )
         return {
             "job_type": execution.job_type,
             "symbols": symbols,
             "articles_collected": len(articles),
-            "articles_inserted": inserted,
+            "articles_inserted": len(source_keys),
+            "index_job_id": index_job.job_id,
+        }
+
+    async def _index_news(
+        self, execution: DurableJobExecution
+    ) -> dict[str, object]:
+        source_keys = _source_keys_from_payload(execution.payload)
+        async with self._session_registry.session(
+            ShardTarget(store="automation")
+        ) as session:
+            articles = await NewsArticleRepository(session).find_by_source_keys(source_keys)
+        indexer = self._indexer or NewsSearchIndexer.from_environment()
+        indexed = await indexer.index(articles)
+        return {
+            "job_type": execution.job_type,
+            "source_keys_requested": len(source_keys),
+            "articles_indexed": indexed,
         }
 
 
@@ -54,6 +86,22 @@ def _symbols_from_payload(payload: dict[str, object]) -> list[str]:
     )
     if not normalized:
         raise ValueError("news_collection payload requires at least one symbol")
+    return normalized
+
+
+def _source_keys_from_payload(payload: dict[str, object]) -> list[str]:
+    source_keys = payload.get("source_keys")
+    if not isinstance(source_keys, list):
+        raise TypeError("news_index payload requires a source_keys list")
+    normalized = list(
+        dict.fromkeys(
+            source_key.strip()
+            for source_key in source_keys
+            if isinstance(source_key, str) and source_key.strip()
+        )
+    )
+    if not normalized:
+        raise ValueError("news_index payload requires at least one source key")
     return normalized
 
 

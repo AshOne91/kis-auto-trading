@@ -23,5 +23,11 @@ JOB_DEFINITIONS: dict[str, DurableJobDefinition] = {
         store="automation",
         event_type="news.collection.requested",
         routing_key="news.collection.requested",
+    ),
+    "news_index": DurableJobDefinition(
+        name="news_index",
+        store="automation",
+        event_type="news.index.requested",
+        routing_key="news.index.requested",
     )
 }
