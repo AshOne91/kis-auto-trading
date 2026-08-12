@@ -1,7 +1,7 @@
 {
   "document_kind": "generation_job",
   "format_version": "1",
-  "job_id": "a5e56a60-3d6d-47da-825d-08b29729248b",
+  "job_id": "c76c782e-d240-41af-9087-96e84cb40760",
   "units": [
     {
       "kind": "project",
@@ -109,11 +109,11 @@
             "generator_id": "autoforge.generator.elk",
             "generator_version": "0.1.0",
             "ownership": "generated",
-            "previous_content_hash": "75e989f60f90d32d5e41c600a19e7bdf244b5fb0e2325065024d90a332e9c569",
+            "previous_content_hash": "f3a15a71dc7f61a4714ecd88529168fa73e223f2f8aa6fb80a2e2fbc751e02be",
             "relative_path": "deploy/observability/README.md",
             "source": "project:elk",
             "specification_hash": "794c8db165cbd5fb9b8ea785930dccb392138e5de2adaa74b9ffd4a03e4e541b",
-            "status": "changed"
+            "status": "unchanged"
           },
           {
             "content_hash": "6420d60a03eaf0d6f6f95b234d741412fb8293787732e902413e625ed43a1e9d",
@@ -121,11 +121,11 @@
             "generator_id": "autoforge.generator.elk",
             "generator_version": "0.1.0",
             "ownership": "generated",
-            "previous_content_hash": "b51fc4548dcfc834c5ed702867788228e132bf848358af1f2effea1adefb0253",
+            "previous_content_hash": "6420d60a03eaf0d6f6f95b234d741412fb8293787732e902413e625ed43a1e9d",
             "relative_path": "deploy/observability/compose.elk.yaml",
             "source": "project:elk",
             "specification_hash": "794c8db165cbd5fb9b8ea785930dccb392138e5de2adaa74b9ffd4a03e4e541b",
-            "status": "changed"
+            "status": "unchanged"
           },
           {
             "content_hash": "fe6a37a26065506d5fd661d51d0081448fc731f9809177ca453be9cf39895364",
@@ -133,11 +133,11 @@
             "generator_id": "autoforge.generator.elk",
             "generator_version": "0.1.0",
             "ownership": "generated",
-            "previous_content_hash": "16c1407d3714466fc7e143b6cc0abbca66236db88097a2dba36fd4e33a083f72",
+            "previous_content_hash": "fe6a37a26065506d5fd661d51d0081448fc731f9809177ca453be9cf39895364",
             "relative_path": "deploy/observability/filebeat.yml",
             "source": "project:elk",
             "specification_hash": "794c8db165cbd5fb9b8ea785930dccb392138e5de2adaa74b9ffd4a03e4e541b",
-            "status": "changed"
+            "status": "unchanged"
           },
           {
             "content_hash": "491ac07f22f3e2407b294b2cd6991265b05857b3a3d0003cfddb3a582f0a721d",
@@ -428,12 +428,12 @@
             "status": "unchanged"
           },
           {
-            "content_hash": "6ffc36adb01cc9c4c1fbfced84a1bb496b9962be2ba859f70f0912045f85f1a7",
+            "content_hash": "1f926e2255486673f6495c687a57ef4b13ced0ba91e2fa628c10726647e82d1f",
             "error": null,
             "generator_id": "autoforge.generator.service.durable_jobs",
             "generator_version": "0.1.0",
             "ownership": "scaffolded",
-            "previous_content_hash": "6ffc36adb01cc9c4c1fbfced84a1bb496b9962be2ba859f70f0912045f85f1a7",
+            "previous_content_hash": "1f926e2255486673f6495c687a57ef4b13ced0ba91e2fa628c10726647e82d1f",
             "relative_path": "src/kis_auto_trading/application/durable_job_handler.py",
             "source": "project:durable-jobs",
             "specification_hash": "794c8db165cbd5fb9b8ea785930dccb392138e5de2adaa74b9ffd4a03e4e541b",
@@ -476,7 +476,7 @@
             "status": "unchanged"
           },
           {
-            "content_hash": "a4e3d1aed34ca6d8d3861263d874ffda60ae072d0991172327534fb686c28287",
+            "content_hash": "b1f4f784b343a70affe4b7c0df485ddd26fbd9c6cab93bf2018b3928cda2b565",
             "error": null,
             "generator_id": "autoforge.generator.fastapi.project",
             "generator_version": "0.1.0",
@@ -485,7 +485,7 @@
             "relative_path": "src/kis_auto_trading/application/observability.py",
             "source": "project:kis_auto_trading",
             "specification_hash": "794c8db165cbd5fb9b8ea785930dccb392138e5de2adaa74b9ffd4a03e4e541b",
-            "status": "unchanged"
+            "status": "changed"
           },
           {
             "content_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -848,7 +848,7 @@
             "status": "unchanged"
           }
         ],
-        "job_id": "a5e56a60-3d6d-47da-825d-08b29729248b",
+        "job_id": "c76c782e-d240-41af-9087-96e84cb40760",
         "specification_hash": "794c8db165cbd5fb9b8ea785930dccb392138e5de2adaa74b9ffd4a03e4e541b",
         "specification_version": "1"
       },
@@ -1003,7 +1003,7 @@
             "status": "preserved"
           }
         ],
-        "job_id": "a5e56a60-3d6d-47da-825d-08b29729248b",
+        "job_id": "c76c782e-d240-41af-9087-96e84cb40760",
         "specification_hash": "9929ac59ec5025ee885d10888dd72a1bf18c3b52571cf1e698227bd3a97ff0a3",
         "specification_version": "1"
       },
@@ -1158,7 +1158,7 @@
             "status": "preserved"
           }
         ],
-        "job_id": "a5e56a60-3d6d-47da-825d-08b29729248b",
+        "job_id": "c76c782e-d240-41af-9087-96e84cb40760",
         "specification_hash": "ffcbba6369441bc33b33e85b52aacc18fd43545bdbdd72e6cdc3bdd4957151aa",
         "specification_version": "1"
       },
@@ -1313,7 +1313,7 @@
             "status": "preserved"
           }
         ],
-        "job_id": "a5e56a60-3d6d-47da-825d-08b29729248b",
+        "job_id": "c76c782e-d240-41af-9087-96e84cb40760",
         "specification_hash": "5f9511062f333e72a57d634b2871fb65fd23659a3557f6e42ab3122e6e6ef40a",
         "specification_version": "1"
       },

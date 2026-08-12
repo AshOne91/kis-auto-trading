@@ -77,6 +77,14 @@ class ApplicationDurableJobHandler:
                 execution.job_id,
                 execution.run_key,
                 attempt + 1,
+                extra={
+                    "event_type": "news_collection_retries_exhausted",
+                    "job_type": execution.job_type,
+                    "job_id": execution.job_id,
+                    "run_key": execution.run_key,
+                    "attempt": attempt + 1,
+                    "max_attempts": MAX_NEWS_COLLECTION_ATTEMPTS,
+                },
             )
             return
 

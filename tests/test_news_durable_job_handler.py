@@ -175,6 +175,12 @@ async def test_news_handler_stops_retrying_after_final_attempt(
         )
     assert "news collection retries exhausted" in caplog.text
     assert "job_id=job-3" in caplog.text
+    record = caplog.records[-1]
+    assert record.event_type == "news_collection_retries_exhausted"
+    assert record.job_id == "job-3"
+    assert record.run_key == "news:yahoo:test:retry:2"
+    assert record.attempt == 3
+    assert record.max_attempts == 3
 
 
 @pytest.mark.anyio

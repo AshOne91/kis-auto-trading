@@ -30,7 +30,8 @@ class JsonFormatter(logging.Formatter):
             'message': self._redact(record.getMessage()),
         }
         for field_name in (
-            'request_id', 'method', 'path', 'status_code', 'duration_ms', 'event_id'
+            'request_id', 'method', 'path', 'status_code', 'duration_ms', 'event_id',
+            'event_type', 'job_type', 'job_id', 'run_key', 'attempt', 'max_attempts'
         ):
             value = getattr(record, field_name, None)
             if value is not None:
