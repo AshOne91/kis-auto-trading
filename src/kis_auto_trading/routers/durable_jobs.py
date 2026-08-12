@@ -9,7 +9,10 @@ from pydantic import BaseModel, Field
 from kis_auto_trading.infrastructure.database.provider import get_session_registry
 from kis_auto_trading.infrastructure.database.routing import ShardTarget
 from kis_auto_trading.infrastructure.database.session import AsyncSessionRegistry
-from kis_auto_trading.infrastructure.durable_jobs.contracts import JOB_DEFINITIONS
+from kis_auto_trading.infrastructure.durable_jobs.contracts import (
+    JOB_DEFINITIONS,
+    DurableJobStatus,
+)
 from kis_auto_trading.infrastructure.durable_jobs.repository import DurableJobRepository
 
 
@@ -60,6 +63,20 @@ def _definition(job_type: str):
     return definition
 
 
+def _status_response(job) -> DurableJobStatusResponse:
+    return DurableJobStatusResponse(
+        job_id=job.job_id,
+        job_type=job.job_type,
+        run_key=job.run_key,
+        status=job.status,
+        payload=job.payload,
+        result=job.result,
+        error=job.error,
+        requested_at=job.requested_at,
+        updated_at=job.updated_at,
+    )
+
+
 @router.post(
     '/{job_type}',
     response_model=DurableJobTriggerResponse,
@@ -95,14 +112,35 @@ async def get_durable_job(
         job = await DurableJobRepository(session).get(job_id)
     if job is None or job.job_type != definition.name:
         raise HTTPException(status_code=404, detail='durable job not found')
-    return DurableJobStatusResponse(
-        job_id=job.job_id,
-        job_type=job.job_type,
-        run_key=job.run_key,
-        status=job.status,
-        payload=job.payload,
-        result=job.result,
-        error=job.error,
-        requested_at=job.requested_at,
-        updated_at=job.updated_at,
-    )
+    return _status_response(job)
+
+
+@router.delete('/{job_type}/{job_id}', response_model=DurableJobStatusResponse)
+async def cancel_durable_job(
+    job_type: str,
+    job_id: str,
+    session_registry: Annotated[
+        AsyncSessionRegistry, Depends(get_session_registry)
+    ],
+) -> DurableJobStatusResponse:
+    definition = _definition(job_type)
+    async with session_registry.session(ShardTarget(store=definition.store)) as session:
+        repository = DurableJobRepository(session)
+        job = await repository.get(job_id)
+        if job is None or job.job_type != definition.name:
+            raise HTTPException(status_code=404, detail='durable job not found')
+        if job.status == DurableJobStatus.CANCELLED.value:
+            return _status_response(job)
+        cancelled = await repository.transition(
+            job_id=job_id, expected_status=DurableJobStatus.REQUESTED,
+            status=DurableJobStatus.CANCELLED,
+        )
+        if not cancelled:
+            job = await repository.get(job_id)
+            if job is not None and job.status == DurableJobStatus.CANCELLED.value:
+                return _status_response(job)
+            raise HTTPException(status_code=409, detail='durable job is already running or finished')
+        job = await repository.get(job_id)
+        if job is None:
+            raise HTTPException(status_code=404, detail='durable job not found')
+        return _status_response(job)

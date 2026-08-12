@@ -36,6 +36,8 @@ def test_durable_job_api_authenticates_and_reuses_run_key(
     )
 
     class FakeDurableJobRepository:
+        cancel_raced = False
+
         def __init__(self, session) -> None:
             del session
 
@@ -43,8 +45,19 @@ def test_durable_job_api_authenticates_and_reuses_run_key(
             requests.append(kwargs)
             return SimpleNamespace(job_id="job-1", created=len(requests) == 1)
 
-        async def get(self, job_id: str):
+        async def get(self, job_id: str, **kwargs):
+            del kwargs
             return record if job_id == record.job_id else None
+
+        async def transition(self, *, expected_status, status, **kwargs):
+            del kwargs
+            if self.cancel_raced:
+                record.status = "cancelled"
+                return False
+            if record.status != expected_status.value:
+                return False
+            record.status = status.value
+            return True
 
     monkeypatch.setenv("DURABLE_JOB_API_TOKEN", "test-token")
     monkeypatch.setattr(durable_jobs, "DurableJobRepository", FakeDurableJobRepository)
@@ -73,6 +86,30 @@ def test_durable_job_api_authenticates_and_reuses_run_key(
             "/internal/jobs/news_collection/job-1",
             headers={"Authorization": "Bearer test-token"},
         )
+        cancelled = client.delete(
+            "/internal/jobs/news_collection/job-1",
+            headers={"Authorization": "Bearer test-token"},
+        )
+        cancelled_again = client.delete(
+            "/internal/jobs/news_collection/job-1",
+            headers={"Authorization": "Bearer test-token"},
+        )
+        status_after_cancel = client.get(
+            "/internal/jobs/news_collection/job-1",
+            headers={"Authorization": "Bearer test-token"},
+        )
+        record.status = "requested"
+        FakeDurableJobRepository.cancel_raced = True
+        raced_cancel = client.delete(
+            "/internal/jobs/news_collection/job-1",
+            headers={"Authorization": "Bearer test-token"},
+        )
+        FakeDurableJobRepository.cancel_raced = False
+        record.status = "running"
+        running_cancel = client.delete(
+            "/internal/jobs/news_collection/job-1",
+            headers={"Authorization": "Bearer test-token"},
+        )
 
     assert created.status_code == 202
     assert created.json() == {"job_id": "job-1", "created": True}
@@ -84,7 +121,20 @@ def test_durable_job_api_authenticates_and_reuses_run_key(
     ]
     assert status.status_code == 200
     assert status.json()["status"] == "requested"
+    assert cancelled.status_code == 200
+    assert cancelled.json()["status"] == "cancelled"
+    assert cancelled_again.status_code == 200
+    assert cancelled_again.json()["status"] == "cancelled"
+    assert status_after_cancel.json()["status"] == "cancelled"
+    assert raced_cancel.status_code == 200
+    assert raced_cancel.json()["status"] == "cancelled"
+    assert running_cancel.status_code == 409
     assert [target.store for target in registry.targets] == [
+        "automation",
+        "automation",
+        "automation",
+        "automation",
+        "automation",
         "automation",
         "automation",
         "automation",

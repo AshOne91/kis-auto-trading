@@ -62,6 +62,8 @@ def wait_for_job(ti) -> None:
             return
         if status == 'failed':
             raise RuntimeError(str(response.get('error') or 'durable job failed'))
+        if status == 'cancelled':
+            raise RuntimeError('durable job cancelled')
         time.sleep(POLL_SECONDS)
 
 

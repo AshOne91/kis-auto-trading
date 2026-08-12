@@ -46,7 +46,9 @@ Values belong in an ignored local `.env` file. The future generated
    together in `automation`.
 7. Run the Outbox relay and verify RabbitMQ delivery and DLQ behavior.
 8. Verify the KIS-owned Job handler and explicit consumer binding.
-9. Start Airflow and validate DAG trigger, retry, timeout, and status polling.
+9. Cancel a requested Durable Job and verify that a delivered message does not
+   invoke the handler; running or completed Jobs must reject cancellation.
+10. Start Airflow and validate DAG trigger, retry, timeout, and status polling.
 
 ## Deliberate exclusions
 

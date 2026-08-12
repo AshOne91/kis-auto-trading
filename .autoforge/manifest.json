@@ -1,7 +1,7 @@
 {
   "document_kind": "generation_job",
   "format_version": "1",
-  "job_id": "11409d81-65b5-49c0-bfd4-c5ba3022faa6",
+  "job_id": "c74bad09-6db5-4e6f-b5c9-6f570dc03291",
   "units": [
     {
       "kind": "project",
@@ -32,12 +32,12 @@
             "status": "preserved"
           },
           {
-            "content_hash": "88828c9cb931ea99ad1e33ce08b27ab941547166b128151a563ca19b6c939dd6",
+            "content_hash": "1df592079ca0f967604344162df9733c4d45b2b1fad97c8211c51bd1b7183e27",
             "error": null,
             "generator_id": "autoforge.generator.service.durable_jobs",
             "generator_version": "0.1.0",
             "ownership": "generated",
-            "previous_content_hash": "88828c9cb931ea99ad1e33ce08b27ab941547166b128151a563ca19b6c939dd6",
+            "previous_content_hash": "1df592079ca0f967604344162df9733c4d45b2b1fad97c8211c51bd1b7183e27",
             "relative_path": "airflow/dags/news_collection.py",
             "source": "project:durable-jobs",
             "specification_hash": "794c8db165cbd5fb9b8ea785930dccb392138e5de2adaa74b9ffd4a03e4e541b",
@@ -109,11 +109,11 @@
             "generator_id": "autoforge.generator.elk",
             "generator_version": "0.1.0",
             "ownership": "generated",
-            "previous_content_hash": "f3a15a71dc7f61a4714ecd88529168fa73e223f2f8aa6fb80a2e2fbc751e02be",
+            "previous_content_hash": "b223681c47c6d66840ab21469ef313135995e5fb2035a925fde43162d617e02f",
             "relative_path": "deploy/observability/README.md",
             "source": "project:elk",
             "specification_hash": "794c8db165cbd5fb9b8ea785930dccb392138e5de2adaa74b9ffd4a03e4e541b",
-            "status": "changed"
+            "status": "unchanged"
           },
           {
             "content_hash": "6420d60a03eaf0d6f6f95b234d741412fb8293787732e902413e625ed43a1e9d",
@@ -572,12 +572,12 @@
             "status": "unchanged"
           },
           {
-            "content_hash": "d86bbb8faa761f6ea7dead65ff8c780ed8039bc1129883a84bb71335201d02f0",
+            "content_hash": "9cc78d17ac0497de2c1e51eb81a2d2976a53ace7dc3127d220177368008b370e",
             "error": null,
             "generator_id": "autoforge.generator.service.durable_jobs",
             "generator_version": "0.1.0",
             "ownership": "generated",
-            "previous_content_hash": "d86bbb8faa761f6ea7dead65ff8c780ed8039bc1129883a84bb71335201d02f0",
+            "previous_content_hash": "9cc78d17ac0497de2c1e51eb81a2d2976a53ace7dc3127d220177368008b370e",
             "relative_path": "src/kis_auto_trading/infrastructure/durable_jobs/contracts.py",
             "source": "project:durable-jobs",
             "specification_hash": "794c8db165cbd5fb9b8ea785930dccb392138e5de2adaa74b9ffd4a03e4e541b",
@@ -596,7 +596,7 @@
             "status": "unchanged"
           },
           {
-            "content_hash": "308f555613a2fefa310a6c8485287f1c2c892b2b3fa23c152b587ce6762f1328",
+            "content_hash": "28050fa205fc656ca18c881162ee98aaac81d2f17e3ea5409e13a4556a99318e",
             "error": null,
             "generator_id": "autoforge.generator.service.durable_jobs",
             "generator_version": "0.1.0",
@@ -605,7 +605,7 @@
             "relative_path": "src/kis_auto_trading/infrastructure/durable_jobs/repository.py",
             "source": "project:durable-jobs",
             "specification_hash": "794c8db165cbd5fb9b8ea785930dccb392138e5de2adaa74b9ffd4a03e4e541b",
-            "status": "unchanged"
+            "status": "changed"
           },
           {
             "content_hash": "7c35f6a25b619186175255fd3673b078d6a6fb60918f9fb7a88bb1e064c2c199",
@@ -812,16 +812,16 @@
             "status": "unchanged"
           },
           {
-            "content_hash": "8d948eaed8a773c9c2b50def61bdfc1249e875cfba6822e654f21d24d371ae97",
+            "content_hash": "e9b35f1267adcc8ced8103b09924435b1731288468d2c6649e2a86832ba431ea",
             "error": null,
             "generator_id": "autoforge.generator.fastapi.project",
             "generator_version": "0.1.0",
             "ownership": "generated",
-            "previous_content_hash": "8d948eaed8a773c9c2b50def61bdfc1249e875cfba6822e654f21d24d371ae97",
+            "previous_content_hash": "2d8db89757f029bdceafc15bc68ffbb813baf37ea97a07426eaa08c20592b76c",
             "relative_path": "src/kis_auto_trading/routers/durable_jobs.py",
             "source": "project:kis_auto_trading",
             "specification_hash": "794c8db165cbd5fb9b8ea785930dccb392138e5de2adaa74b9ffd4a03e4e541b",
-            "status": "unchanged"
+            "status": "changed"
           },
           {
             "content_hash": "9596142f11facbb7a2b62c894186b41e149f4a76f6d3a9363ca9cc40a1f4990e",
@@ -848,7 +848,7 @@
             "status": "unchanged"
           }
         ],
-        "job_id": "11409d81-65b5-49c0-bfd4-c5ba3022faa6",
+        "job_id": "c74bad09-6db5-4e6f-b5c9-6f570dc03291",
         "specification_hash": "794c8db165cbd5fb9b8ea785930dccb392138e5de2adaa74b9ffd4a03e4e541b",
         "specification_version": "1"
       },
@@ -1003,7 +1003,7 @@
             "status": "preserved"
           }
         ],
-        "job_id": "11409d81-65b5-49c0-bfd4-c5ba3022faa6",
+        "job_id": "c74bad09-6db5-4e6f-b5c9-6f570dc03291",
         "specification_hash": "9929ac59ec5025ee885d10888dd72a1bf18c3b52571cf1e698227bd3a97ff0a3",
         "specification_version": "1"
       },
@@ -1158,7 +1158,7 @@
             "status": "preserved"
           }
         ],
-        "job_id": "11409d81-65b5-49c0-bfd4-c5ba3022faa6",
+        "job_id": "c74bad09-6db5-4e6f-b5c9-6f570dc03291",
         "specification_hash": "ffcbba6369441bc33b33e85b52aacc18fd43545bdbdd72e6cdc3bdd4957151aa",
         "specification_version": "1"
       },
@@ -1313,7 +1313,7 @@
             "status": "preserved"
           }
         ],
-        "job_id": "11409d81-65b5-49c0-bfd4-c5ba3022faa6",
+        "job_id": "c74bad09-6db5-4e6f-b5c9-6f570dc03291",
         "specification_hash": "5f9511062f333e72a57d634b2871fb65fd23659a3557f6e42ab3122e6e6ef40a",
         "specification_version": "1"
       },

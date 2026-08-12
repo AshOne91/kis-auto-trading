@@ -78,7 +78,9 @@ class DurableJobRepository:
         return DurableJobRequestResult(job_id=existing, created=False)
 
     async def get(self, job_id: str) -> DurableJobRecord | None:
-        return await self._session.get(DurableJobRecord, job_id)
+        return await self._session.get(
+            DurableJobRecord, job_id, populate_existing=True
+        )
 
     async def transition(
         self,
