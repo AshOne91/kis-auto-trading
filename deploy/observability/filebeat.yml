@@ -3,6 +3,7 @@ filebeat.inputs:
     id: kis_auto_trading-application-json
     enabled: true
     paths:
+      - /var/log/application/*.log
       - /var/log/application/*/*.log
     parsers:
       - ndjson:

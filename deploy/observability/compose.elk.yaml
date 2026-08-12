@@ -28,8 +28,10 @@ services:
     volumes:
       - ${LOG_ROOT:-./logs}:/var/log/application:ro
       - ${FILEBEAT_CONFIG:-./deploy/observability/filebeat.yml}:/usr/share/filebeat/filebeat.yml:ro
+      - filebeat-data:/usr/share/filebeat/data
     depends_on:
       - elasticsearch
 
 volumes:
   elasticsearch-data:
+  filebeat-data:

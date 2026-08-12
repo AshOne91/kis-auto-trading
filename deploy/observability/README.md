@@ -2,7 +2,8 @@
 
 This profile runs a local Elasticsearch, Kibana and Filebeat stack. It collects JSON-lines application logs for `kis_auto_trading`:
 
-- Filebeat reads `LOG_ROOT/*/*.log` as NDJSON.
+- Filebeat reads `LOG_ROOT/*.log` and `LOG_ROOT/*/*.log` as NDJSON.
+- Filebeat preserves its read registry in the `filebeat-data` volume.
 - Elasticsearch stores indexed logs in the `elasticsearch-data` volume.
 - Kibana is available at `http://127.0.0.1:$KIBANA_PORT` (default `5601`).
 

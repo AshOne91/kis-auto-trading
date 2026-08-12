@@ -1,7 +1,7 @@
 {
   "document_kind": "generation_job",
   "format_version": "1",
-  "job_id": "bfba0a84-6858-4ab6-a7a5-dd3a8871702c",
+  "job_id": "a5e56a60-3d6d-47da-825d-08b29729248b",
   "units": [
     {
       "kind": "project",
@@ -104,7 +104,7 @@
             "status": "unchanged"
           },
           {
-            "content_hash": "75e989f60f90d32d5e41c600a19e7bdf244b5fb0e2325065024d90a332e9c569",
+            "content_hash": "f3a15a71dc7f61a4714ecd88529168fa73e223f2f8aa6fb80a2e2fbc751e02be",
             "error": null,
             "generator_id": "autoforge.generator.elk",
             "generator_version": "0.1.0",
@@ -113,10 +113,10 @@
             "relative_path": "deploy/observability/README.md",
             "source": "project:elk",
             "specification_hash": "794c8db165cbd5fb9b8ea785930dccb392138e5de2adaa74b9ffd4a03e4e541b",
-            "status": "unchanged"
+            "status": "changed"
           },
           {
-            "content_hash": "b51fc4548dcfc834c5ed702867788228e132bf848358af1f2effea1adefb0253",
+            "content_hash": "6420d60a03eaf0d6f6f95b234d741412fb8293787732e902413e625ed43a1e9d",
             "error": null,
             "generator_id": "autoforge.generator.elk",
             "generator_version": "0.1.0",
@@ -125,10 +125,10 @@
             "relative_path": "deploy/observability/compose.elk.yaml",
             "source": "project:elk",
             "specification_hash": "794c8db165cbd5fb9b8ea785930dccb392138e5de2adaa74b9ffd4a03e4e541b",
-            "status": "unchanged"
+            "status": "changed"
           },
           {
-            "content_hash": "16c1407d3714466fc7e143b6cc0abbca66236db88097a2dba36fd4e33a083f72",
+            "content_hash": "fe6a37a26065506d5fd661d51d0081448fc731f9809177ca453be9cf39895364",
             "error": null,
             "generator_id": "autoforge.generator.elk",
             "generator_version": "0.1.0",
@@ -137,7 +137,7 @@
             "relative_path": "deploy/observability/filebeat.yml",
             "source": "project:elk",
             "specification_hash": "794c8db165cbd5fb9b8ea785930dccb392138e5de2adaa74b9ffd4a03e4e541b",
-            "status": "unchanged"
+            "status": "changed"
           },
           {
             "content_hash": "491ac07f22f3e2407b294b2cd6991265b05857b3a3d0003cfddb3a582f0a721d",
@@ -428,12 +428,12 @@
             "status": "unchanged"
           },
           {
-            "content_hash": "80fe105985f790b595c25cadbef7407af7660ed7edcd19127a806d28610ec9a0",
+            "content_hash": "6ffc36adb01cc9c4c1fbfced84a1bb496b9962be2ba859f70f0912045f85f1a7",
             "error": null,
             "generator_id": "autoforge.generator.service.durable_jobs",
             "generator_version": "0.1.0",
             "ownership": "scaffolded",
-            "previous_content_hash": "80fe105985f790b595c25cadbef7407af7660ed7edcd19127a806d28610ec9a0",
+            "previous_content_hash": "6ffc36adb01cc9c4c1fbfced84a1bb496b9962be2ba859f70f0912045f85f1a7",
             "relative_path": "src/kis_auto_trading/application/durable_job_handler.py",
             "source": "project:durable-jobs",
             "specification_hash": "794c8db165cbd5fb9b8ea785930dccb392138e5de2adaa74b9ffd4a03e4e541b",
@@ -601,11 +601,11 @@
             "generator_id": "autoforge.generator.service.durable_jobs",
             "generator_version": "0.1.0",
             "ownership": "generated",
-            "previous_content_hash": "364d98786b92099f714421da4ce3408efb9ad1d8204743967a1bb1867c44d847",
+            "previous_content_hash": "308f555613a2fefa310a6c8485287f1c2c892b2b3fa23c152b587ce6762f1328",
             "relative_path": "src/kis_auto_trading/infrastructure/durable_jobs/repository.py",
             "source": "project:durable-jobs",
             "specification_hash": "794c8db165cbd5fb9b8ea785930dccb392138e5de2adaa74b9ffd4a03e4e541b",
-            "status": "changed"
+            "status": "unchanged"
           },
           {
             "content_hash": "7c35f6a25b619186175255fd3673b078d6a6fb60918f9fb7a88bb1e064c2c199",
@@ -709,11 +709,11 @@
             "generator_id": "autoforge.generator.service.messaging",
             "generator_version": "0.1.0",
             "ownership": "generated",
-            "previous_content_hash": "e1762710121735dea87bb10a2fc970effe5455eea63c8d78e796d53067467c18",
+            "previous_content_hash": "fff0408dc50903d50283a3ba4b29eeee3ea8a18422e359da75a96fe3cd387039",
             "relative_path": "src/kis_auto_trading/infrastructure/outbox/repository.py",
             "source": "project:rabbitmq-outbox",
             "specification_hash": "794c8db165cbd5fb9b8ea785930dccb392138e5de2adaa74b9ffd4a03e4e541b",
-            "status": "changed"
+            "status": "unchanged"
           },
           {
             "content_hash": "1a48f5abb09f9373d7cbb2f88e83f97562403ddfe83678480c75da9a16ef6859",
@@ -848,7 +848,7 @@
             "status": "unchanged"
           }
         ],
-        "job_id": "bfba0a84-6858-4ab6-a7a5-dd3a8871702c",
+        "job_id": "a5e56a60-3d6d-47da-825d-08b29729248b",
         "specification_hash": "794c8db165cbd5fb9b8ea785930dccb392138e5de2adaa74b9ffd4a03e4e541b",
         "specification_version": "1"
       },
@@ -1003,7 +1003,7 @@
             "status": "preserved"
           }
         ],
-        "job_id": "bfba0a84-6858-4ab6-a7a5-dd3a8871702c",
+        "job_id": "a5e56a60-3d6d-47da-825d-08b29729248b",
         "specification_hash": "9929ac59ec5025ee885d10888dd72a1bf18c3b52571cf1e698227bd3a97ff0a3",
         "specification_version": "1"
       },
@@ -1158,7 +1158,7 @@
             "status": "preserved"
           }
         ],
-        "job_id": "bfba0a84-6858-4ab6-a7a5-dd3a8871702c",
+        "job_id": "a5e56a60-3d6d-47da-825d-08b29729248b",
         "specification_hash": "ffcbba6369441bc33b33e85b52aacc18fd43545bdbdd72e6cdc3bdd4957151aa",
         "specification_version": "1"
       },
@@ -1313,7 +1313,7 @@
             "status": "preserved"
           }
         ],
-        "job_id": "bfba0a84-6858-4ab6-a7a5-dd3a8871702c",
+        "job_id": "a5e56a60-3d6d-47da-825d-08b29729248b",
         "specification_hash": "5f9511062f333e72a57d634b2871fb65fd23659a3557f6e42ab3122e6e6ef40a",
         "specification_version": "1"
       },
