@@ -1,5 +1,5 @@
 from contextlib import asynccontextmanager
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace
 
 import pytest
@@ -9,6 +9,7 @@ from kis_auto_trading.application.durable_job_handler import (
 )
 from kis_auto_trading.infrastructure.durable_jobs.worker import DurableJobExecution
 from kis_auto_trading.modules.news.models import NewsArticle
+from kis_auto_trading.modules.news.yahoo import YahooFinanceNewsTimeoutError
 
 
 class FakeProvider:
@@ -94,6 +95,82 @@ async def test_news_handler_requires_explicit_symbols() -> None:
     with pytest.raises(TypeError, match="symbols list"):
         await ApplicationDurableJobHandler(FakeRegistry(), FakeProvider()).handle(
             DurableJobExecution("job-1", "news_collection", "run-key", {})
+        )
+
+
+@pytest.mark.anyio
+async def test_news_handler_schedules_retry_for_provider_timeout(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    requested: list[dict[str, object]] = []
+
+    class TimeoutProvider:
+        async def collect(self, symbol: str) -> list[NewsArticle]:
+            raise YahooFinanceNewsTimeoutError(f"timed out: {symbol}")
+
+    class FakeDurableJobRepository:
+        def __init__(self, session) -> None:
+            del session
+
+        async def request(self, **kwargs) -> SimpleNamespace:
+            requested.append(kwargs)
+            return SimpleNamespace(job_id="retry-job-1")
+
+    monkeypatch.setattr(
+        "kis_auto_trading.application.durable_job_handler.DurableJobRepository",
+        FakeDurableJobRepository,
+    )
+    before_request = datetime.now(UTC)
+    with pytest.raises(YahooFinanceNewsTimeoutError):
+        await ApplicationDurableJobHandler(FakeRegistry(), TimeoutProvider()).handle(
+            DurableJobExecution(
+                job_id="job-1",
+                job_type="news_collection",
+                run_key="news:yahoo:test",
+                payload={"symbols": ["aapl"]},
+            )
+        )
+    after_request = datetime.now(UTC)
+
+    assert requested[0]["job_type"] == "news_collection"
+    assert requested[0]["run_key"] == "news:yahoo:test:retry:1"
+    assert requested[0]["payload"] == {
+        "symbols": ["AAPL"],
+        "_news_retry_attempt": 1,
+        "_news_retry_root_run_key": "news:yahoo:test",
+    }
+    assert before_request + timedelta(seconds=2) <= requested[0]["available_at"]
+    assert requested[0]["available_at"] <= after_request + timedelta(seconds=2)
+
+
+@pytest.mark.anyio
+async def test_news_handler_stops_retrying_after_final_attempt(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class TimeoutProvider:
+        async def collect(self, symbol: str) -> list[NewsArticle]:
+            raise YahooFinanceNewsTimeoutError(f"timed out: {symbol}")
+
+    class UnexpectedRepository:
+        def __init__(self, session) -> None:
+            raise AssertionError("final attempt must not schedule another retry")
+
+    monkeypatch.setattr(
+        "kis_auto_trading.application.durable_job_handler.DurableJobRepository",
+        UnexpectedRepository,
+    )
+    with pytest.raises(YahooFinanceNewsTimeoutError):
+        await ApplicationDurableJobHandler(FakeRegistry(), TimeoutProvider()).handle(
+            DurableJobExecution(
+                job_id="job-3",
+                job_type="news_collection",
+                run_key="news:yahoo:test:retry:2",
+                payload={
+                    "symbols": ["aapl"],
+                    "_news_retry_attempt": 2,
+                    "_news_retry_root_run_key": "news:yahoo:test",
+                },
+            )
         )
 
 

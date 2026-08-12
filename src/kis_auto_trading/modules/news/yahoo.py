@@ -8,14 +8,45 @@ import yfinance
 from kis_auto_trading.modules.news.models import NewsArticle
 
 
+class YahooFinanceNewsError(RuntimeError):
+    """Base error for failures while reading Yahoo Finance news."""
+
+
+class YahooFinanceNewsTimeoutError(YahooFinanceNewsError):
+    """Yahoo Finance did not answer before the configured timeout."""
+
+
+class YahooFinanceNewsProviderError(YahooFinanceNewsError):
+    """Yahoo Finance returned an unexpected provider-level failure."""
+
+
 class YahooFinanceNewsProvider:
     """Fetch and normalize Yahoo Finance news for one market symbol."""
+
+    def __init__(self, *, timeout_seconds: float = 30.0) -> None:
+        if timeout_seconds <= 0:
+            raise ValueError("timeout_seconds must be greater than zero")
+        self._timeout_seconds = timeout_seconds
 
     async def collect(self, symbol: str) -> list[NewsArticle]:
         normalized_symbol = symbol.strip().upper()
         if not normalized_symbol:
             raise ValueError("symbol must not be empty")
-        return await asyncio.to_thread(self._collect, normalized_symbol)
+        try:
+            return await asyncio.wait_for(
+                asyncio.to_thread(self._collect, normalized_symbol),
+                timeout=self._timeout_seconds,
+            )
+        except TimeoutError as error:
+            raise YahooFinanceNewsTimeoutError(
+                f"Yahoo Finance timed out for {normalized_symbol}"
+            ) from error
+        except YahooFinanceNewsError:
+            raise
+        except Exception as error:
+            raise YahooFinanceNewsProviderError(
+                f"Yahoo Finance request failed for {normalized_symbol}"
+            ) from error
 
     @staticmethod
     def _collect(symbol: str) -> list[NewsArticle]:

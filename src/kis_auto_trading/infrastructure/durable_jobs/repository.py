@@ -24,7 +24,12 @@ class DurableJobRepository:
         self._session = session
 
     async def request(
-        self, *, job_type: str, run_key: str, payload: dict[str, object]
+        self,
+        *,
+        job_type: str,
+        run_key: str,
+        payload: dict[str, object],
+        available_at: datetime | None = None,
     ) -> DurableJobRequestResult:
         definition = JOB_DEFINITIONS[job_type]
         now = datetime.now(UTC)
@@ -57,7 +62,8 @@ class DurableJobRepository:
                         'payload': payload,
                     },
                     routing_key=definition.routing_key,
-                )
+                ),
+                available_at=available_at,
             )
             return DurableJobRequestResult(job_id=created_job_id, created=True)
 

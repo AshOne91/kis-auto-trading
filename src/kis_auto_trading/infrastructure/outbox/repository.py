@@ -10,7 +10,9 @@ class OutboxWriter:
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 
-    def add(self, message: EventMessage) -> None:
+    def add(
+        self, message: EventMessage, *, available_at: datetime | None = None
+    ) -> None:
         occurred_at = message.occurred_at or datetime.now(UTC)
         self._session.add(
             OutboxEventRecord(
@@ -22,7 +24,7 @@ class OutboxWriter:
                 payload=message.payload,
                 status='pending',
                 attempts=0,
-                available_at=occurred_at,
+                available_at=available_at or occurred_at,
                 occurred_at=occurred_at,
             )
         )

@@ -1,9 +1,12 @@
+import asyncio
 from datetime import UTC, datetime
 
 import pytest
 
 from kis_auto_trading.modules.news.yahoo import (
     YahooFinanceNewsProvider,
+    YahooFinanceNewsProviderError,
+    YahooFinanceNewsTimeoutError,
     normalize_yahoo_article,
 )
 
@@ -50,3 +53,39 @@ async def test_provider_collects_without_network_when_ticker_is_replaced(
 
     assert [article.title for article in articles] == ["Apple result"]
     assert articles[0].symbol == "AAPL"
+
+
+@pytest.mark.anyio
+async def test_provider_classifies_timeout(monkeypatch: pytest.MonkeyPatch) -> None:
+    async def slow_to_thread(*args: object, **kwargs: object) -> list[object]:
+        await asyncio.sleep(0.05)
+        return []
+
+    monkeypatch.setattr("asyncio.to_thread", slow_to_thread)
+
+    with pytest.raises(YahooFinanceNewsTimeoutError) as raised:
+        await YahooFinanceNewsProvider(timeout_seconds=0.001).collect("AAPL")
+
+    assert isinstance(raised.value.__cause__, TimeoutError)
+
+
+@pytest.mark.anyio
+async def test_provider_classifies_provider_failure(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def failing_collect(symbol: str) -> list[object]:
+        raise OSError("upstream unavailable")
+
+    monkeypatch.setattr(
+        YahooFinanceNewsProvider, "_collect", staticmethod(failing_collect)
+    )
+
+    with pytest.raises(YahooFinanceNewsProviderError) as raised:
+        await YahooFinanceNewsProvider().collect("AAPL")
+
+    assert isinstance(raised.value.__cause__, OSError)
+
+
+def test_provider_rejects_non_positive_timeout() -> None:
+    with pytest.raises(ValueError, match="greater than zero"):
+        YahooFinanceNewsProvider(timeout_seconds=0)

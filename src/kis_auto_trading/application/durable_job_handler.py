@@ -1,4 +1,4 @@
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
 from kis_auto_trading.infrastructure.database.routing import ShardTarget
 from kis_auto_trading.infrastructure.database.session import AsyncSessionRegistry
@@ -6,7 +6,12 @@ from kis_auto_trading.infrastructure.durable_jobs.repository import DurableJobRe
 from kis_auto_trading.infrastructure.durable_jobs.worker import DurableJobExecution
 from kis_auto_trading.modules.news.persistence import NewsArticleRepository
 from kis_auto_trading.modules.news.search import NewsSearchIndexer
-from kis_auto_trading.modules.news.yahoo import YahooFinanceNewsProvider
+from kis_auto_trading.modules.news.yahoo import (
+    YahooFinanceNewsError,
+    YahooFinanceNewsProvider,
+)
+
+MAX_NEWS_COLLECTION_ATTEMPTS = 3
 
 
 class ApplicationDurableJobHandler:
@@ -34,8 +39,12 @@ class ApplicationDurableJobHandler:
     ) -> dict[str, object]:
         symbols = _symbols_from_payload(execution.payload)
         articles = []
-        for symbol in symbols:
-            articles.extend(await self._provider.collect(symbol))
+        try:
+            for symbol in symbols:
+                articles.extend(await self._provider.collect(symbol))
+        except YahooFinanceNewsError:
+            await self._request_news_retry(execution, symbols)
+            raise
 
         async with self._session_registry.session(
             ShardTarget(store="automation")
@@ -55,6 +64,30 @@ class ApplicationDurableJobHandler:
             "articles_inserted": len(source_keys),
             "index_job_id": index_job.job_id,
         }
+
+    async def _request_news_retry(
+        self, execution: DurableJobExecution, symbols: list[str]
+    ) -> None:
+        attempt = _news_retry_attempt(execution.payload)
+        if attempt >= MAX_NEWS_COLLECTION_ATTEMPTS - 1:
+            return
+
+        retry_attempt = attempt + 1
+        root_run_key = _news_retry_root_run_key(execution)
+        retry_payload: dict[str, object] = {
+            "symbols": symbols,
+            "_news_retry_attempt": retry_attempt,
+            "_news_retry_root_run_key": root_run_key,
+        }
+        async with self._session_registry.session(
+            ShardTarget(store="automation")
+        ) as session:
+            await DurableJobRepository(session).request(
+                job_type="news_collection",
+                run_key=f"{root_run_key}:retry:{retry_attempt}",
+                payload=retry_payload,
+                available_at=datetime.now(UTC) + timedelta(seconds=2**retry_attempt),
+            )
 
     async def _index_news(
         self, execution: DurableJobExecution
@@ -103,6 +136,16 @@ def _source_keys_from_payload(payload: dict[str, object]) -> list[str]:
     if not normalized:
         raise ValueError("news_index payload requires at least one source key")
     return normalized
+
+
+def _news_retry_attempt(payload: dict[str, object]) -> int:
+    attempt = payload.get("_news_retry_attempt", 0)
+    return attempt if isinstance(attempt, int) and attempt >= 0 else 0
+
+
+def _news_retry_root_run_key(execution: DurableJobExecution) -> str:
+    root = execution.payload.get("_news_retry_root_run_key")
+    return root if isinstance(root, str) and root else execution.run_key
 
 
 def create_durable_job_handler(
