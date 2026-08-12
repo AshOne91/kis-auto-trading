@@ -33,10 +33,11 @@ DAGs start paused and use the token-protected internal API; inspect them with
 `scripts/verify_scale_out.py` also creates and cancels a Durable Job while the
 worker is paused, then verifies the generated DAG's cancellation branch inside
 the Airflow container. Its success path creates a deterministic `news_index`
-Job through the live API, waits for the real worker to complete its zero-article
-handler path, then verifies the generated Airflow wait function returns
-normally. It does not yet execute the generated trigger task or a scheduled DAG
-run; that is the next integration slice.
+Job by executing the generated Airflow `trigger_job`, waits for the real worker
+to complete its zero-article handler path, then executes the generated
+`wait_for_job` and verifies normal return. It does not yet run the full scheduled
+DAG through Airflow's task runner or invoke an external news provider; that is
+the next integration slice.
 
 `down -v`는 `kis-scale-out-test` Compose 프로젝트가 만든 테스트 컨테이너와 volume만
 제거한다. 로컬 개발 DB나 다른 Compose 프로젝트는 대상으로 삼지 않는다.

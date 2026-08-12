@@ -135,22 +135,6 @@ def durable_job_json(
         return json.loads(response.read().decode("utf-8"))
 
 
-def wait_for_durable_job_status(
-    url: str, api_token: str, expected_status: str
-) -> dict[str, object]:
-    last_status: str | None = None
-    for _ in range(30):
-        result = durable_job_json("GET", url, api_token)
-        last_status = str(result["status"])
-        if last_status == expected_status:
-            return result
-        if last_status in {"failed", "cancelled"}:
-            raise RuntimeError(f"Durable Job did not succeed: {result!r}")
-        time.sleep(RETRY_SECONDS)
-    raise RuntimeError(
-        f"Durable Job did not reach {expected_status}: {last_status!r}"
-    )
-
 def compose(*arguments: str) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
         (*COMPOSE, *arguments),
@@ -397,30 +381,31 @@ def verify_airflow_successful_job() -> None:
     api_token = os.environ.get("DURABLE_JOB_API_TOKEN")
     if not api_token:
         raise RuntimeError("DURABLE_JOB_API_TOKEN is required for Airflow validation")
-    base_url = "http://localhost:18001/internal/jobs/news_index"
-    created = durable_job_json(
-        "POST",
-        base_url,
-        api_token,
-        {
-            "run_key": f"scale-out-airflow-success-{uuid4()}",
-            "payload": {"source_keys": [f"missing-{uuid4()}"]},
-        },
-    )
-    job_id = str(created["job_id"])
-    wait_for_durable_job_status(f"{base_url}/{job_id}", api_token, "succeeded")
     script = f"""
+import json
+import os
 import runpy
+from datetime import datetime, timezone
+
 namespace = runpy.run_path('/opt/airflow/dags/news_collection.py')
-namespace['wait_for_job'].__globals__['JOB_TYPE'] = 'news_index'
-ti = type('TI', (), {{'xcom_pull': lambda self, task_ids: {job_id!r}}})()
+job_globals = namespace['trigger_job'].__globals__
+job_globals['JOB_TYPE'] = 'news_index'
+job_globals['PAYLOAD_ENV'] = 'DURABLE_JOB_NEWS_INDEX_PAYLOAD_JSON'
+job_globals['get_current_context'] = lambda: {{
+    'data_interval_start': datetime.now(timezone.utc),
+}}
+os.environ['DURABLE_JOB_NEWS_INDEX_PAYLOAD_JSON'] = json.dumps({{
+    'source_keys': ['missing-{uuid4()}'],
+}})
+job_id = namespace['trigger_job']()
+ti = type('TI', (), {{'xcom_pull': lambda self, task_ids: job_id}})()
 namespace['wait_for_job'](ti)
-print('airflow_succeeded_wait=normal_return')
+print(f'airflow_trigger_and_wait=succeeded:{{job_id}}')
 """
     result = compose_with_input(script, "exec", "-T", "airflow", "python", "-")
-    if "airflow_succeeded_wait=normal_return" not in result.stdout:
-        raise RuntimeError(f"Airflow success assertion missing: {result.stdout!r}")
-    print("Airflow success verified: worker completion + normal wait return")
+    if "airflow_trigger_and_wait=succeeded:" not in result.stdout:
+        raise RuntimeError(f"Airflow trigger/wait assertion missing: {result.stdout!r}")
+    print("Airflow success verified: generated trigger + worker completion + wait")
 
 def main() -> None:
     results = {url: wait_for_health(url) for url in API_URLS}
