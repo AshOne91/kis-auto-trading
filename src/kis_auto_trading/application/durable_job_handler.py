@@ -1,3 +1,4 @@
+import logging
 from datetime import UTC, datetime, timedelta
 
 from kis_auto_trading.infrastructure.database.routing import ShardTarget
@@ -12,6 +13,7 @@ from kis_auto_trading.modules.news.yahoo import (
 )
 
 MAX_NEWS_COLLECTION_ATTEMPTS = 3
+logger = logging.getLogger(__name__)
 
 
 class ApplicationDurableJobHandler:
@@ -70,6 +72,12 @@ class ApplicationDurableJobHandler:
     ) -> None:
         attempt = _news_retry_attempt(execution.payload)
         if attempt >= MAX_NEWS_COLLECTION_ATTEMPTS - 1:
+            logger.error(
+                "news collection retries exhausted: job_id=%s run_key=%s attempt=%s",
+                execution.job_id,
+                execution.run_key,
+                attempt + 1,
+            )
             return
 
         retry_attempt = attempt + 1

@@ -145,7 +145,7 @@ async def test_news_handler_schedules_retry_for_provider_timeout(
 
 @pytest.mark.anyio
 async def test_news_handler_stops_retrying_after_final_attempt(
-    monkeypatch: pytest.MonkeyPatch,
+    monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
 ) -> None:
     class TimeoutProvider:
         async def collect(self, symbol: str) -> list[NewsArticle]:
@@ -159,6 +159,7 @@ async def test_news_handler_stops_retrying_after_final_attempt(
         "kis_auto_trading.application.durable_job_handler.DurableJobRepository",
         UnexpectedRepository,
     )
+    caplog.set_level("ERROR")
     with pytest.raises(YahooFinanceNewsTimeoutError):
         await ApplicationDurableJobHandler(FakeRegistry(), TimeoutProvider()).handle(
             DurableJobExecution(
@@ -172,6 +173,8 @@ async def test_news_handler_stops_retrying_after_final_attempt(
                 },
             )
         )
+    assert "news collection retries exhausted" in caplog.text
+    assert "job_id=job-3" in caplog.text
 
 
 @pytest.mark.anyio
