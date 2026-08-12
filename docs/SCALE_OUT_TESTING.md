@@ -30,6 +30,9 @@ docker compose -f compose.integration.yaml down -v
 The profile also runs Airflow on `http://localhost:18080`. Generated durable-job
 DAGs start paused and use the token-protected internal API; inspect them with
 `docker compose -f compose.integration.yaml exec airflow airflow dags list`.
+`scripts/verify_scale_out.py` also creates and cancels a Durable Job while the
+worker is paused, then verifies the generated DAG's cancellation branch inside
+the Airflow container.
 
 `down -v`는 `kis-scale-out-test` Compose 프로젝트가 만든 테스트 컨테이너와 volume만
 제거한다. 로컬 개발 DB나 다른 Compose 프로젝트는 대상으로 삼지 않는다.

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import time
 import urllib.error
@@ -112,6 +113,27 @@ def wait_for_post_json(
     raise RuntimeError(f"POST did not recover after failover: {url}") from last_error
 
 
+def durable_job_json(
+    method: str,
+    url: str,
+    api_token: str,
+    payload: dict[str, object] | None = None,
+) -> dict[str, object]:
+    data = None if payload is None else json.dumps(payload).encode("utf-8")
+    request = urllib.request.Request(
+        url,
+        data=data,
+        headers={
+            "Authorization": f"Bearer {api_token}",
+            "Content-Type": "application/json",
+        },
+        method=method,
+    )
+    with urllib.request.urlopen(request, timeout=10) as response:
+        if response.status not in {200, 202}:
+            raise RuntimeError(f"Unexpected HTTP status: {response.status}")
+        return json.loads(response.read().decode("utf-8"))
+
 def compose(*arguments: str) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
         (*COMPOSE, *arguments),
@@ -120,6 +142,17 @@ def compose(*arguments: str) -> subprocess.CompletedProcess[str]:
         text=True,
     )
 
+
+def compose_with_input(
+    input_text: str, *arguments: str
+) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        (*COMPOSE, *arguments),
+        check=True,
+        capture_output=True,
+        text=True,
+        input=input_text,
+    )
 
 def cluster_nodes(service: str = "redis-node-1") -> list[ClusterNodeInfo]:
     result = compose(
@@ -294,12 +327,63 @@ def wait_for_outbox_delivery(
     raise RuntimeError(f"Outbox event was not delivered: {last_state!r}")
 
 
+def verify_airflow_cancelled_job() -> None:
+    api_token = os.environ.get("DURABLE_JOB_API_TOKEN")
+    if not api_token:
+        raise RuntimeError("DURABLE_JOB_API_TOKEN is required for Airflow validation")
+    compose("stop", "durable-job-worker")
+    try:
+        run_key = f"scale-out-airflow-cancel-{uuid4()}"
+        base_url = "http://localhost:18001/internal/jobs/news_collection"
+        created = durable_job_json(
+            "POST",
+            base_url,
+            api_token,
+            {"run_key": run_key, "payload": {"symbols": ["CANCELLED"]}},
+        )
+        job_id = str(created["job_id"])
+        cancelled = durable_job_json(
+            "DELETE",
+            f"{base_url}/{job_id}",
+            api_token,
+        )
+        if cancelled.get("status") != "cancelled":
+            raise RuntimeError(f"Durable Job was not cancelled: {cancelled!r}")
+        dags = json.loads(
+            compose(
+                "exec", "-T", "airflow", "airflow", "dags", "list",
+                "--output", "json",
+            ).stdout
+        )
+        if not any(item.get("dag_id") == "durable_job_news_collection" for item in dags):
+            raise RuntimeError("Generated durable-job Airflow DAG was not discovered")
+        script = f"""
+import runpy
+namespace = runpy.run_path('/opt/airflow/dags/news_collection.py')
+ti = type('TI', (), {{'xcom_pull': lambda self, task_ids: {job_id!r}}})()
+try:
+    namespace['wait_for_job'](ti)
+except RuntimeError as error:
+    assert str(error) == 'durable job cancelled'
+    print('airflow_cancelled_wait=controlled_failure')
+else:
+    raise AssertionError('expected cancelled failure')
+"""
+        result = compose_with_input(script, "exec", "-T", "airflow", "python", "-")
+        if "airflow_cancelled_wait=controlled_failure" not in result.stdout:
+            raise RuntimeError(f"Airflow cancellation assertion missing: {result.stdout!r}")
+        print("Airflow cancellation verified: DAG discovery + controlled wait failure")
+    finally:
+        compose("start", "durable-job-worker")
+
 def main() -> None:
     results = {url: wait_for_health(url) for url in API_URLS}
     if len(results) != 2:
         raise RuntimeError("Two independent API instances are required")
     for url, payload in results.items():
         print(f"healthy: {url} -> {payload}")
+
+    verify_airflow_cancelled_job()
 
     email = f"scale-out-{uuid4()}@example.com"
     password = "integration-test-password"
