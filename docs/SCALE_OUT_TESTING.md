@@ -27,17 +27,20 @@ python scripts/verify_scale_out.py
 docker compose -f compose.integration.yaml down -v
 ```
 
-The profile also runs Airflow on `http://localhost:18080`. Generated durable-job
-DAGs start paused and use the token-protected internal API; inspect them with
-`docker compose -f compose.integration.yaml exec airflow airflow dags list`.
+The profile runs `airflow-init`, `airflow-webserver`, and `airflow-scheduler`.
+Airflow is available on `http://localhost:18080`. Generated durable-job DAGs
+start paused and use the token-protected internal API; inspect them with
+`docker compose -f compose.integration.yaml exec airflow-webserver airflow dags list`.
 `scripts/verify_scale_out.py` also creates and cancels a Durable Job while the
 worker is paused, then verifies the generated DAG's cancellation branch inside
 the Airflow container. Its success path creates a deterministic `news_index`
 Job by executing the generated Airflow `trigger_job`, waits for the real worker
 to complete its zero-article handler path, then executes the complete generated
 DAG with Airflow `dag.test()` and verifies normal return through real
-TaskInstance/XCom context. It does not yet run the production schedule or invoke
-an external news provider; that is the next integration slice.
+TaskInstance/XCom context. It verifies the scheduler process is live but does
+not unpause a cron DAG in the shared metadata database, because that could
+create unrelated scheduled runs. It does not invoke an external news provider
+or validate a production schedule.
 
 `down -v`는 `kis-scale-out-test` Compose 프로젝트가 만든 테스트 컨테이너와 volume만
 제거한다. 로컬 개발 DB나 다른 Compose 프로젝트는 대상으로 삼지 않는다.

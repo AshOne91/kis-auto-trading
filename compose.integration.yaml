@@ -17,6 +17,14 @@ x-messaging-environment: &messaging-environment
   <<: *database-environment
   RABBITMQ_URL: amqp://kis_test:kis_test@rabbitmq:5672/
 
+x-airflow-environment: &airflow-environment
+  AIRFLOW__CORE__EXECUTOR: SequentialExecutor
+  AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://kis_test:kis_test@airflow-db:5432/airflow
+  AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+  AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "true"
+  DURABLE_JOB_API_URL: http://api-1:8000
+  DURABLE_JOB_API_TOKEN: ${DURABLE_JOB_API_TOKEN:?set DURABLE_JOB_API_TOKEN}
+
 x-api: &api
   build:
     context: .
@@ -397,29 +405,46 @@ services:
         condition: service_completed_successfully
     restart: unless-stopped
 
-  airflow:
+  airflow-init:
     image: apache/airflow:2.10.5-python3.12
-    environment:
-      AIRFLOW__CORE__EXECUTOR: SequentialExecutor
-      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://kis_test:kis_test@airflow-db:5432/airflow
-      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
-      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "true"
-      DURABLE_JOB_API_URL: http://api-1:8000
-      DURABLE_JOB_API_TOKEN: ${DURABLE_JOB_API_TOKEN:?set DURABLE_JOB_API_TOKEN}
+    environment: *airflow-environment
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags:ro
+      - airflow-home:/opt/airflow
+    command: ["airflow", "db", "migrate"]
+    depends_on:
+      airflow-db:
+        condition: service_healthy
+
+  airflow-webserver:
+    image: apache/airflow:2.10.5-python3.12
+    environment: *airflow-environment
     volumes:
       - ./airflow/dags:/opt/airflow/dags:ro
       - airflow-home:/opt/airflow
     ports:
       - "18080:8080"
-    command: standalone
+    command: webserver
     healthcheck:
       test: ["CMD-SHELL", "curl --fail http://localhost:8080/health || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 30
     depends_on:
-      airflow-db:
-        condition: service_healthy
+      airflow-init:
+        condition: service_completed_successfully
+
+  airflow-scheduler:
+    image: apache/airflow:2.10.5-python3.12
+    environment: *airflow-environment
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags:ro
+      - airflow-home:/opt/airflow
+    command: scheduler
+    restart: unless-stopped
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
       api-1:
         condition: service_healthy
       outbox-relay:

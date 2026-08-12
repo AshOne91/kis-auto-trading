@@ -59,7 +59,8 @@ PostgreSQL은 업무 상태의 원장을 담당한다. 서로의 책임을 대�
 python -m autoforge.main generate `
   --project autoforge.yaml `
   --specifications specifications `
-  --output .
+  --output . `
+  --validation-python .venv\\Scripts\\python.exe
 ```
 
 ## 로컬 검증

@@ -352,7 +352,7 @@ def verify_airflow_cancelled_job() -> None:
             raise RuntimeError(f"Durable Job was not cancelled: {cancelled!r}")
         dags = json.loads(
             compose(
-                "exec", "-T", "airflow", "airflow", "dags", "list",
+            "exec", "-T", "airflow-webserver", "airflow", "dags", "list",
                 "--output", "json",
             ).stdout
         )
@@ -370,7 +370,9 @@ except RuntimeError as error:
 else:
     raise AssertionError('expected cancelled failure')
 """
-        result = compose_with_input(script, "exec", "-T", "airflow", "python", "-")
+        result = compose_with_input(
+            script, "exec", "-T", "airflow-webserver", "python", "-"
+        )
         if "airflow_cancelled_wait=controlled_failure" not in result.stdout:
             raise RuntimeError(f"Airflow cancellation assertion missing: {result.stdout!r}")
         print("Airflow cancellation verified: DAG discovery + controlled wait failure")
@@ -399,10 +401,13 @@ if str(dag_run.state) != 'success':
     raise RuntimeError(f'Airflow DAG test did not succeed: {{dag_run.state!r}}')
 print(f'airflow_dag_test=succeeded:{{dag_run.run_id}}')
 """
-    result = compose_with_input(script, "exec", "-T", "airflow", "python", "-")
+    result = compose_with_input(
+        script, "exec", "-T", "airflow-webserver", "python", "-"
+    )
     if "airflow_dag_test=succeeded:" not in result.stdout:
         raise RuntimeError(f"Airflow DAG test assertion missing: {result.stdout!r}")
     print("Airflow success verified: DAG test trigger + worker completion + wait")
+
 
 def main() -> None:
     results = {url: wait_for_health(url) for url in API_URLS}
