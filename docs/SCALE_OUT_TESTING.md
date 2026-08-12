@@ -21,6 +21,7 @@ API가 요청을 받아도 동일한 사용자 세션과 shard 위치를 찾아�
 ## 실행
 
 ```powershell
+$env:DURABLE_JOB_API_TOKEN = "replace-with-local-integration-token"
 docker compose -f compose.integration.yaml up --build --wait
 python scripts/verify_scale_out.py
 docker compose -f compose.integration.yaml down -v

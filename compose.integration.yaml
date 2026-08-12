@@ -11,6 +11,7 @@ x-api-environment: &api-environment
   <<: *database-environment
   APP_ENV: integration
   REDIS_CLUSTER_URL: redis://redis-node-1:6379
+  DURABLE_JOB_API_TOKEN: ${DURABLE_JOB_API_TOKEN:?set DURABLE_JOB_API_TOKEN}
 
 x-messaging-environment: &messaging-environment
   <<: *database-environment
@@ -365,6 +366,23 @@ services:
         condition: service_completed_successfully
     restart: unless-stopped
 
+  durable-job-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment: *messaging-environment
+    command: ["python", "scripts/run_durable_job_worker.py"]
+    volumes:
+      - type: bind
+        source: ${LOG_ROOT:-./logs}/durable-job-worker
+        target: /app/logs
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
   api-1:
     <<: *api
     environment:
@@ -407,3 +425,4 @@ networks:
     ipam:
       config:
         - subnet: 172.29.0.0/24
+          ip_range: 172.29.0.128/25
