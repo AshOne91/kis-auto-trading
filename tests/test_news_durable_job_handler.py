@@ -224,3 +224,42 @@ async def test_news_index_handler_reads_canonical_articles_before_indexing(
         "articles_indexed": 1,
     }
     assert indexed == article
+
+
+@pytest.mark.anyio
+async def test_news_index_handler_skips_indexer_when_no_canonical_article_exists(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FakeRepository:
+        def __init__(self, session) -> None:
+            del session
+
+        async def find_by_source_keys(self, source_keys):
+            assert source_keys == ["missing-key"]
+            return []
+
+    def unexpected_indexer():
+        raise AssertionError("empty result must not require an indexer")
+
+    monkeypatch.setattr(
+        "kis_auto_trading.application.durable_job_handler.NewsArticleRepository",
+        FakeRepository,
+    )
+    monkeypatch.setattr(
+        "kis_auto_trading.application.durable_job_handler.NewsSearchIndexer.from_environment",
+        unexpected_indexer,
+    )
+    result = await ApplicationDurableJobHandler(FakeRegistry(), FakeProvider()).handle(
+        DurableJobExecution(
+            job_id="job-3",
+            job_type="news_index",
+            run_key="news-index:missing",
+            payload={"source_keys": ["missing-key"]},
+        )
+    )
+
+    assert result == {
+        "job_type": "news_index",
+        "source_keys_requested": 1,
+        "articles_indexed": 0,
+    }

@@ -113,6 +113,12 @@ class ApplicationDurableJobHandler:
             ShardTarget(store="automation")
         ) as session:
             articles = await NewsArticleRepository(session).find_by_source_keys(source_keys)
+        if not articles:
+            return {
+                "job_type": execution.job_type,
+                "source_keys_requested": len(source_keys),
+                "articles_indexed": 0,
+            }
         indexer = self._indexer or NewsSearchIndexer.from_environment()
         indexed = await indexer.index(articles)
         return {
