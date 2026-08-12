@@ -376,6 +376,42 @@ else:
     finally:
         compose("start", "durable-job-worker")
 
+def verify_airflow_successful_job() -> None:
+    api_token = os.environ.get("DURABLE_JOB_API_TOKEN")
+    if not api_token:
+        raise RuntimeError("DURABLE_JOB_API_TOKEN is required for Airflow validation")
+    compose("stop", "durable-job-worker")
+    try:
+        base_url = "http://localhost:18001/internal/jobs/news_collection"
+        created = durable_job_json(
+            "POST",
+            base_url,
+            api_token,
+            {
+                "run_key": f"scale-out-airflow-success-{uuid4()}",
+                "payload": {"symbols": ["SUCCESS"]},
+            },
+        )
+        job_id = str(created["job_id"])
+        compose(
+            "exec", "-T", "automation-db", "psql", "-U", "kis_test",
+            "-d", "automation", "-c",
+            f"UPDATE durable_jobs SET status = 'succeeded' WHERE job_id = '{job_id}';",
+        )
+        script = f"""
+import runpy
+namespace = runpy.run_path('/opt/airflow/dags/news_collection.py')
+ti = type('TI', (), {{'xcom_pull': lambda self, task_ids: {job_id!r}}})()
+namespace['wait_for_job'](ti)
+print('airflow_succeeded_wait=normal_return')
+"""
+        result = compose_with_input(script, "exec", "-T", "airflow", "python", "-")
+        if "airflow_succeeded_wait=normal_return" not in result.stdout:
+            raise RuntimeError(f"Airflow success assertion missing: {result.stdout!r}")
+        print("Airflow success verified: wait task returned normally")
+    finally:
+        compose("start", "durable-job-worker")
+
 def main() -> None:
     results = {url: wait_for_health(url) for url in API_URLS}
     if len(results) != 2:
@@ -384,6 +420,7 @@ def main() -> None:
         print(f"healthy: {url} -> {payload}")
 
     verify_airflow_cancelled_job()
+    verify_airflow_successful_job()
 
     email = f"scale-out-{uuid4()}@example.com"
     password = "integration-test-password"
