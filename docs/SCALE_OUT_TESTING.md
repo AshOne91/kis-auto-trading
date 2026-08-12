@@ -42,6 +42,22 @@ not unpause a cron DAG in the shared metadata database, because that could
 create unrelated scheduled runs. It does not invoke an external news provider
 or validate a production schedule.
 
+## Isolated generated Airflow scheduler check
+
+The generated environment itself is validated separately so that its Airflow
+metadata, PostgreSQL, RabbitMQ, and Docker volume are not shared with the
+scale-out profile. It uses the fixed local-only port block `59400`: application
+`59400`, PostgreSQL `59410`, RabbitMQ `59430`/`59431`, and Airflow `59440`.
+
+```powershell
+python scripts/verify_generated_airflow_scheduler.py
+```
+
+The script uses a unique Compose project, waits for scheduler metadata
+registration before unpausing the DAG, triggers one historical logical date,
+cancels only the resulting Durable Job before worker claim, and removes its
+own containers, network, and volume in `finally`.
+
 `down -v`는 `kis-scale-out-test` Compose 프로젝트가 만든 테스트 컨테이너와 volume만
 제거한다. 로컬 개발 DB나 다른 Compose 프로젝트는 대상으로 삼지 않는다.
 
