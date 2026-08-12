@@ -280,6 +280,20 @@ services:
     ports:
       - "15435:5432"
 
+  airflow-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: kis_test
+      POSTGRES_PASSWORD: kis_test
+      POSTGRES_DB: airflow
+    volumes:
+      - airflow-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kis_test -d airflow"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
   account-db-1:
     image: postgres:16-alpine
     environment:
@@ -383,6 +397,36 @@ services:
         condition: service_completed_successfully
     restart: unless-stopped
 
+  airflow:
+    image: apache/airflow:2.10.5-python3.12
+    environment:
+      AIRFLOW__CORE__EXECUTOR: SequentialExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://kis_test:kis_test@airflow-db:5432/airflow
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "true"
+      DURABLE_JOB_API_URL: http://api-1:8000
+      DURABLE_JOB_API_TOKEN: ${DURABLE_JOB_API_TOKEN:?set DURABLE_JOB_API_TOKEN}
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags:ro
+      - airflow-home:/opt/airflow
+    ports:
+      - "18080:8080"
+    command: standalone
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail http://localhost:8080/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+    depends_on:
+      airflow-db:
+        condition: service_healthy
+      api-1:
+        condition: service_healthy
+      outbox-relay:
+        condition: service_started
+      durable-job-worker:
+        condition: service_started
+
   api-1:
     <<: *api
     environment:
@@ -417,8 +461,10 @@ volumes:
   redis-node-6-data:
   identity-db-data:
   automation-db-data:
+  airflow-db-data:
   account-db-1-data:
   account-db-2-data:
+  airflow-home:
 
 networks:
   default:
