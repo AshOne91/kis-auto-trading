@@ -16,6 +16,15 @@ docker compose -f <base-compose-file> -f deploy/observability/compose.elk.yaml u
 Set `LOG_ROOT` when logs are stored outside `./logs`. Set `ELASTICSEARCH_PORT`,
 `KIBANA_PORT`, or `FILEBEAT_CONFIG` when the defaults conflict with the host.
 
+To find exhausted durable-job retries in the central profile, query the
+structured event field:
+
+```powershell
+$query = '{"query":{"term":{"event_type":"news_collection_retries_exhausted"}}}'
+Invoke-RestMethod -Method Post -Uri 'http://127.0.0.1:9200/filebeat-*/_search' `
+  -ContentType 'application/json' -Body $query
+```
+
 This is a local development profile. The central mode disables security and
 binds its ports to localhost. Production requires authenticated
 Elasticsearch/Kibana and a cluster-aware collector such as a Filebeat or Fluent
