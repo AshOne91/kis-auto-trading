@@ -391,21 +391,18 @@ namespace = runpy.run_path('/opt/airflow/dags/news_collection.py')
 job_globals = namespace['trigger_job'].__globals__
 job_globals['JOB_TYPE'] = 'news_index'
 job_globals['PAYLOAD_ENV'] = 'DURABLE_JOB_NEWS_INDEX_PAYLOAD_JSON'
-job_globals['get_current_context'] = lambda: {{
-    'data_interval_start': datetime.now(timezone.utc),
-}}
 os.environ['DURABLE_JOB_NEWS_INDEX_PAYLOAD_JSON'] = json.dumps({{
     'source_keys': ['missing-{uuid4()}'],
 }})
-job_id = namespace['trigger_job']()
-ti = type('TI', (), {{'xcom_pull': lambda self, task_ids: job_id}})()
-namespace['wait_for_job'](ti)
-print(f'airflow_trigger_and_wait=succeeded:{{job_id}}')
+dag_run = namespace['dag'].test(execution_date=datetime.now(timezone.utc))
+if str(dag_run.state) != 'success':
+    raise RuntimeError(f'Airflow DAG test did not succeed: {{dag_run.state!r}}')
+print(f'airflow_dag_test=succeeded:{{dag_run.run_id}}')
 """
     result = compose_with_input(script, "exec", "-T", "airflow", "python", "-")
-    if "airflow_trigger_and_wait=succeeded:" not in result.stdout:
-        raise RuntimeError(f"Airflow trigger/wait assertion missing: {result.stdout!r}")
-    print("Airflow success verified: generated trigger + worker completion + wait")
+    if "airflow_dag_test=succeeded:" not in result.stdout:
+        raise RuntimeError(f"Airflow DAG test assertion missing: {result.stdout!r}")
+    print("Airflow success verified: DAG test trigger + worker completion + wait")
 
 def main() -> None:
     results = {url: wait_for_health(url) for url in API_URLS}
