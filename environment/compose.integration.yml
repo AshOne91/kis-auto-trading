@@ -191,7 +191,7 @@ services:
   durable-job-worker:
     image: ${APPLICATION_IMAGE:-kis-auto-trading:local}
     pull_policy: never
-    restart: unless-stopped
+    restart: "unless-stopped"
     command: ["python", "scripts/run_durable_job_worker.py"]
     environment:
       IDENTITY_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-autoforge}:${POSTGRES_PASSWORD:-change-me}@postgres:5432/identity
