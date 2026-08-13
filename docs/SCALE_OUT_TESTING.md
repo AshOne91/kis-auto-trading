@@ -58,6 +58,22 @@ registration before unpausing the DAG, triggers one historical logical date,
 cancels only the resulting Durable Job before worker claim, and removes its
 own containers, network, and volume in `finally`.
 
+## Isolated generated PostgreSQL HA check
+
+The generated local environment can use `postgres_mode: ha`. This check creates
+its own Compose project, validates the generated migrations, confirms one Patroni
+leader and two streaming replicas, stops the active leader, verifies the HAProxy
+writer endpoint reaches the promoted leader, then confirms the stopped node
+rejoins as a replica.
+
+```powershell
+python scripts/verify_generated_postgres_ha.py
+```
+
+It removes only the containers, network, and named volumes created for its unique
+Compose project. It is a single-host Docker integration check, not production
+multi-host database HA validation.
+
 `down -v`는 `kis-scale-out-test` Compose 프로젝트가 만든 테스트 컨테이너와 volume만
 제거한다. 로컬 개발 DB나 다른 Compose 프로젝트는 대상으로 삼지 않는다.
 

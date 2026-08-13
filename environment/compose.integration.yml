@@ -151,6 +151,8 @@ services:
         condition: service_healthy
       etcd-2:
         condition: service_healthy
+      postgres-ha-0:
+        condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS http://localhost:8008/health || exit 1"]
       interval: 3s
@@ -195,6 +197,8 @@ services:
       etcd-1:
         condition: service_healthy
       etcd-2:
+        condition: service_healthy
+      postgres-ha-1:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS http://localhost:8008/health || exit 1"]
