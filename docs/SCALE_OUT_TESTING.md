@@ -158,6 +158,13 @@ AutoForge는 `SessionStore` 업무 계약을 유지하면서 standalone, sentine
 managed 연결 공급자를 선택할 수 있게 생성해야 한다. Redis 배치 방식이 Identity Handler나
 Account Handler의 업무 코드로 새어 나가면 안 된다.
 
+The scale-out verification also records both API container IDs before stopping
+the selected Redis primary. After the replica is promoted, it requires both
+unchanged API containers to remain Compose-healthy and to answer `GET /health`,
+then verifies the existing session and a new login. The stopped Redis primary is
+started again in cleanup so the shared profile is not left degraded. This is a
+single-host failover check, not a managed Redis or multi-host production claim.
+
 ## RabbitMQ와 Transactional Outbox
 
 현재 통합 토폴로지는 RabbitMQ 1대, Outbox Relay 1대와 Message Worker 1대를 추가로

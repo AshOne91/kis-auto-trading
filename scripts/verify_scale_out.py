@@ -13,6 +13,7 @@ API_URLS = (
     "http://localhost:18001/health",
     "http://localhost:18002/health",
 )
+API_SERVICES = ("api-1", "api-2")
 MAX_ATTEMPTS = 30
 RETRY_SECONDS = 1.0
 COMPOSE = ("docker", "compose", "-f", "compose.integration.yaml")
@@ -154,6 +155,60 @@ def compose_with_input(
         text=True,
         input=input_text,
     )
+
+
+def application_container(service: str) -> str:
+    result = compose("ps", "-q", service)
+    containers = [line.strip() for line in result.stdout.splitlines() if line.strip()]
+    if len(containers) != 1:
+        raise RuntimeError(f"Expected one {service} container, got {containers!r}")
+    return containers[0]
+
+
+def wait_for_application_recovery(expected: dict[str, str]) -> None:
+    last_error: RuntimeError | None = None
+    for _ in range(MAX_ATTEMPTS):
+        try:
+            for service, url in zip(API_SERVICES, API_URLS, strict=True):
+                container = application_container(service)
+                if container != expected[service]:
+                    raise RuntimeError(
+                        f"{service} container was recreated during Redis failover"
+                    )
+                health = subprocess.run(
+                    (
+                        "docker",
+                        "inspect",
+                        "--format",
+                        "{{.State.Health.Status}}",
+                        container,
+                    ),
+                    check=False,
+                    capture_output=True,
+                    text=True,
+                    encoding="utf-8",
+                    errors="replace",
+                    timeout=10,
+                )
+                if health.returncode or health.stdout.strip() != "healthy":
+                    raise RuntimeError(
+                        f"{service} health is {health.stdout.strip()!r}"
+                    )
+                with urllib.request.urlopen(url, timeout=3) as response:
+                    if response.status != 200:
+                        raise RuntimeError(
+                            f"{service} health returned {response.status}"
+                        )
+            return
+        except (OSError, RuntimeError, subprocess.SubprocessError) as error:
+            last_error = (
+                error if isinstance(error, RuntimeError) else RuntimeError(str(error))
+            )
+        time.sleep(RETRY_SECONDS)
+    raise RuntimeError(
+        "API containers did not recover after Redis failover"
+    ) from last_error
+
 
 def cluster_nodes(service: str = "redis-node-1") -> list[ClusterNodeInfo]:
     result = compose(
@@ -413,6 +468,9 @@ def main() -> None:
     results = {url: wait_for_health(url) for url in API_URLS}
     if len(results) != 2:
         raise RuntimeError("Two independent API instances are required")
+    application_containers = {
+        service: application_container(service) for service in API_SERVICES
+    }
     for url, payload in results.items():
         print(f"healthy: {url} -> {payload}")
 
@@ -555,27 +613,32 @@ def main() -> None:
     primary_service, replica_service, replica_id = cluster_failover_target(
         session_slot
     )
-    compose("exec", "-T", primary_service, "redis-cli", "WAIT", "1", "5000")
-    compose("stop", primary_service)
-    wait_for_cluster_promotion(replica_service, replica_id)
-    recovered = wait_for_post_json(
-        "http://localhost:18002/api/identity/session/validate",
-        {"access_token": str(login["access_token"])},
-    )
-    if recovered != validated:
-        raise RuntimeError("Replicated session changed during Redis failover")
-    second_login = wait_for_post_json(
-        "http://localhost:18001/api/identity/login",
-        {"email": email, "password": password},
-    )
-    wait_for_post_json(
-        "http://localhost:18002/api/identity/session/validate",
-        {"access_token": str(second_login["access_token"])},
-    )
+    try:
+        compose("exec", "-T", primary_service, "redis-cli", "WAIT", "1", "5000")
+        compose("stop", primary_service)
+        wait_for_cluster_promotion(replica_service, replica_id)
+        wait_for_application_recovery(application_containers)
+        recovered = wait_for_post_json(
+            "http://localhost:18002/api/identity/session/validate",
+            {"access_token": str(login["access_token"])},
+        )
+        if recovered != validated:
+            raise RuntimeError("Replicated session changed during Redis failover")
+        second_login = wait_for_post_json(
+            "http://localhost:18001/api/identity/login",
+            {"email": email, "password": password},
+        )
+        wait_for_post_json(
+            "http://localhost:18002/api/identity/session/validate",
+            {"access_token": str(second_login["access_token"])},
+        )
+    finally:
+        compose("start", primary_service)
     print(
         "Redis Cluster failover verified: "
         f"slot={session_slot}, {primary_service} stopped -> "
-        f"{replica_service} promoted, old read + new write passed"
+        f"{replica_service} promoted, API containers stayed healthy, "
+        "old read + new write passed"
     )
 
 
