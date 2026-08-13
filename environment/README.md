@@ -1,6 +1,6 @@
 # Generated integration environment
 
-This disposable profile starts PostgreSQL, three-node Redis Cluster, RabbitMQ, Airflow, Outbox relay, durable-job worker for integration checks.
+This disposable profile starts three-node PostgreSQL HA cluster, three-node Redis Cluster, RabbitMQ, Airflow, Outbox relay, durable-job worker for integration checks.
 
 ```powershell
 Copy-Item .env.example .env

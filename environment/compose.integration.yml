@@ -1,22 +1,258 @@
 name: kis_auto_trading-integration
 
 services:
-  postgres:
-    image: postgres:16-alpine
+  etcd-0:
+    image: quay.io/coreos/etcd:v3.5.18
     restart: unless-stopped
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER:-autoforge}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me}
-      POSTGRES_DB: postgres
-    ports:
-      - "${LOCAL_BIND_ADDRESS:-127.0.0.1}:${POSTGRES_PORT:-25432}:5432"
+    command:
+      - /usr/local/bin/etcd
+      - --name=etcd-0
+      - --data-dir=/etcd-data
+      - --initial-advertise-peer-urls=http://etcd-0:2380
+      - --listen-peer-urls=http://0.0.0.0:2380
+      - --advertise-client-urls=http://etcd-0:2379
+      - --listen-client-urls=http://0.0.0.0:2379
+      - --initial-cluster=etcd-0=http://etcd-0:2380,etcd-1=http://etcd-1:2380,etcd-2=http://etcd-2:2380
+      - --initial-cluster-state=new
+      - --initial-cluster-token=autoforge-postgres-ha
     volumes:
-      - ./postgres-init/00-databases.sql:/docker-entrypoint-initdb.d/00-databases.sql:ro
+      - etcd-0-data:/etcd-data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d postgres"]
+      test: ["CMD", "/usr/local/bin/etcdctl", "endpoint", "health"]
       interval: 3s
       timeout: 3s
       retries: 20
+
+  etcd-1:
+    image: quay.io/coreos/etcd:v3.5.18
+    restart: unless-stopped
+    command:
+      - /usr/local/bin/etcd
+      - --name=etcd-1
+      - --data-dir=/etcd-data
+      - --initial-advertise-peer-urls=http://etcd-1:2380
+      - --listen-peer-urls=http://0.0.0.0:2380
+      - --advertise-client-urls=http://etcd-1:2379
+      - --listen-client-urls=http://0.0.0.0:2379
+      - --initial-cluster=etcd-0=http://etcd-0:2380,etcd-1=http://etcd-1:2380,etcd-2=http://etcd-2:2380
+      - --initial-cluster-state=new
+      - --initial-cluster-token=autoforge-postgres-ha
+    volumes:
+      - etcd-1-data:/etcd-data
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/etcdctl", "endpoint", "health"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  etcd-2:
+    image: quay.io/coreos/etcd:v3.5.18
+    restart: unless-stopped
+    command:
+      - /usr/local/bin/etcd
+      - --name=etcd-2
+      - --data-dir=/etcd-data
+      - --initial-advertise-peer-urls=http://etcd-2:2380
+      - --listen-peer-urls=http://0.0.0.0:2380
+      - --advertise-client-urls=http://etcd-2:2379
+      - --listen-client-urls=http://0.0.0.0:2379
+      - --initial-cluster=etcd-0=http://etcd-0:2380,etcd-1=http://etcd-1:2380,etcd-2=http://etcd-2:2380
+      - --initial-cluster-state=new
+      - --initial-cluster-token=autoforge-postgres-ha
+    volumes:
+      - etcd-2-data:/etcd-data
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/etcdctl", "endpoint", "health"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  postgres-ha-0:
+    image: ghcr.io/zalando/spilo-16:3.3-p3
+    restart: unless-stopped
+    environment:
+      SPILO_PROVIDER: local
+      SCOPE: ${POSTGRES_HA_SCOPE:-autoforge-postgres}
+      ETCD3_HOSTS: etcd-0:2379,etcd-1:2379,etcd-2:2379
+      RESTAPI_CONNECT_ADDRESS: postgres-ha-0
+      PGPASSWORD_SUPERUSER: ${POSTGRES_PASSWORD:-change-me}
+      PGUSER_STANDBY: replication
+      PGPASSWORD_STANDBY: ${POSTGRES_REPLICATION_PASSWORD:-change-me-replication}
+      ALLOW_NOSSL: "true"
+      SPILO_CONFIGURATION: |-
+        postgresql:
+          connect_address: postgres-ha-0:5432
+        bootstrap:
+          dcs:
+            ttl: 10
+            loop_wait: 3
+            retry_timeout: 10
+            maximum_lag_on_failover: 1048576
+            synchronous_mode: true
+            synchronous_mode_strict: false
+            postgresql:
+              parameters:
+                wal_level: replica
+                max_wal_senders: 10
+                max_replication_slots: 10
+                hot_standby: "on"
+                synchronous_commit: "on"
+    volumes:
+      - postgres-ha-0-data:/home/postgres/pgdata
+    depends_on:
+      etcd-0:
+        condition: service_healthy
+      etcd-1:
+        condition: service_healthy
+      etcd-2:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8008/health || exit 1"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+
+  postgres-ha-1:
+    image: ghcr.io/zalando/spilo-16:3.3-p3
+    restart: unless-stopped
+    environment:
+      SPILO_PROVIDER: local
+      SCOPE: ${POSTGRES_HA_SCOPE:-autoforge-postgres}
+      ETCD3_HOSTS: etcd-0:2379,etcd-1:2379,etcd-2:2379
+      RESTAPI_CONNECT_ADDRESS: postgres-ha-1
+      PGPASSWORD_SUPERUSER: ${POSTGRES_PASSWORD:-change-me}
+      PGUSER_STANDBY: replication
+      PGPASSWORD_STANDBY: ${POSTGRES_REPLICATION_PASSWORD:-change-me-replication}
+      ALLOW_NOSSL: "true"
+      SPILO_CONFIGURATION: |-
+        postgresql:
+          connect_address: postgres-ha-1:5432
+        bootstrap:
+          dcs:
+            ttl: 10
+            loop_wait: 3
+            retry_timeout: 10
+            maximum_lag_on_failover: 1048576
+            synchronous_mode: true
+            synchronous_mode_strict: false
+            postgresql:
+              parameters:
+                wal_level: replica
+                max_wal_senders: 10
+                max_replication_slots: 10
+                hot_standby: "on"
+                synchronous_commit: "on"
+    volumes:
+      - postgres-ha-1-data:/home/postgres/pgdata
+    depends_on:
+      etcd-0:
+        condition: service_healthy
+      etcd-1:
+        condition: service_healthy
+      etcd-2:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8008/health || exit 1"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+
+  postgres-ha-2:
+    image: ghcr.io/zalando/spilo-16:3.3-p3
+    restart: unless-stopped
+    environment:
+      SPILO_PROVIDER: local
+      SCOPE: ${POSTGRES_HA_SCOPE:-autoforge-postgres}
+      ETCD3_HOSTS: etcd-0:2379,etcd-1:2379,etcd-2:2379
+      RESTAPI_CONNECT_ADDRESS: postgres-ha-2
+      PGPASSWORD_SUPERUSER: ${POSTGRES_PASSWORD:-change-me}
+      PGUSER_STANDBY: replication
+      PGPASSWORD_STANDBY: ${POSTGRES_REPLICATION_PASSWORD:-change-me-replication}
+      ALLOW_NOSSL: "true"
+      SPILO_CONFIGURATION: |-
+        postgresql:
+          connect_address: postgres-ha-2:5432
+        bootstrap:
+          dcs:
+            ttl: 10
+            loop_wait: 3
+            retry_timeout: 10
+            maximum_lag_on_failover: 1048576
+            synchronous_mode: true
+            synchronous_mode_strict: false
+            postgresql:
+              parameters:
+                wal_level: replica
+                max_wal_senders: 10
+                max_replication_slots: 10
+                hot_standby: "on"
+                synchronous_commit: "on"
+    volumes:
+      - postgres-ha-2-data:/home/postgres/pgdata
+    depends_on:
+      etcd-0:
+        condition: service_healthy
+      etcd-1:
+        condition: service_healthy
+      etcd-2:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8008/health || exit 1"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+
+  postgres:
+    image: haproxy:3.0-alpine
+    restart: unless-stopped
+    ports:
+      - "${LOCAL_BIND_ADDRESS:-127.0.0.1}:${POSTGRES_PORT:-25432}:5432"
+    volumes:
+      - ./postgres-ha/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    depends_on:
+      postgres-ha-0:
+        condition: service_started
+      postgres-ha-1:
+        condition: service_started
+      postgres-ha-2:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "haproxy -c -f /usr/local/etc/haproxy/haproxy.cfg"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  postgres-ha-init:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_SUPERUSER: postgres
+      POSTGRES_USER: ${POSTGRES_USER:-autoforge}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me}
+      PGPASSWORD: ${POSTGRES_PASSWORD:-change-me}
+    volumes:
+      - ./postgres-init/00-databases.sql:/postgres-init/00-databases.sql:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command:
+      - /bin/sh
+      - -ec
+      - |-
+        until psql -h postgres -U $$POSTGRES_SUPERUSER -d postgres -c 'SELECT 1' >/dev/null 2>&1; do sleep 1; done
+        psql -h postgres -U $$POSTGRES_SUPERUSER -d postgres -v ON_ERROR_STOP=1 -v application_user="$$POSTGRES_USER" -v application_password="$$POSTGRES_PASSWORD" <<'SQL'
+        SELECT format('CREATE ROLE %I LOGIN', :'application_user')
+        WHERE NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = :'application_user')
+        \gexec
+        SELECT format('ALTER ROLE %I LOGIN PASSWORD %L', :'application_user', :'application_password')
+        \gexec
+        SQL
+        psql -h postgres -U $$POSTGRES_SUPERUSER -d postgres -v ON_ERROR_STOP=1 -f /postgres-init/00-databases.sql
+        psql -h postgres -U $$POSTGRES_SUPERUSER -d postgres -v ON_ERROR_STOP=1 -v application_user="$$POSTGRES_USER" <<'SQL'
+        SELECT format('ALTER DATABASE %I OWNER TO %I', database_name, :'application_user')
+        FROM (VALUES ('identity'), ('automation'), ('account_shard_1'), ('account_shard_2'), ('airflow')) AS requested(database_name)
+        \gexec
+        SQL
+    restart: "no"
 
   redis-7000:
     image: redis:7-alpine
@@ -217,8 +453,8 @@ services:
       ACCOUNT_SHARD_1_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-autoforge}:${POSTGRES_PASSWORD:-change-me}@postgres:5432/account_shard_1
       ACCOUNT_SHARD_2_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-autoforge}:${POSTGRES_PASSWORD:-change-me}@postgres:5432/account_shard_2
     depends_on:
-      postgres:
-        condition: service_healthy
+      postgres-ha-init:
+        condition: service_completed_successfully
     restart: "no"
 
   application:
@@ -310,8 +546,8 @@ services:
   airflow-init:
     image: apache/airflow:2.10.5-python3.12
     depends_on:
-      postgres:
-        condition: service_healthy
+      postgres-ha-init:
+        condition: service_completed_successfully
     environment:
       AIRFLOW__CORE__EXECUTOR: SequentialExecutor
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER:-autoforge}:${POSTGRES_PASSWORD:-change-me}@postgres:5432/airflow
@@ -379,6 +615,12 @@ networks:
     external: true
 
 volumes:
+  postgres-ha-0-data:
+  postgres-ha-1-data:
+  postgres-ha-2-data:
+  etcd-0-data:
+  etcd-1-data:
+  etcd-2-data:
   redis-7000-data:
   redis-7001-data:
   redis-7002-data:

@@ -9,6 +9,7 @@ tooling:
   local_environment:
     enabled: true
     application_enabled: true
+    postgres_mode: ha
   elk:
     enabled: true
     version: "8.19.17"
