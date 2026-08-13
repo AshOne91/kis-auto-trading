@@ -32,7 +32,9 @@ services:
       - --cluster-node-timeout
       - "5000"
       - --appendonly
-      - no
+      - yes
+    volumes:
+      - redis-7000-data:/data
     healthcheck:
       test: ["CMD-SHELL", "redis-cli -p 7000 ping | grep -q PONG"]
       interval: 3s
@@ -53,7 +55,9 @@ services:
       - --cluster-node-timeout
       - "5000"
       - --appendonly
-      - no
+      - yes
+    volumes:
+      - redis-7001-data:/data
     healthcheck:
       test: ["CMD-SHELL", "redis-cli -p 7001 ping | grep -q PONG"]
       interval: 3s
@@ -74,9 +78,80 @@ services:
       - --cluster-node-timeout
       - "5000"
       - --appendonly
-      - no
+      - yes
+    volumes:
+      - redis-7002-data:/data
     healthcheck:
       test: ["CMD-SHELL", "redis-cli -p 7002 ping | grep -q PONG"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  redis-7003:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command:
+      - redis-server
+      - --port
+      - "7003"
+      - --cluster-enabled
+      - yes
+      - --cluster-config-file
+      - nodes.conf
+      - --cluster-node-timeout
+      - "5000"
+      - --appendonly
+      - yes
+    volumes:
+      - redis-7003-data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -p 7003 ping | grep -q PONG"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  redis-7004:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command:
+      - redis-server
+      - --port
+      - "7004"
+      - --cluster-enabled
+      - yes
+      - --cluster-config-file
+      - nodes.conf
+      - --cluster-node-timeout
+      - "5000"
+      - --appendonly
+      - yes
+    volumes:
+      - redis-7004-data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -p 7004 ping | grep -q PONG"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  redis-7005:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command:
+      - redis-server
+      - --port
+      - "7005"
+      - --cluster-enabled
+      - yes
+      - --cluster-config-file
+      - nodes.conf
+      - --cluster-node-timeout
+      - "5000"
+      - --appendonly
+      - yes
+    volumes:
+      - redis-7005-data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -p 7005 ping | grep -q PONG"]
       interval: 3s
       timeout: 3s
       retries: 20
@@ -90,19 +165,28 @@ services:
         condition: service_healthy
       redis-7002:
         condition: service_healthy
+      redis-7003:
+        condition: service_healthy
+      redis-7004:
+        condition: service_healthy
+      redis-7005:
+        condition: service_healthy
     command:
       - /bin/sh
       - -c
       - |-
         if redis-cli -h redis-7000 -p 7000 cluster nodes | grep -q '[0-9]-[0-9]'; then
           for _ in $(seq 1 20); do
-            redis-cli -h redis-7000 -p 7000 cluster info | grep -q 'cluster_state:ok' && exit 0
+            topology=$(redis-cli -h redis-7000 -p 7000 cluster nodes)
+            masters=$(printf '%s\n' "$$topology" | awk '$3 ~ /master/ && $8 == "connected" { count++ } END { print count + 0 }')
+            replicas=$(printf '%s\n' "$$topology" | awk '$3 ~ /slave/ && $8 == "connected" { count++ } END { print count + 0 }')
+            redis-cli -h redis-7000 -p 7000 cluster info | grep -q 'cluster_state:ok' && [ "$$masters" -eq 3 ] && [ "$$replicas" -eq 3 ] && exit 0
             sleep 1
           done
-          echo 'existing Redis cluster did not become healthy' >&2
+          echo 'existing Redis cluster did not meet the 3-primary/3-replica topology' >&2
           exit 1
         fi
-        exec redis-cli --cluster create redis-7000:7000 redis-7001:7001 redis-7002:7002 --cluster-replicas 0 --cluster-yes
+        exec redis-cli --cluster create redis-7000:7000 redis-7001:7001 redis-7002:7002 redis-7003:7003 redis-7004:7004 redis-7005:7005 --cluster-replicas 1 --cluster-yes
     restart: "no"
 
   rabbitmq:
@@ -147,6 +231,7 @@ services:
       ACCOUNT_SHARD_1_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-autoforge}:${POSTGRES_PASSWORD:-change-me}@postgres:5432/account_shard_1
       ACCOUNT_SHARD_2_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-autoforge}:${POSTGRES_PASSWORD:-change-me}@postgres:5432/account_shard_2
       REDIS_CLUSTER_URL: ${REDIS_CLUSTER_URL:-redis://redis-7000:7000}
+      REDIS_CLUSTER_STARTUP_NODES: ${REDIS_CLUSTER_STARTUP_NODES:-redis://redis-7000:7000,redis://redis-7001:7001,redis://redis-7002:7002,redis://redis-7003:7003,redis://redis-7004:7004,redis://redis-7005:7005}
       DURABLE_JOB_API_TOKEN: ${DURABLE_JOB_API_TOKEN:?set DURABLE_JOB_API_TOKEN}
       RAG_SEARCH_BACKEND: ${RAG_SEARCH_BACKEND:-opensearch}
       RAG_SEARCH_URL: ${RAG_SEARCH_URL:-http://opensearch:9200}
@@ -166,7 +251,7 @@ services:
       redis-cluster-init:
         condition: service_completed_successfully
     healthcheck:
-      test: ["CMD", "python", "-c", "from urllib.request import urlopen; import socket; import asyncio, os; from redis.asyncio.cluster import RedisCluster; urlopen('http://127.0.0.1:8000/health').read(); [socket.create_connection(target, 2).close() for target in [('postgres', 5432), ('redis-7000', 7000), ('redis-7001', 7001), ('redis-7002', 7002)]]; client=RedisCluster.from_url(os.environ['REDIS_CLUSTER_URL'], decode_responses=True, require_full_coverage=True); asyncio.run(client.ping())"]
+      test: ["CMD", "python", "-c", "from urllib.request import urlopen; import socket; import asyncio, os; from urllib.parse import urlparse; from redis.cluster import ClusterNode; from redis.asyncio.cluster import RedisCluster; urlopen('http://127.0.0.1:8000/health').read(); [socket.create_connection(target, 2).close() for target in [('postgres', 5432)]]; startup_nodes=[ClusterNode(urlparse(value).hostname, urlparse(value).port or 6379) for value in os.environ['REDIS_CLUSTER_STARTUP_NODES'].split(',')]; client=RedisCluster.from_url(os.environ['REDIS_CLUSTER_URL'], startup_nodes=startup_nodes, decode_responses=True, require_full_coverage=True); asyncio.run(client.ping())"]
       interval: 5s
       timeout: 3s
       retries: 20
@@ -294,4 +379,10 @@ networks:
     external: true
 
 volumes:
+  redis-7000-data:
+  redis-7001-data:
+  redis-7002-data:
+  redis-7003-data:
+  redis-7004-data:
+  redis-7005-data:
   airflow-home:

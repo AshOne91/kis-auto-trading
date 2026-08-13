@@ -2,15 +2,28 @@ import os
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from typing import Annotated
+from urllib.parse import urlparse
 
 from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from redis.asyncio.cluster import RedisCluster
+from redis.cluster import ClusterNode
 
 from .protocol import SessionData, SessionStore, SessionStoreError
 from .redis import RedisSessionStore
 
 REDIS_CLUSTER_URL_ENV = "REDIS_CLUSTER_URL"
+REDIS_CLUSTER_STARTUP_NODES_ENV = "REDIS_CLUSTER_STARTUP_NODES"
+
+
+def _cluster_startup_nodes() -> list[ClusterNode]:
+    raw_nodes = os.environ.get(REDIS_CLUSTER_STARTUP_NODES_ENV, "")
+    nodes: list[ClusterNode] = []
+    for value in raw_nodes.split(","):
+        parsed = urlparse(value.strip())
+        if value.strip() and parsed.hostname:
+            nodes.append(ClusterNode(parsed.hostname, parsed.port or 6379))
+    return nodes
 
 
 @asynccontextmanager
@@ -25,6 +38,7 @@ async def session_store_lifespan(
         )
     client = RedisCluster.from_url(
         cluster_url,
+        startup_nodes=_cluster_startup_nodes() or None,
         decode_responses=True,
         require_full_coverage=True,
         reinitialize_steps=1,
