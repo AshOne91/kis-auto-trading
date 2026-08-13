@@ -162,8 +162,10 @@ The scale-out verification also records both API container IDs before stopping
 the selected Redis primary. After the replica is promoted, it requires both
 unchanged API containers to remain Compose-healthy and to answer `GET /health`,
 then verifies the existing session and a new login. The stopped Redis primary is
-started again in cleanup so the shared profile is not left degraded. This is a
-single-host failover check, not a managed Redis or multi-host production claim.
+started again and must rejoin as a replica of the promoted primary; API health is
+checked again after rejoin. Cleanup still starts the node if an earlier assertion
+fails, so the shared profile is not left degraded. This is a single-host failover
+check, not a managed Redis or multi-host production claim.
 
 ## RabbitMQ와 Transactional Outbox
 

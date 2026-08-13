@@ -245,7 +245,7 @@ def cluster_slot(key: str) -> int:
     return int(result.stdout.strip())
 
 
-def cluster_failover_target(slot: int) -> tuple[str, str, str]:
+def cluster_failover_target(slot: int) -> tuple[str, str, str, str]:
     nodes = cluster_nodes()
     primary = next(
         node for node in nodes if "master" in node.flags and node.owns(slot)
@@ -255,6 +255,32 @@ def cluster_failover_target(slot: int) -> tuple[str, str, str]:
         REDIS_SERVICES[primary.address],
         REDIS_SERVICES[replica.address],
         replica.node_id,
+        primary.node_id,
+    )
+
+
+def wait_for_cluster_rejoin(
+    service: str, node_id: str, promoted_node_id: str
+) -> None:
+    last_flags: frozenset[str] = frozenset()
+    last_master_id = ""
+    for _ in range(45):
+        try:
+            node = next(item for item in cluster_nodes(service) if item.node_id == node_id)
+            last_flags = node.flags
+            last_master_id = node.master_id
+            if (
+                "fail" not in node.flags
+                and ("slave" in node.flags or "replica" in node.flags)
+                and node.master_id == promoted_node_id
+            ):
+                return
+        except (StopIteration, subprocess.CalledProcessError):
+            pass
+        time.sleep(RETRY_SECONDS)
+    raise RuntimeError(
+        f"Redis Cluster primary did not rejoin as replica: {service}, "
+        f"flags={last_flags}, master_id={last_master_id}"
     )
 
 
@@ -610,7 +636,7 @@ def main() -> None:
     session_slot = cluster_slot(session_key)
     if cluster_slot(user_key) != session_slot:
         raise RuntimeError("Session keys do not share one Redis Cluster slot")
-    primary_service, replica_service, replica_id = cluster_failover_target(
+    primary_service, replica_service, replica_id, primary_id = cluster_failover_target(
         session_slot
     )
     try:
@@ -632,13 +658,16 @@ def main() -> None:
             "http://localhost:18002/api/identity/session/validate",
             {"access_token": str(second_login["access_token"])},
         )
+        compose("start", primary_service)
+        wait_for_cluster_rejoin(primary_service, primary_id, replica_id)
+        wait_for_application_recovery(application_containers)
     finally:
         compose("start", primary_service)
     print(
         "Redis Cluster failover verified: "
         f"slot={session_slot}, {primary_service} stopped -> "
         f"{replica_service} promoted, API containers stayed healthy, "
-        "old read + new write passed"
+        f"{primary_service} rejoined as replica, old read + new write passed"
     )
 
 
