@@ -74,6 +74,14 @@ It removes only the containers, network, and named volumes created for its uniqu
 Compose project. It is a single-host Docker integration check, not production
 multi-host database HA validation.
 
+The same check starts the generated FastAPI application and waits for both its
+Compose healthcheck and `GET /health`. After the Patroni leader is stopped, it
+waits for HAProxy to select the promoted writer and confirms that the original
+application container keeps the same container ID and becomes healthy again.
+The application image is not rebuilt during failover. This proves the local
+database failover path used by the generated application; it does not claim
+application-level retry guarantees for every long-running request.
+
 `down -v`는 `kis-scale-out-test` Compose 프로젝트가 만든 테스트 컨테이너와 volume만
 제거한다. 로컬 개발 DB나 다른 Compose 프로젝트는 대상으로 삼지 않는다.
 

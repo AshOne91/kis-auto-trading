@@ -4,11 +4,13 @@ import json
 import os
 import subprocess
 import time
+from urllib.request import urlopen
 from uuid import uuid4
 
 COMPOSE_FILE = "environment/compose.integration.yml"
 PORT_BASE = 59300
 POSTGRES_PORT = PORT_BASE + 10
+APPLICATION_PORT = PORT_BASE
 MAX_ATTEMPTS = 120
 RETRY_SECONDS = 1.0
 PATRONI_SERVICES = ("postgres-ha-0", "postgres-ha-1", "postgres-ha-2")
@@ -33,6 +35,7 @@ class GeneratedEnvironment:
                 "POSTGRES_PASSWORD": "change-me",
                 "POSTGRES_REPLICATION_PASSWORD": "change-me-replication",
                 "POSTGRES_PORT": str(POSTGRES_PORT),
+                "APPLICATION_PORT": str(APPLICATION_PORT),
                 "RABBITMQ_URL": "amqp://autoforge:change-me@rabbitmq:5672/",
                 "DURABLE_JOB_API_TOKEN": "generated-postgres-ha-test-token",
             }
@@ -140,12 +143,66 @@ def _wait_for_writer(environment: GeneratedEnvironment) -> None:
     raise RuntimeError("HAProxy did not reach a writable PostgreSQL leader") from last_error
 
 
+def _application_container(environment: GeneratedEnvironment) -> str:
+    result = environment.run("ps", "-q", "application")
+    containers = [line.strip() for line in result.stdout.splitlines() if line.strip()]
+    if len(containers) != 1:
+        raise RuntimeError(f"Expected one application container, got {containers!r}")
+    return containers[0]
+
+
+def _wait_for_application(
+    environment: GeneratedEnvironment,
+    *,
+    expected_container: str | None = None,
+) -> str:
+    last_error: RuntimeError | None = None
+    for _ in range(MAX_ATTEMPTS):
+        try:
+            container = _application_container(environment)
+            if expected_container and container != expected_container:
+                raise RuntimeError(
+                    "Application container was recreated during PostgreSQL failover"
+                )
+            health = subprocess.run(
+                (
+                    "docker",
+                    "inspect",
+                    "--format",
+                    "{{.State.Health.Status}}",
+                    container,
+                ),
+                check=False,
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                timeout=10,
+            )
+            if health.returncode or health.stdout.strip() != "healthy":
+                raise RuntimeError(
+                    f"Application container health is {health.stdout.strip()!r}"
+                )
+            with urlopen(
+                f"http://127.0.0.1:{APPLICATION_PORT}/health", timeout=3
+            ) as response:
+                if response.status != 200:
+                    raise RuntimeError(f"Application health returned {response.status}")
+            return container
+        except (RuntimeError, OSError) as error:
+            last_error = (
+                error if isinstance(error, RuntimeError) else RuntimeError(str(error))
+            )
+        time.sleep(RETRY_SECONDS)
+    raise RuntimeError("Generated application did not become healthy") from last_error
+
+
 def main() -> None:
     environment = GeneratedEnvironment()
     try:
         print(f"starting isolated PostgreSQL HA environment: {environment.project_name}")
-        environment.run("up", "--build", "--detach", "migrate")
-        environment.run("wait", "migrate")
+        environment.run("up", "--build", "--detach", "application")
+        application_container = _wait_for_application(environment)
         original_leader, replicas = _leader_and_streaming_replicas(
             environment, expected_members=3, expected_streaming_replicas=2
         )
@@ -162,6 +219,7 @@ def main() -> None:
                 "PostgreSQL leader did not fail over to one remaining streaming replica"
             )
         _wait_for_writer(environment)
+        _wait_for_application(environment, expected_container=application_container)
 
         environment.run("up", "--detach", "--wait", original_leader)
         restored_leader, replicas = _leader_and_streaming_replicas(
@@ -172,7 +230,7 @@ def main() -> None:
         print(
             "Generated PostgreSQL HA verified: "
             f"{original_leader} stopped -> {promoted_leader} promoted -> "
-            f"{original_leader} rejoined"
+            f"{original_leader} rejoined; application health recovered without rebuild"
         )
     finally:
         environment.close()
