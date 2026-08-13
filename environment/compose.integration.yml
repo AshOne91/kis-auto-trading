@@ -194,7 +194,7 @@ services:
     restart: "unless-stopped"
     command: ["python", "scripts/run_durable_job_worker.py"]
     healthcheck:
-      test: ["CMD", "python", "-c", "import os; os.kill(1, 0)"]
+      test: ["CMD", "python", "-c", "import asyncio, os, aio_pika; connection = asyncio.run(aio_pika.connect(os.environ['RABBITMQ_URL'], timeout=2)); asyncio.run(connection.close())"]
       interval: 10s
       timeout: 3s
       retries: 3
