@@ -176,6 +176,11 @@ services:
     pull_policy: never
     restart: unless-stopped
     command: ["python", "scripts/run_outbox_relay.py"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import asyncio, os, aio_pika; connection = asyncio.run(aio_pika.connect(os.environ['RABBITMQ_URL'], timeout=2)); asyncio.run(connection.close())"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
     environment:
       IDENTITY_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-autoforge}:${POSTGRES_PASSWORD:-change-me}@postgres:5432/identity
       AUTOMATION_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-autoforge}:${POSTGRES_PASSWORD:-change-me}@postgres:5432/automation
