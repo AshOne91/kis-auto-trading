@@ -14,6 +14,7 @@ APPLICATION_PORT = PORT_BASE
 MAX_ATTEMPTS = 120
 RETRY_SECONDS = 1.0
 PATRONI_SERVICES = ("postgres-ha-0", "postgres-ha-1", "postgres-ha-2")
+REDIS_SERVICES = tuple(f"redis-{port}" for port in range(7000, 7006))
 
 
 class GeneratedEnvironment:
@@ -143,6 +144,68 @@ def _wait_for_writer(environment: GeneratedEnvironment) -> None:
     raise RuntimeError("HAProxy did not reach a writable PostgreSQL leader") from last_error
 
 
+def _wait_for_redis_cluster(environment: GeneratedEnvironment) -> None:
+    last_topology: object = None
+    last_error: RuntimeError | None = None
+    for _ in range(MAX_ATTEMPTS):
+        try:
+            info = environment.run(
+                "exec",
+                "-T",
+                REDIS_SERVICES[0],
+                "redis-cli",
+                "-p",
+                "7000",
+                "--raw",
+                "cluster",
+                "info",
+            )
+            values = {
+                line.split(":", 1)[0]: line.split(":", 1)[1]
+                for line in info.stdout.splitlines()
+                if ":" in line
+            }
+            nodes_result = environment.run(
+                "exec",
+                "-T",
+                REDIS_SERVICES[0],
+                "redis-cli",
+                "-p",
+                "7000",
+                "--raw",
+                "cluster",
+                "nodes",
+            )
+            nodes = [line.split() for line in nodes_result.stdout.splitlines()]
+            connected = [node for node in nodes if len(node) >= 8 and node[7] == "connected"]
+            masters = [
+                node
+                for node in connected
+                if "master" in node[2] and "fail" not in node[2]
+            ]
+            replicas = [
+                node
+                for node in connected
+                if ("slave" in node[2] or "replica" in node[2])
+                and "fail" not in node[2]
+            ]
+            last_topology = values, nodes
+            if (
+                values.get("cluster_state") == "ok"
+                and values.get("cluster_slots_assigned") == "16384"
+                and len(masters) == 3
+                and len(replicas) == 3
+            ):
+                return
+        except RuntimeError as error:
+            last_error = error
+        time.sleep(RETRY_SECONDS)
+    raise RuntimeError(
+        "Redis Cluster did not restore its expected topology after restart: "
+        f"{last_topology!r}"
+    ) from last_error
+
+
 def _application_container(environment: GeneratedEnvironment) -> str:
     result = environment.run("ps", "-q", "application")
     containers = [line.strip() for line in result.stdout.splitlines() if line.strip()]
@@ -162,7 +225,7 @@ def _wait_for_application(
             container = _application_container(environment)
             if expected_container and container != expected_container:
                 raise RuntimeError(
-                    "Application container was recreated during PostgreSQL failover"
+                    "Application container was recreated during recovery"
                 )
             health = subprocess.run(
                 (
@@ -202,7 +265,16 @@ def main() -> None:
     try:
         print(f"starting isolated PostgreSQL HA environment: {environment.project_name}")
         environment.run("up", "--build", "--detach", "application")
+        _wait_for_redis_cluster(environment)
         application_container = _wait_for_application(environment)
+
+        environment.run("restart", *REDIS_SERVICES)
+        _wait_for_redis_cluster(environment)
+        environment.run("rm", "-sf", "redis-cluster-init")
+        environment.run("up", "--detach", "redis-cluster-init")
+        environment.run("wait", "redis-cluster-init")
+        _wait_for_application(environment, expected_container=application_container)
+
         original_leader, replicas = _leader_and_streaming_replicas(
             environment, expected_members=3, expected_streaming_replicas=2
         )
@@ -230,7 +302,8 @@ def main() -> None:
         print(
             "Generated PostgreSQL HA verified: "
             f"{original_leader} stopped -> {promoted_leader} promoted -> "
-            f"{original_leader} rejoined; application health recovered without rebuild"
+            f"{original_leader} rejoined; application dependency stack restart "
+            "restored Redis topology and application health"
         )
     finally:
         environment.close()
