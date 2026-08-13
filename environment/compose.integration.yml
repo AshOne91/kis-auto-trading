@@ -166,7 +166,7 @@ services:
       redis-cluster-init:
         condition: service_completed_successfully
     healthcheck:
-      test: ["CMD", "python", "-c", "from urllib.request import urlopen; urlopen('http://127.0.0.1:8000/health').read()"]
+      test: ["CMD", "python", "-c", "from urllib.request import urlopen; import socket; urlopen('http://127.0.0.1:8000/health').read(); [socket.create_connection(target, 2).close() for target in [('postgres', 5432), ('redis-7000', 7000), ('redis-7001', 7001), ('redis-7002', 7002)]]"]
       interval: 5s
       timeout: 3s
       retries: 20
