@@ -271,6 +271,10 @@ services:
       - nodes.conf
       - --cluster-node-timeout
       - "5000"
+      - --cluster-announce-hostname
+      - redis-7000
+      - --cluster-preferred-endpoint-type
+      - hostname
       - --appendonly
       - yes
     volumes:
@@ -294,6 +298,10 @@ services:
       - nodes.conf
       - --cluster-node-timeout
       - "5000"
+      - --cluster-announce-hostname
+      - redis-7001
+      - --cluster-preferred-endpoint-type
+      - hostname
       - --appendonly
       - yes
     volumes:
@@ -317,6 +325,10 @@ services:
       - nodes.conf
       - --cluster-node-timeout
       - "5000"
+      - --cluster-announce-hostname
+      - redis-7002
+      - --cluster-preferred-endpoint-type
+      - hostname
       - --appendonly
       - yes
     volumes:
@@ -340,6 +352,10 @@ services:
       - nodes.conf
       - --cluster-node-timeout
       - "5000"
+      - --cluster-announce-hostname
+      - redis-7003
+      - --cluster-preferred-endpoint-type
+      - hostname
       - --appendonly
       - yes
     volumes:
@@ -363,6 +379,10 @@ services:
       - nodes.conf
       - --cluster-node-timeout
       - "5000"
+      - --cluster-announce-hostname
+      - redis-7004
+      - --cluster-preferred-endpoint-type
+      - hostname
       - --appendonly
       - yes
     volumes:
@@ -386,6 +406,10 @@ services:
       - nodes.conf
       - --cluster-node-timeout
       - "5000"
+      - --cluster-announce-hostname
+      - redis-7005
+      - --cluster-preferred-endpoint-type
+      - hostname
       - --appendonly
       - yes
     volumes:
@@ -416,6 +440,10 @@ services:
       - -c
       - |-
         if redis-cli -h redis-7000 -p 7000 cluster nodes | grep -q '[0-9]-[0-9]'; then
+          for port in 7001 7002 7003 7004 7005; do
+            set -- $$(getent hosts redis-$$port)
+            redis-cli -h redis-7000 -p 7000 cluster meet "$$1" "$$port"
+          done
           for _ in $(seq 1 20); do
             topology=$(redis-cli -h redis-7000 -p 7000 cluster nodes)
             masters=$(printf '%s\n' "$$topology" | awk '$3 ~ /master/ && $8 == "connected" { count++ } END { print count + 0 }')

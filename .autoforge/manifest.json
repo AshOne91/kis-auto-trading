@@ -1,7 +1,7 @@
 {
   "document_kind": "generation_job",
   "format_version": "1",
-  "job_id": "6258d699-9a9b-4d56-821b-4857f4f02715",
+  "job_id": "731fba83-0c22-42e9-a400-8c2b1d221a64",
   "units": [
     {
       "kind": "project",
@@ -200,12 +200,12 @@
             "status": "unchanged"
           },
           {
-            "content_hash": "950f44cb8b6cf9c296da2902ce192fe5b95316dbab769f40689945b49d2999e1",
+            "content_hash": "978f6c07f8e0f734ff9076ebc6d95efbcccd592653e2c2f377dece12f726e37d",
             "error": null,
             "generator_id": "autoforge.generator.local-environment",
             "generator_version": "0.1.0",
             "ownership": "generated",
-            "previous_content_hash": "f45fe7d6560ec895797044ce6d3f87d30447486bb02d75880a9d62957c766b2d",
+            "previous_content_hash": "f4e6e873f4892be47337851bff52d4c1eae5d42b8c17e67e49faec49f2aef13a",
             "relative_path": "environment/compose.integration.yml",
             "source": "project:local-environment",
             "specification_hash": "20746d186d87120b7bac693ec3302698a6fe7fdee035cc091fb7345f9c49b32c",
@@ -860,7 +860,7 @@
             "status": "unchanged"
           }
         ],
-        "job_id": "6258d699-9a9b-4d56-821b-4857f4f02715",
+        "job_id": "731fba83-0c22-42e9-a400-8c2b1d221a64",
         "specification_hash": "20746d186d87120b7bac693ec3302698a6fe7fdee035cc091fb7345f9c49b32c",
         "specification_version": "1"
       },
@@ -1015,7 +1015,7 @@
             "status": "preserved"
           }
         ],
-        "job_id": "6258d699-9a9b-4d56-821b-4857f4f02715",
+        "job_id": "731fba83-0c22-42e9-a400-8c2b1d221a64",
         "specification_hash": "9929ac59ec5025ee885d10888dd72a1bf18c3b52571cf1e698227bd3a97ff0a3",
         "specification_version": "1"
       },
@@ -1170,7 +1170,7 @@
             "status": "preserved"
           }
         ],
-        "job_id": "6258d699-9a9b-4d56-821b-4857f4f02715",
+        "job_id": "731fba83-0c22-42e9-a400-8c2b1d221a64",
         "specification_hash": "ffcbba6369441bc33b33e85b52aacc18fd43545bdbdd72e6cdc3bdd4957151aa",
         "specification_version": "1"
       },
@@ -1325,7 +1325,7 @@
             "status": "preserved"
           }
         ],
-        "job_id": "6258d699-9a9b-4d56-821b-4857f4f02715",
+        "job_id": "731fba83-0c22-42e9-a400-8c2b1d221a64",
         "specification_hash": "5f9511062f333e72a57d634b2871fb65fd23659a3557f6e42ab3122e6e6ef40a",
         "specification_version": "1"
       },

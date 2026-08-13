@@ -112,6 +112,59 @@ def _leader_and_streaming_replicas(
     )
 
 
+def _wait_for_leaderless_replicas(environment: GeneratedEnvironment) -> None:
+    last_members: object = None
+    for _ in range(MAX_ATTEMPTS):
+        try:
+            members = _cluster(environment).get("members", [])
+            leaders = [member for member in members if member.get("role") == "leader"]
+            replicas = [
+                member
+                for member in members
+                if member.get("role") == "replica" and member.get("state") == "running"
+            ]
+            last_members = members
+            if len(members) == 3 and not leaders and len(replicas) == 3:
+                return
+        except RuntimeError:
+            pass
+        time.sleep(RETRY_SECONDS)
+    raise RuntimeError(
+        "Patroni did not reach the expected leaderless replica state: "
+        f"members={last_members!r}"
+    )
+
+
+def _member_name(environment: GeneratedEnvironment, service: str) -> str:
+    members = _cluster(environment).get("members", [])
+    member = next((item for item in members if item.get("host") == service), None)
+    name = member.get("name") if isinstance(member, dict) else None
+    if not isinstance(name, str) or not name:
+        raise RuntimeError(f"Patroni member name was missing for {service}")
+    return name
+
+
+def _promote_explicit_candidate(
+    environment: GeneratedEnvironment, candidate_service: str
+) -> str:
+    candidate_name = _member_name(environment, candidate_service)
+    environment.run(
+        "exec",
+        "-T",
+        candidate_service,
+        "curl",
+        "-fsS",
+        "-X",
+        "POST",
+        "-H",
+        "Content-Type: application/json",
+        "-d",
+        json.dumps({"candidate": candidate_name}),
+        "http://localhost:8008/failover",
+    )
+    return candidate_name
+
+
 def _wait_for_writer(environment: GeneratedEnvironment) -> None:
     last_error: RuntimeError | None = None
     for _ in range(MAX_ATTEMPTS):
@@ -299,11 +352,28 @@ def main() -> None:
         )
         if restored_leader != promoted_leader or replicas != 2:
             raise RuntimeError("Stopped PostgreSQL node did not rejoin as a replica")
+
+        candidate_service = "postgres-ha-0"
+        environment.run("down")
+        environment.run("up", "--detach", *PATRONI_SERVICES)
+        _wait_for_leaderless_replicas(environment)
+        candidate_name = _promote_explicit_candidate(environment, candidate_service)
+        recovered_leader, replicas = _leader_and_streaming_replicas(
+            environment, expected_members=3, expected_streaming_replicas=2
+        )
+        if recovered_leader != candidate_service or replicas != 2:
+            raise RuntimeError(
+                "Explicit Patroni failover did not promote the selected candidate"
+            )
+        environment.run("up", "--detach", "application")
+        _wait_for_writer(environment)
+        _wait_for_application(environment)
         print(
             "Generated PostgreSQL HA verified: "
             f"{original_leader} stopped -> {promoted_leader} promoted -> "
             f"{original_leader} rejoined; application dependency stack restart "
-            "restored Redis topology and application health"
+            "restored Redis topology and application health; explicit candidate "
+            f"{candidate_name} recovered the leaderless cluster"
         )
     finally:
         environment.close()

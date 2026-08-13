@@ -85,9 +85,15 @@ application-level retry guarantees for every long-running request.
 The check also restarts all six generated Redis containers, reruns the
 idempotent `redis-cluster-init` job, then requires `cluster_state:ok`, three
 primaries, three replicas, all 16,384 slots, and the unchanged application
-container to become healthy again. It intentionally does not stop every Patroni
-node at once: that leaves no writable primary, and safe recovery requires an
-operator-selected manual Patroni failover candidate after data assessment.
+container to become healthy again. The initializer reconnects persisted Redis
+nodes through their current Compose addresses after a Docker network recreation;
+it does not reset Redis volumes or recreate a healthy cluster.
+
+The check then intentionally creates the all-Patroni-nodes-stopped state,
+starts the three replicas, and requests failover to one explicitly named local
+candidate. It verifies one leader, two streaming replicas, the HAProxy writer,
+and application health. Candidate selection remains an operator decision based
+on data assessment; this local test does not automate it or claim zero data loss.
 
 `down -v`는 `kis-scale-out-test` Compose 프로젝트가 만든 테스트 컨테이너와 volume만
 제거한다. 로컬 개발 DB나 다른 Compose 프로젝트는 대상으로 삼지 않는다.
