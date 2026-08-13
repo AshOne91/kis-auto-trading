@@ -3,6 +3,7 @@ name: kis_auto_trading-integration
 services:
   postgres:
     image: postgres:16-alpine
+    restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-autoforge}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me}
@@ -19,6 +20,7 @@ services:
 
   redis-7000:
     image: redis:7-alpine
+    restart: unless-stopped
     command:
       - redis-server
       - --port
@@ -39,6 +41,7 @@ services:
 
   redis-7001:
     image: redis:7-alpine
+    restart: unless-stopped
     command:
       - redis-server
       - --port
@@ -59,6 +62,7 @@ services:
 
   redis-7002:
     image: redis:7-alpine
+    restart: unless-stopped
     command:
       - redis-server
       - --port
@@ -103,6 +107,7 @@ services:
 
   rabbitmq:
     image: rabbitmq:4.1-management-alpine
+    restart: unless-stopped
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-autoforge}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-change-me}
@@ -135,6 +140,7 @@ services:
   application:
     image: ${APPLICATION_IMAGE:-kis-auto-trading:local}
     pull_policy: never
+    restart: unless-stopped
     environment:
       IDENTITY_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-autoforge}:${POSTGRES_PASSWORD:-change-me}@postgres:5432/identity
       AUTOMATION_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-autoforge}:${POSTGRES_PASSWORD:-change-me}@postgres:5432/automation
@@ -168,6 +174,7 @@ services:
   outbox-relay:
     image: ${APPLICATION_IMAGE:-kis-auto-trading:local}
     pull_policy: never
+    restart: unless-stopped
     command: ["python", "scripts/run_outbox_relay.py"]
     environment:
       IDENTITY_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-autoforge}:${POSTGRES_PASSWORD:-change-me}@postgres:5432/identity
@@ -240,6 +247,7 @@ services:
     ports:
       - "${LOCAL_BIND_ADDRESS:-127.0.0.1}:${AIRFLOW_PORT:-28080}:8080"
     command: webserver
+    restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "curl --fail http://localhost:8080/health || exit 1"]
       interval: 10s
