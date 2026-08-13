@@ -193,6 +193,11 @@ services:
     pull_policy: never
     restart: "unless-stopped"
     command: ["python", "scripts/run_durable_job_worker.py"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import os; os.kill(1, 0)"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
     environment:
       IDENTITY_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-autoforge}:${POSTGRES_PASSWORD:-change-me}@postgres:5432/identity
       AUTOMATION_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-autoforge}:${POSTGRES_PASSWORD:-change-me}@postgres:5432/automation
