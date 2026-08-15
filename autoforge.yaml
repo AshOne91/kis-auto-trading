@@ -14,6 +14,7 @@ tooling:
   single_host:
     enabled: true
     application_replicas: 3
+    bootstrap_provider: windows_task_scheduler
   elk:
     enabled: true
     version: "8.19.17"
