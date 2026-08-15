@@ -13,7 +13,7 @@ services:
       UPSTREAM_HOST: application
       NGINX_ENVSUBST_FILTER: UPSTREAM_HOST
     ports:
-      - "${PUBLIC_BIND_ADDRESS:-0.0.0.0}:${PUBLIC_HTTP_PORT:-28000}:80"
+      - "${PUBLIC_BIND_ADDRESS:-0.0.0.0}:${PUBLIC_HTTP_PORT:-49400}:80"
     volumes:
       - ../deploy/single-host/nginx/default.conf.template:/etc/nginx/templates/default.conf.template:ro
     depends_on:
