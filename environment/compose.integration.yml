@@ -210,7 +210,7 @@ services:
     image: haproxy:3.0-alpine
     restart: unless-stopped
     ports:
-      - "${LOCAL_BIND_ADDRESS:-127.0.0.1}:${POSTGRES_PORT:-25432}:5432"
+      - "${LOCAL_BIND_ADDRESS:-127.0.0.1}:${POSTGRES_PORT:-49410}:5432"
     volumes:
       - ./postgres-ha/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
     depends_on:
@@ -464,8 +464,8 @@ services:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-autoforge}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-change-me}
     ports:
-      - "${LOCAL_BIND_ADDRESS:-127.0.0.1}:${RABBITMQ_AMQP_PORT:-25672}:5672"
-      - "${LOCAL_BIND_ADDRESS:-127.0.0.1}:${RABBITMQ_MANAGEMENT_PORT:-25673}:15672"
+      - "${LOCAL_BIND_ADDRESS:-127.0.0.1}:${RABBITMQ_AMQP_PORT:-49430}:5672"
+      - "${LOCAL_BIND_ADDRESS:-127.0.0.1}:${RABBITMQ_MANAGEMENT_PORT:-49431}:15672"
     healthcheck:
       test: ["CMD-SHELL", "rabbitmq-diagnostics -q ping"]
       interval: 3s
@@ -507,7 +507,7 @@ services:
       RAG_EMBEDDING_MODEL: ${RAG_EMBEDDING_MODEL:-embeddinggemma}
       LOG_DIRECTORY: /app/logs
     ports:
-      - "${LOCAL_BIND_ADDRESS:-127.0.0.1}:${APPLICATION_PORT:-28000}:8000"
+      - "${LOCAL_BIND_ADDRESS:-127.0.0.1}:${APPLICATION_PORT:-49400}:8000"
     volumes:
       - ../logs:/app/logs
     networks:
@@ -608,7 +608,7 @@ services:
       - ../airflow/dags:/opt/airflow/dags:ro
       - airflow-home:/opt/airflow
     ports:
-      - "${LOCAL_BIND_ADDRESS:-127.0.0.1}:${AIRFLOW_PORT:-28080}:8080"
+      - "${LOCAL_BIND_ADDRESS:-127.0.0.1}:${AIRFLOW_PORT:-49440}:8080"
     command: webserver
     restart: unless-stopped
     healthcheck:

@@ -10,6 +10,7 @@ tooling:
     enabled: true
     application_enabled: true
     postgres_mode: ha
+    host_port_base: 49400
   single_host:
     enabled: true
     application_replicas: 3

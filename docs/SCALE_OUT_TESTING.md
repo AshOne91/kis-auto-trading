@@ -201,3 +201,24 @@ pending Outbox 확인, broker 재시작 후 발행/소비, 같은 event 재발�
 
 RabbitMQ cluster와 quorum queue 복제는 후속 전체 HA 단계에서 별도로 검증한다. 현재
 검증 결과를 broker 다중화 완료로 과장하지 않는다.
+
+## Host port matrix
+
+The generated AutoForge local environment owns the explicit `49400` block from
+`autoforge.yaml`. Host bindings are therefore:
+
+| Service | Host port | Container port | Scope |
+|---|---:|---:|---|
+| application | 49400 | 8000 | generated local environment |
+| PostgreSQL HAProxy | 49410 | 5432 | generated local environment |
+| RabbitMQ AMQP | 49430 | 5672 | generated local environment |
+| RabbitMQ management | 49431 | 15672 | generated local environment |
+| Airflow webserver | 49440 | 8080 | generated local environment |
+
+The older `compose.integration.yaml` scale-out profile is intentionally
+separate and keeps its compatibility bindings: API `18001`/`18002`, Airflow
+`18080`, PostgreSQL `15432`-`15435`, RabbitMQ `15673` (AMQP) and `15672`
+(management), and Redis `16379`. These host ports are not used for
+container-to-container traffic; services use Compose names and container ports.
+Do not run both profiles with overlapping bindings. The AutoForge port contract
+is defined in `docs/architecture/local_port_policy.md`.
