@@ -1,7 +1,7 @@
 {
   "document_kind": "generation_job",
   "format_version": "1",
-  "job_id": "5f12ee5a-5c56-4f10-a952-7ba6b1bd157e",
+  "job_id": "5588b16e-ad57-4aa3-858b-d18192a0b444",
   "units": [
     {
       "kind": "project",
@@ -181,23 +181,23 @@
             "generator_id": "autoforge.generator.single-host",
             "generator_version": "0.1.0",
             "ownership": "generated",
-            "previous_content_hash": null,
+            "previous_content_hash": "535f30c19dfa1e877ae3eda310ca88c2f547a65854c4314942aa0c9fc2387f2f",
             "relative_path": "deploy/single-host/README.md",
             "source": "project:single-host",
             "specification_hash": "82d982a895b8d9d4773d3380c6933f67db2ba8bd98a4858494407305b86355d3",
-            "status": "created"
+            "status": "unchanged"
           },
           {
-            "content_hash": "0e719de725728da9a73e081efa97d03e998ed9c72aadb5df554ec7060ddd3e18",
+            "content_hash": "fb6c2a087ffb348805bc13a1573b5746bfcae23b479b462f4353a01c9981930f",
             "error": null,
             "generator_id": "autoforge.generator.single-host",
             "generator_version": "0.1.0",
             "ownership": "generated",
-            "previous_content_hash": null,
+            "previous_content_hash": "2f1047c50ad1f497853b2162621836f01c3141623d1a8ef8d2df856ef878e411",
             "relative_path": "deploy/single-host/compose.override.yml",
             "source": "project:single-host",
             "specification_hash": "82d982a895b8d9d4773d3380c6933f67db2ba8bd98a4858494407305b86355d3",
-            "status": "created"
+            "status": "changed"
           },
           {
             "content_hash": "e93faefa63e7abe5c1615afa33b758a91a739014c051bca3e5abc8c68c8eb455",
@@ -205,11 +205,11 @@
             "generator_id": "autoforge.generator.single-host",
             "generator_version": "0.1.0",
             "ownership": "generated",
-            "previous_content_hash": null,
+            "previous_content_hash": "e93faefa63e7abe5c1615afa33b758a91a739014c051bca3e5abc8c68c8eb455",
             "relative_path": "deploy/single-host/nginx/default.conf.template",
             "source": "project:single-host",
             "specification_hash": "82d982a895b8d9d4773d3380c6933f67db2ba8bd98a4858494407305b86355d3",
-            "status": "created"
+            "status": "unchanged"
           },
           {
             "content_hash": "65b7eed873b19bd834b0d78bb8d51046fb6fd73626f18d0295ca35a1f456dedb",
@@ -217,11 +217,11 @@
             "generator_id": "autoforge.generator.single-host",
             "generator_version": "0.1.0",
             "ownership": "generated",
-            "previous_content_hash": null,
+            "previous_content_hash": "65b7eed873b19bd834b0d78bb8d51046fb6fd73626f18d0295ca35a1f456dedb",
             "relative_path": "deploy/single-host/runtime.env.example",
             "source": "project:single-host",
             "specification_hash": "82d982a895b8d9d4773d3380c6933f67db2ba8bd98a4858494407305b86355d3",
-            "status": "created"
+            "status": "unchanged"
           },
           {
             "content_hash": "1858e5e1bd897f4f733cd3a4c69bb30deb6158769117765df053425238cc183b",
@@ -908,7 +908,7 @@
             "status": "unchanged"
           }
         ],
-        "job_id": "5f12ee5a-5c56-4f10-a952-7ba6b1bd157e",
+        "job_id": "5588b16e-ad57-4aa3-858b-d18192a0b444",
         "specification_hash": "82d982a895b8d9d4773d3380c6933f67db2ba8bd98a4858494407305b86355d3",
         "specification_version": "1"
       },
@@ -1063,7 +1063,7 @@
             "status": "preserved"
           }
         ],
-        "job_id": "5f12ee5a-5c56-4f10-a952-7ba6b1bd157e",
+        "job_id": "5588b16e-ad57-4aa3-858b-d18192a0b444",
         "specification_hash": "9929ac59ec5025ee885d10888dd72a1bf18c3b52571cf1e698227bd3a97ff0a3",
         "specification_version": "1"
       },
@@ -1218,7 +1218,7 @@
             "status": "preserved"
           }
         ],
-        "job_id": "5f12ee5a-5c56-4f10-a952-7ba6b1bd157e",
+        "job_id": "5588b16e-ad57-4aa3-858b-d18192a0b444",
         "specification_hash": "ffcbba6369441bc33b33e85b52aacc18fd43545bdbdd72e6cdc3bdd4957151aa",
         "specification_version": "1"
       },
@@ -1373,7 +1373,7 @@
             "status": "preserved"
           }
         ],
-        "job_id": "5f12ee5a-5c56-4f10-a952-7ba6b1bd157e",
+        "job_id": "5588b16e-ad57-4aa3-858b-d18192a0b444",
         "specification_hash": "5f9511062f333e72a57d634b2871fb65fd23659a3557f6e42ab3122e6e6ef40a",
         "specification_version": "1"
       },
