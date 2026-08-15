@@ -1,7 +1,7 @@
 {
   "document_kind": "generation_job",
   "format_version": "1",
-  "job_id": "00d297f7-21e4-4e1c-93e8-b82b70daaeeb",
+  "job_id": "bb3b1cf2-9b13-4a5d-a9a8-3a994384d110",
   "units": [
     {
       "kind": "project",
@@ -181,11 +181,11 @@
             "generator_id": "autoforge.generator.single-host",
             "generator_version": "0.1.0",
             "ownership": "generated",
-            "previous_content_hash": "535f30c19dfa1e877ae3eda310ca88c2f547a65854c4314942aa0c9fc2387f2f",
+            "previous_content_hash": "f4a5ef5e2dc15cd5fe2af5cd7b61e0b5daeaec23b2403966c684aa2a15b1f23b",
             "relative_path": "deploy/single-host/README.md",
             "source": "project:single-host",
             "specification_hash": "ad09ffd9045844ab0112338663fbebe2d5b2c2be73b1661903dca24823866522",
-            "status": "changed"
+            "status": "unchanged"
           },
           {
             "content_hash": "23ae68345b219e3be01984b378f4092de4b051ae68c97de6c8c0782f0e94d66b",
@@ -224,16 +224,16 @@
             "status": "unchanged"
           },
           {
-            "content_hash": "ecd1be9bbec16e7d67957a8c02b82d188e66edda2853efef70f04357092ccb01",
+            "content_hash": "cf6bba7ca74c3c955abb7ffbf37d15d74e518f1eaa90662640401215afb925f2",
             "error": null,
             "generator_id": "autoforge.generator.single-host",
             "generator_version": "0.1.0",
             "ownership": "generated",
-            "previous_content_hash": null,
+            "previous_content_hash": "ecd1be9bbec16e7d67957a8c02b82d188e66edda2853efef70f04357092ccb01",
             "relative_path": "deploy/single-host/windows/start-compose.ps1",
             "source": "project:single-host",
             "specification_hash": "ad09ffd9045844ab0112338663fbebe2d5b2c2be73b1661903dca24823866522",
-            "status": "created"
+            "status": "changed"
           },
           {
             "content_hash": "f9100d5b0ccb59a7935abb4c05a1cc4ccb1c390752d898d85c5e87a50e2b0c50",
@@ -920,7 +920,7 @@
             "status": "unchanged"
           }
         ],
-        "job_id": "00d297f7-21e4-4e1c-93e8-b82b70daaeeb",
+        "job_id": "bb3b1cf2-9b13-4a5d-a9a8-3a994384d110",
         "specification_hash": "ad09ffd9045844ab0112338663fbebe2d5b2c2be73b1661903dca24823866522",
         "specification_version": "1"
       },
@@ -1075,7 +1075,7 @@
             "status": "preserved"
           }
         ],
-        "job_id": "00d297f7-21e4-4e1c-93e8-b82b70daaeeb",
+        "job_id": "bb3b1cf2-9b13-4a5d-a9a8-3a994384d110",
         "specification_hash": "9929ac59ec5025ee885d10888dd72a1bf18c3b52571cf1e698227bd3a97ff0a3",
         "specification_version": "1"
       },
@@ -1230,7 +1230,7 @@
             "status": "preserved"
           }
         ],
-        "job_id": "00d297f7-21e4-4e1c-93e8-b82b70daaeeb",
+        "job_id": "bb3b1cf2-9b13-4a5d-a9a8-3a994384d110",
         "specification_hash": "ffcbba6369441bc33b33e85b52aacc18fd43545bdbdd72e6cdc3bdd4957151aa",
         "specification_version": "1"
       },
@@ -1385,7 +1385,7 @@
             "status": "preserved"
           }
         ],
-        "job_id": "00d297f7-21e4-4e1c-93e8-b82b70daaeeb",
+        "job_id": "bb3b1cf2-9b13-4a5d-a9a8-3a994384d110",
         "specification_hash": "5f9511062f333e72a57d634b2871fb65fd23659a3557f6e42ab3122e6e6ef40a",
         "specification_version": "1"
       },
