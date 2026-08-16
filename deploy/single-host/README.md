@@ -51,3 +51,45 @@ the same block. The authoritative allocation rules live in [AutoForge's local
 Docker port policy](https://github.com/AshOne91/AutoForge/blob/main/docs/architecture/local_port_policy.md).
 Individual environment variables are one-off deployment overrides; changing them
 does not make `ProjectSpec` revalidate a runtime collision.
+
+## Safe single-host backup drill
+
+The current profile does not automate backups. Before changing or removing any
+volume, create recoverable artifacts outside the project directory:
+
+```powershell
+$stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
+$backup = "C:\kis-auto-trading-backups\$stamp"
+New-Item -ItemType Directory -Path $backup -Force | Out-Null
+robocopy C:\kis-auto-trading\logs "$backup\logs" /E /R:1 /W:1
+docker compose --env-file environment\.env `
+  -f environment\compose.integration.yml `
+  exec -T postgres-ha-0 pg_dump -U autoforge -d identity -Fc > "$backup\identity.dump"
+foreach ($db in 'account_shard_1', 'account_shard_2') {
+  docker compose --env-file environment\.env `
+    -f environment\compose.integration.yml `
+    exec -T postgres-ha-0 pg_dump -U autoforge -d $db -Fc > "$backup\$db.dump"
+}
+```
+
+Restore only into a disposable PostgreSQL database or container first; never
+overwrite the live database during a drill. Record the dump checksum and verify
+that expected tables can be queried before considering the backup usable.
+
+## Safe single-host backup drill
+
+The current profile does not automate backups. Before changing or removing any
+volume, create recoverable artifacts outside the project directory:
+
+```powershell
+$stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
+$backup = "C:\kis-auto-trading-backups\$stamp"
+New-Item -ItemType Directory -Path $backup -Force | Out-Null
+robocopy C:\kis-auto-trading\logs "$backup\logs" /E /R:1 /W:1
+docker exec kis_auto_trading-integration-postgres-1 `
+  pg_dump -U autoforge -d autoforge -Fc > "$backup\global.dump"
+```
+
+Restore only into a disposable PostgreSQL database or container first; never
+overwrite the live database during a drill. Record the dump checksum and verify
+that expected tables can be queried before considering the backup usable.
