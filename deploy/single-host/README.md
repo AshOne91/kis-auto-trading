@@ -13,20 +13,19 @@ docker compose --env-file environment/.env --env-file deploy/single-host/runtime
 docker compose --env-file environment/.env --env-file deploy/single-host/runtime.env -f environment/compose.integration.yml -f deploy/single-host/compose.override.yml down
 ```
 
-Before `up`, a checkout with AutoForge available can perform the read-only
-override check:
+Before `up`, validate every environment file that publishes host ports:
 
 ```powershell
-python -m autoforge.main validate-ports `
-  --env-file environment/.env `
-  --env-file deploy/rag/.env.example
+python -m autoforge.main validate-ports --env-file environment/.env --env-file deploy/single-host/runtime.env
 ```
 
-Pass every environment file that publishes host ports. The check rejects
-duplicates but does not allocate ports or replace specification validation.
+The check is read-only and rejects duplicate published host ports; it does not
+allocate ports or replace specification validation.
 
-A Windows Task Scheduler adapter is generated at `deploy/single-host/windows/start-compose.ps1`; register it to run after Docker Desktop starts. The bootstrap performs a read-only Compose port-collision preflight before starting containers.
-The public proxy listens on `PUBLIC_BIND_ADDRESS:PUBLIC_HTTP_PORT`; application,
+A Windows Task Scheduler adapter is generated at `deploy/single-host/windows/start-compose.ps1`; register it to run after Docker Desktop starts.
+The Windows bootstrap performs the same read-only Compose port-collision
+preflight before starting containers. The public proxy listens on
+`PUBLIC_BIND_ADDRESS:PUBLIC_HTTP_PORT`; application,
 database, Redis, RabbitMQ, and Airflow host ports remain governed by the integration
 environment. `LOG_ROOT` is a host bind mount so file logs survive application
 container recreation. Keep `environment/.env` outside Git. Configure host firewall,
@@ -35,7 +34,7 @@ host to an untrusted network.
 
 ## Generated host-port block
 
-This consumer uses the AutoForge-generated local block beginning at `49400`:
+This project uses the AutoForge-generated local block beginning at `49400`:
 
 | Service | Host port |
 | --- | ---: |
@@ -51,40 +50,3 @@ the same block. The authoritative allocation rules live in [AutoForge's local
 Docker port policy](https://github.com/AshOne91/AutoForge/blob/main/docs/architecture/local_port_policy.md).
 Individual environment variables are one-off deployment overrides; changing them
 does not make `ProjectSpec` revalidate a runtime collision.
-
-## Safe single-host backup drill
-
-The current profile does not automate backups. Before changing or removing any
-volume, create recoverable artifacts outside the project directory:
-
-```powershell
-$stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
-$backup = "C:\kis-auto-trading-backups\$stamp"
-New-Item -ItemType Directory -Path $backup -Force | Out-Null
-robocopy C:\kis-auto-trading\logs "$backup\logs" /E /R:1 /W:1
-$container = (docker compose --env-file environment\.env `
-  -f environment\compose.integration.yml ps -q postgres-ha-0).Trim()
-foreach ($db in 'identity', 'account_shard_1', 'account_shard_2') {
-  docker compose --env-file environment\.env `
-    -f environment\compose.integration.yml `
-    exec -T postgres-ha-0 sh -lc "pg_dump -U autoforge -d $db -Fc -f /tmp/$db.dump"
-  docker cp "${container}:/tmp/$db.dump" "$backup\$db.dump"
-  docker compose --env-file environment\.env `
-    -f environment\compose.integration.yml `
-    exec -T postgres-ha-0 rm -f "/tmp/$db.dump"
-}
-```
-
-Restore only into a disposable PostgreSQL database or container first; never
-overwrite the live database during a drill. Record the dump checksum and verify
-that expected tables can be queried before considering the backup usable. The
-dump includes source-specific extensions and roles, so a complete restore
-requires a target image with the same extensions and roles as the HA Spilo
-image. A vanilla PostgreSQL container can only be used for a limited core schema
-check after excluding those source-specific archive entries.
-For the source-compatible drill, create the disposable database with the Spilo
-image and restore using `pg_restore --clean --if-exists --no-owner
---no-privileges`; this handles objects initialized by the Spilo template.
-For the source-compatible drill, create the disposable database with the Spilo
-image and restore using `pg_restore --clean --if-exists --no-owner
---no-privileges`; this handles objects initialized by the Spilo template.

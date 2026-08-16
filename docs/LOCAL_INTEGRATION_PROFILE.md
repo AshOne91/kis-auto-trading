@@ -57,6 +57,48 @@ Values belong in an ignored local `.env` file. The future generated
 - no production Redis Cluster, PostgreSQL replication, RabbitMQ HA, Kubernetes,
   AWS, passwords, or cloud credentials
 
+## Single-host operations and backup drill
+
+The selected local block begins at `49400`: the public proxy uses `49400`,
+PostgreSQL/HAProxy `49410`, RabbitMQ `49430`/`49431`, and Airflow `49440`.
+Before starting Compose with overrides, run the read-only port check against
+every active environment file:
+
+```powershell
+python -m autoforge.main validate-ports `
+  --env-file environment/.env `
+  --env-file deploy/single-host/runtime.env
+```
+
+The generated single-host README is AutoForge-owned. This document owns the
+KIS-specific backup drill and must not be written into that generated file.
+
+Create recoverable artifacts outside the project directory before changing or
+removing any volume:
+
+```powershell
+$stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
+$backup = "C:\kis-auto-trading-backups\$stamp"
+New-Item -ItemType Directory -Path $backup -Force | Out-Null
+robocopy C:\kis-auto-trading\logs "$backup\logs" /E /R:1 /W:1
+$container = (docker compose --env-file environment\.env `
+  -f environment\compose.integration.yml ps -q postgres-ha-0).Trim()
+foreach ($db in 'identity', 'account_shard_1', 'account_shard_2') {
+  docker compose --env-file environment\.env `
+    -f environment\compose.integration.yml `
+    exec -T postgres-ha-0 sh -lc "pg_dump -U autoforge -d $db -Fc -f /tmp/$db.dump"
+  docker cp "${container}:/tmp/$db.dump" "$backup\$db.dump"
+  docker compose --env-file environment\.env `
+    -f environment\compose.integration.yml `
+    exec -T postgres-ha-0 rm -f "/tmp/$db.dump"
+}
+```
+
+Restore only into a disposable source-compatible Spilo target first. Use
+`pg_restore --clean --if-exists --no-owner --no-privileges`; never overwrite a
+live database during a drill. After producing an artifact, use `autoforge
+backup` with the generated `S3_*` settings to upload and checksum-verify it.
+
 ## Ownership
 
 - `autoforge.yaml` selects the services and is KIS-owned input.

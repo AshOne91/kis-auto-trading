@@ -1,0 +1,41 @@
+name: kis_auto_trading-storage
+
+services:
+  minio:
+    profiles: ["storage"]
+    image: minio/minio:RELEASE.2025-07-23T15-54-02Z
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:?set MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?set MINIO_ROOT_PASSWORD}
+    ports:
+      - "${LOCAL_BIND_ADDRESS:-127.0.0.1}:${MINIO_API_PORT:-49580}:9000"
+      - "${LOCAL_BIND_ADDRESS:-127.0.0.1}:${MINIO_CONSOLE_PORT:-49581}:9001"
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  minio-init:
+    profiles: ["storage"]
+    image: minio/mc:RELEASE.2025-08-13T08-35-41Z
+    restart: "no"
+    depends_on:
+      minio:
+        condition: service_healthy
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:?set MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?set MINIO_ROOT_PASSWORD}
+      S3_BUCKET: ${S3_BUCKET:?set S3_BUCKET}
+    entrypoint:
+      - /bin/sh
+      - -ec
+      - >
+        mc alias set local http://minio:9000 "$${MINIO_ROOT_USER}" "$${MINIO_ROOT_PASSWORD}";
+        mc mb --ignore-existing "local/$${S3_BUCKET}"
+
+volumes:
+  minio-data:
