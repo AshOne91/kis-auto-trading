@@ -13,6 +13,18 @@ docker compose --env-file environment/.env --env-file deploy/single-host/runtime
 docker compose --env-file environment/.env --env-file deploy/single-host/runtime.env -f environment/compose.integration.yml -f deploy/single-host/compose.override.yml down
 ```
 
+Before `up`, a checkout with AutoForge available can perform the read-only
+override check:
+
+```powershell
+python -m autoforge.main validate-ports `
+  --env-file environment/.env `
+  --env-file deploy/rag/.env.example
+```
+
+Pass every environment file that publishes host ports. The check rejects
+duplicates but does not allocate ports or replace specification validation.
+
 A Windows Task Scheduler adapter is generated at `deploy/single-host/windows/start-compose.ps1`; register it to run after Docker Desktop starts.
 The public proxy listens on `PUBLIC_BIND_ADDRESS:PUBLIC_HTTP_PORT`; application,
 database, Redis, RabbitMQ, and Airflow host ports remain governed by the integration
