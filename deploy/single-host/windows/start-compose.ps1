@@ -31,4 +31,5 @@ foreach ($service in $config.services.PSObject.Properties) {
   }
 }
 
+$env:COMPOSE_IGNORE_ORPHANS = "true"
 docker compose @composeArgs up -d --wait
