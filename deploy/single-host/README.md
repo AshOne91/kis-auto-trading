@@ -62,34 +62,23 @@ $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
 $backup = "C:\kis-auto-trading-backups\$stamp"
 New-Item -ItemType Directory -Path $backup -Force | Out-Null
 robocopy C:\kis-auto-trading\logs "$backup\logs" /E /R:1 /W:1
-docker compose --env-file environment\.env `
-  -f environment\compose.integration.yml `
-  exec -T postgres-ha-0 pg_dump -U autoforge -d identity -Fc > "$backup\identity.dump"
-foreach ($db in 'account_shard_1', 'account_shard_2') {
+$container = (docker compose --env-file environment\.env `
+  -f environment\compose.integration.yml ps -q postgres-ha-0).Trim()
+foreach ($db in 'identity', 'account_shard_1', 'account_shard_2') {
   docker compose --env-file environment\.env `
     -f environment\compose.integration.yml `
-    exec -T postgres-ha-0 pg_dump -U autoforge -d $db -Fc > "$backup\$db.dump"
+    exec -T postgres-ha-0 sh -lc "pg_dump -U autoforge -d $db -Fc -f /tmp/$db.dump"
+  docker cp "${container}:/tmp/$db.dump" "$backup\$db.dump"
+  docker compose --env-file environment\.env `
+    -f environment\compose.integration.yml `
+    exec -T postgres-ha-0 rm -f "/tmp/$db.dump"
 }
 ```
 
 Restore only into a disposable PostgreSQL database or container first; never
 overwrite the live database during a drill. Record the dump checksum and verify
-that expected tables can be queried before considering the backup usable.
-
-## Safe single-host backup drill
-
-The current profile does not automate backups. Before changing or removing any
-volume, create recoverable artifacts outside the project directory:
-
-```powershell
-$stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
-$backup = "C:\kis-auto-trading-backups\$stamp"
-New-Item -ItemType Directory -Path $backup -Force | Out-Null
-robocopy C:\kis-auto-trading\logs "$backup\logs" /E /R:1 /W:1
-docker exec kis_auto_trading-integration-postgres-1 `
-  pg_dump -U autoforge -d autoforge -Fc > "$backup\global.dump"
-```
-
-Restore only into a disposable PostgreSQL database or container first; never
-overwrite the live database during a drill. Record the dump checksum and verify
-that expected tables can be queried before considering the backup usable.
+that expected tables can be queried before considering the backup usable. The
+dump includes source-specific extensions and roles, so a complete restore
+requires a target image with the same extensions and roles as the HA Spilo
+image. A vanilla PostgreSQL container can only be used for a limited core schema
+check after excluding those source-specific archive entries.
