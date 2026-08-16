@@ -1,7 +1,7 @@
 {
   "document_kind": "generation_job",
   "format_version": "1",
-  "job_id": "93cde446-d47f-426f-ad21-cd65b5adc203",
+  "job_id": "7b35a31a-3fa1-4bf9-82fd-83564acc3c75",
   "units": [
     {
       "kind": "project",
@@ -109,11 +109,11 @@
             "generator_id": "autoforge.generator.elk",
             "generator_version": "0.1.0",
             "ownership": "generated",
-            "previous_content_hash": "d41ed8ff6091b677c50cfd7d463d845bc4d29dcecd6b9a51c5469cdd76048a9d",
+            "previous_content_hash": "0599a2762882236db91f344d79b177bc71c27b63511fd754bbfa12e706c1243c",
             "relative_path": "deploy/observability/README.md",
             "source": "project:elk",
             "specification_hash": "44637480318a54c491f0c2306c00192550ab69fc4392a77c6c45ddd8a0a96d24",
-            "status": "changed"
+            "status": "unchanged"
           },
           {
             "content_hash": "f75d11eb23033e1e2ac80971b82457d73d78611ea2aa3fbf537d94b29e8333d7",
@@ -920,7 +920,7 @@
             "status": "unchanged"
           }
         ],
-        "job_id": "93cde446-d47f-426f-ad21-cd65b5adc203",
+        "job_id": "7b35a31a-3fa1-4bf9-82fd-83564acc3c75",
         "specification_hash": "44637480318a54c491f0c2306c00192550ab69fc4392a77c6c45ddd8a0a96d24",
         "specification_version": "1"
       },
@@ -1075,7 +1075,7 @@
             "status": "preserved"
           }
         ],
-        "job_id": "93cde446-d47f-426f-ad21-cd65b5adc203",
+        "job_id": "7b35a31a-3fa1-4bf9-82fd-83564acc3c75",
         "specification_hash": "9929ac59ec5025ee885d10888dd72a1bf18c3b52571cf1e698227bd3a97ff0a3",
         "specification_version": "1"
       },
@@ -1230,7 +1230,7 @@
             "status": "preserved"
           }
         ],
-        "job_id": "93cde446-d47f-426f-ad21-cd65b5adc203",
+        "job_id": "7b35a31a-3fa1-4bf9-82fd-83564acc3c75",
         "specification_hash": "ffcbba6369441bc33b33e85b52aacc18fd43545bdbdd72e6cdc3bdd4957151aa",
         "specification_version": "1"
       },
@@ -1385,7 +1385,7 @@
             "status": "preserved"
           }
         ],
-        "job_id": "93cde446-d47f-426f-ad21-cd65b5adc203",
+        "job_id": "7b35a31a-3fa1-4bf9-82fd-83564acc3c75",
         "specification_hash": "5f9511062f333e72a57d634b2871fb65fd23659a3557f6e42ab3122e6e6ef40a",
         "specification_version": "1"
       },
