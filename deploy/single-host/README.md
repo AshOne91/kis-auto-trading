@@ -20,3 +20,22 @@ environment. `LOG_ROOT` is a host bind mount so file logs survive application
 container recreation. Keep `environment/.env` outside Git. Configure host firewall,
 TLS termination, off-host backup, and Docker service auto-start before exposing the
 host to an untrusted network.
+
+## Generated host-port block
+
+This consumer uses the AutoForge-generated local block beginning at `49400`:
+
+| Service | Host port |
+| --- | ---: |
+| public application proxy | `49400` |
+| PostgreSQL/HAProxy | `49410` |
+| RabbitMQ AMQP | `49430` |
+| RabbitMQ management | `49431` |
+| Airflow | `49440` |
+
+The application, database, broker, and scheduler communicate through Compose
+service names and container ports. Do not assign another generated environment
+the same block. The authoritative allocation rules live in [AutoForge's local
+Docker port policy](https://github.com/AshOne91/AutoForge/blob/main/docs/architecture/local_port_policy.md).
+Individual environment variables are one-off deployment overrides; changing them
+does not make `ProjectSpec` revalidate a runtime collision.
