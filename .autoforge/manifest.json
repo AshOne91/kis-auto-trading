@@ -1,7 +1,7 @@
 {
   "document_kind": "generation_job",
   "format_version": "1",
-  "job_id": "bb3b1cf2-9b13-4a5d-a9a8-3a994384d110",
+  "job_id": "d0b231ad-1b9e-440c-848c-dc688e748a31",
   "units": [
     {
       "kind": "project",
@@ -104,7 +104,7 @@
             "status": "unchanged"
           },
           {
-            "content_hash": "b223681c47c6d66840ab21469ef313135995e5fb2035a925fde43162d617e02f",
+            "content_hash": "d41ed8ff6091b677c50cfd7d463d845bc4d29dcecd6b9a51c5469cdd76048a9d",
             "error": null,
             "generator_id": "autoforge.generator.elk",
             "generator_version": "0.1.0",
@@ -113,15 +113,15 @@
             "relative_path": "deploy/observability/README.md",
             "source": "project:elk",
             "specification_hash": "ad09ffd9045844ab0112338663fbebe2d5b2c2be73b1661903dca24823866522",
-            "status": "unchanged"
+            "status": "changed"
           },
           {
-            "content_hash": "6420d60a03eaf0d6f6f95b234d741412fb8293787732e902413e625ed43a1e9d",
+            "content_hash": "901efc234e30053ccdb213030b214d507aaa92dd6f4e3ea3515d23634cf066b4",
             "error": null,
             "generator_id": "autoforge.generator.elk",
             "generator_version": "0.1.0",
             "ownership": "generated",
-            "previous_content_hash": "6420d60a03eaf0d6f6f95b234d741412fb8293787732e902413e625ed43a1e9d",
+            "previous_content_hash": "901efc234e30053ccdb213030b214d507aaa92dd6f4e3ea3515d23634cf066b4",
             "relative_path": "deploy/observability/compose.elk.yaml",
             "source": "project:elk",
             "specification_hash": "ad09ffd9045844ab0112338663fbebe2d5b2c2be73b1661903dca24823866522",
@@ -229,11 +229,11 @@
             "generator_id": "autoforge.generator.single-host",
             "generator_version": "0.1.0",
             "ownership": "generated",
-            "previous_content_hash": "ecd1be9bbec16e7d67957a8c02b82d188e66edda2853efef70f04357092ccb01",
+            "previous_content_hash": "cf6bba7ca74c3c955abb7ffbf37d15d74e518f1eaa90662640401215afb925f2",
             "relative_path": "deploy/single-host/windows/start-compose.ps1",
             "source": "project:single-host",
             "specification_hash": "ad09ffd9045844ab0112338663fbebe2d5b2c2be73b1661903dca24823866522",
-            "status": "changed"
+            "status": "unchanged"
           },
           {
             "content_hash": "f9100d5b0ccb59a7935abb4c05a1cc4ccb1c390752d898d85c5e87a50e2b0c50",
@@ -920,7 +920,7 @@
             "status": "unchanged"
           }
         ],
-        "job_id": "bb3b1cf2-9b13-4a5d-a9a8-3a994384d110",
+        "job_id": "d0b231ad-1b9e-440c-848c-dc688e748a31",
         "specification_hash": "ad09ffd9045844ab0112338663fbebe2d5b2c2be73b1661903dca24823866522",
         "specification_version": "1"
       },
@@ -1075,7 +1075,7 @@
             "status": "preserved"
           }
         ],
-        "job_id": "bb3b1cf2-9b13-4a5d-a9a8-3a994384d110",
+        "job_id": "d0b231ad-1b9e-440c-848c-dc688e748a31",
         "specification_hash": "9929ac59ec5025ee885d10888dd72a1bf18c3b52571cf1e698227bd3a97ff0a3",
         "specification_version": "1"
       },
@@ -1230,7 +1230,7 @@
             "status": "preserved"
           }
         ],
-        "job_id": "bb3b1cf2-9b13-4a5d-a9a8-3a994384d110",
+        "job_id": "d0b231ad-1b9e-440c-848c-dc688e748a31",
         "specification_hash": "ffcbba6369441bc33b33e85b52aacc18fd43545bdbdd72e6cdc3bdd4957151aa",
         "specification_version": "1"
       },
@@ -1385,7 +1385,7 @@
             "status": "preserved"
           }
         ],
-        "job_id": "bb3b1cf2-9b13-4a5d-a9a8-3a994384d110",
+        "job_id": "d0b231ad-1b9e-440c-848c-dc688e748a31",
         "specification_hash": "5f9511062f333e72a57d634b2871fb65fd23659a3557f6e42ab3122e6e6ef40a",
         "specification_version": "1"
       },

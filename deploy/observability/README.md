@@ -13,7 +13,8 @@ Start it together with the application's integration Compose file:
 docker compose -f <base-compose-file> -f deploy/observability/compose.elk.yaml up -d
 ```
 
-Set `LOG_ROOT` when logs are stored outside `./logs`. Set `ELASTICSEARCH_PORT`,
+Set `LOG_ROOT` when logs are stored outside the default `../logs` path used with
+the generated integration Compose file. Set `ELASTICSEARCH_PORT`,
 `KIBANA_PORT`, or `FILEBEAT_CONFIG` when the defaults conflict with the host.
 
 To find exhausted durable-job retries in the central profile, query the
