@@ -82,3 +82,9 @@ dump includes source-specific extensions and roles, so a complete restore
 requires a target image with the same extensions and roles as the HA Spilo
 image. A vanilla PostgreSQL container can only be used for a limited core schema
 check after excluding those source-specific archive entries.
+For the source-compatible drill, create the disposable database with the Spilo
+image and restore using `pg_restore --clean --if-exists --no-owner
+--no-privileges`; this handles objects initialized by the Spilo template.
+For the source-compatible drill, create the disposable database with the Spilo
+image and restore using `pg_restore --clean --if-exists --no-owner
+--no-privileges`; this handles objects initialized by the Spilo template.
