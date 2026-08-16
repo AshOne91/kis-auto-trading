@@ -214,6 +214,8 @@ The generated AutoForge local environment owns the explicit `49400` block from
 | RabbitMQ AMQP | 49430 | 5672 | generated local environment |
 | RabbitMQ management | 49431 | 15672 | generated local environment |
 | Airflow webserver | 49440 | 8080 | generated local environment |
+| Elasticsearch | 49600 | 9200 | generated observability overlay |
+| Kibana | 49601 | 5601 | generated observability overlay |
 
 The older `compose.integration.yaml` scale-out profile is intentionally
 separate and keeps its compatibility bindings: API `18001`/`18002`, Airflow

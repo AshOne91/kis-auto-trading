@@ -5,7 +5,7 @@ This profile runs a local Elasticsearch, Kibana and Filebeat stack. It collects 
 - Filebeat reads `LOG_ROOT/*.log` and `LOG_ROOT/*/*.log` as NDJSON.
 - Filebeat preserves its read registry in the `filebeat-data` volume.
 - Elasticsearch stores indexed logs in the `elasticsearch-data` volume.
-- Kibana is available at `http://127.0.0.1:$KIBANA_PORT` (default `5601`).
+- Kibana is available at `http://127.0.0.1:$KIBANA_PORT` (default `49601`).
 
 Start it together with the application's integration Compose file:
 
@@ -22,7 +22,7 @@ structured event field:
 
 ```powershell
 $query = '{"query":{"term":{"event_type":"news_collection_retries_exhausted"}}}'
-Invoke-RestMethod -Method Post -Uri 'http://127.0.0.1:9200/filebeat-*/_search' `
+Invoke-RestMethod -Method Post -Uri 'http://127.0.0.1:49600/filebeat-*/_search' `
   -ContentType 'application/json' -Body $query
 ```
 

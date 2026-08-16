@@ -18,6 +18,7 @@ tooling:
   elk:
     enabled: true
     version: "8.19.17"
+    host_port_base: 49600
     kubernetes_collector_enabled: true
   rag:
     enabled: true

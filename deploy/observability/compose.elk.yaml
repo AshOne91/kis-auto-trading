@@ -7,7 +7,7 @@ services:
       xpack.license.self_generated.type: basic
       ES_JAVA_OPTS: -Xms512m -Xmx512m
     ports:
-      - "127.0.0.1:${ELASTICSEARCH_PORT:-9200}:9200"
+      - "127.0.0.1:${ELASTICSEARCH_PORT:-49600}:9200"
     volumes:
       - elasticsearch-data:/usr/share/elasticsearch/data
 
@@ -17,7 +17,7 @@ services:
       ELASTICSEARCH_HOSTS: http://elasticsearch:9200
       XPACK_SECURITY_ENABLED: "false"
     ports:
-      - "127.0.0.1:${KIBANA_PORT:-5601}:5601"
+      - "127.0.0.1:${KIBANA_PORT:-49601}:5601"
     depends_on:
       - elasticsearch
 
