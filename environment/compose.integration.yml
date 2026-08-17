@@ -463,6 +463,8 @@ services:
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-autoforge}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-change-me}
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
     ports:
       - "${LOCAL_BIND_ADDRESS:-127.0.0.1}:${RABBITMQ_AMQP_PORT:-49430}:5672"
       - "${LOCAL_BIND_ADDRESS:-127.0.0.1}:${RABBITMQ_MANAGEMENT_PORT:-49431}:15672"
@@ -617,6 +619,7 @@ services:
       timeout: 5s
       retries: 30
 
+
   airflow-scheduler:
     image: apache/airflow:2.10.5-python3.12
     depends_on:
@@ -659,4 +662,5 @@ volumes:
   redis-7003-data:
   redis-7004-data:
   redis-7005-data:
+  rabbitmq-data:
   airflow-home:

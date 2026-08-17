@@ -5,11 +5,17 @@ services:
     profiles: ["rag"]
     image: qdrant/qdrant:v1.18.3
     networks: [rag]
+    restart: unless-stopped
     ports:
       - "${LOCAL_BIND_ADDRESS:-127.0.0.1}:${QDRANT_HTTP_PORT:-49450}:6333"
       - "${LOCAL_BIND_ADDRESS:-127.0.0.1}:${QDRANT_GRPC_PORT:-49451}:6334"
     volumes:
       - qdrant-storage:/qdrant/storage
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'echo > /dev/tcp/127.0.0.1/6333'"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
 
   opensearch:
     profiles: ["rag"]
@@ -20,19 +26,31 @@ services:
       DISABLE_INSTALL_DEMO_CONFIG: "true"
       DISABLE_SECURITY_PLUGIN: "true"
       OPENSEARCH_JAVA_OPTS: -Xms512m -Xmx512m
+    restart: unless-stopped
     ports:
       - "${LOCAL_BIND_ADDRESS:-127.0.0.1}:${OPENSEARCH_PORT:-49460}:9200"
     volumes:
       - rag-opensearch-data:/usr/share/opensearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail http://127.0.0.1:9200/_cluster/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
 
   ollama:
     profiles: ["inference"]
     image: ollama/ollama:0.32.5
     networks: [rag]
+    restart: unless-stopped
     ports:
       - "${LOCAL_BIND_ADDRESS:-127.0.0.1}:${OLLAMA_PORT:-49470}:11434"
     volumes:
       - ollama-data:/root/.ollama
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
 
 networks:
   rag:

@@ -22,6 +22,9 @@ QUEUE_NAME = "kis.profile.events"
 ROUTING_KEY = "account.profile.#"
 DEAD_LETTER_EXCHANGE = "kis.domain.events.dlx"
 DEAD_LETTER_QUEUE = "kis.profile.events.dead-letter"
+QUEUE_TYPE = "classic"
+QUEUE_ARGUMENTS = {'x-dead-letter-exchange': DEAD_LETTER_EXCHANGE}
+DEAD_LETTER_QUEUE_ARGUMENTS = {}
 PREFETCH_COUNT = 32
 
 
@@ -39,7 +42,7 @@ async def declare_topology(
         DEAD_LETTER_EXCHANGE, aio_pika.ExchangeType.TOPIC, durable=True
     )
     dead_letter_queue = await channel.declare_queue(
-        DEAD_LETTER_QUEUE, durable=True
+        DEAD_LETTER_QUEUE, durable=True, arguments=DEAD_LETTER_QUEUE_ARGUMENTS
     )
     await dead_letter_queue.bind(dead_letter_exchange, routing_key='#')
     exchange = await channel.declare_exchange(
@@ -48,7 +51,7 @@ async def declare_topology(
     queue = await channel.declare_queue(
         queue_name,
         durable=True,
-        arguments={'x-dead-letter-exchange': DEAD_LETTER_EXCHANGE},
+        arguments=QUEUE_ARGUMENTS,
     )
     for routing_key in routing_keys:
         await queue.bind(exchange, routing_key=routing_key)

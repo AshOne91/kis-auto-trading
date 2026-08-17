@@ -1,49 +1,95 @@
-import pytest
-from fastapi.testclient import TestClient
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
+from typing import ClassVar, cast
 
-from kis_auto_trading.main import app
+import pytest
+from fastapi import HTTPException
+
+from kis_auto_trading.infrastructure.database.routing import ShardTarget
+from kis_auto_trading.infrastructure.database.session import AsyncSessionRegistry
+from kis_auto_trading.infrastructure.session_store.fake import FakeSessionStore
+from kis_auto_trading.modules.identity import handlers
+from kis_auto_trading.modules.identity.generated.models import LoginAccount
+from kis_auto_trading.modules.identity.generated.schemas import (
+    LoginRequest,
+    SignupRequest,
+    ValidateSessionRequest,
+)
+
+
+class RecordingSessionRegistry:
+    def __init__(self) -> None:
+        self.targets: list[ShardTarget] = []
+
+    @asynccontextmanager
+    async def session(self, target: ShardTarget) -> AsyncIterator[object]:
+        self.targets.append(target)
+        yield object()
+
+
+class MemoryLoginAccountRepository:
+    accounts_by_email: ClassVar[dict[str, LoginAccount]] = {}
+
+    def __init__(self, session: object) -> None:
+        del session
+
+    async def find_by_email(self, email: str) -> LoginAccount | None:
+        return self.accounts_by_email.get(email)
+
+    async def save(self, aggregate: LoginAccount) -> None:
+        type(self).accounts_by_email[aggregate.email] = aggregate
 
 
 @pytest.fixture(autouse=True)
-def configure_runtime(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("REDIS_CLUSTER_URL", "redis://localhost:16379")
-    database_url = "postgresql+asyncpg://user:password@localhost/database"
-    monkeypatch.setenv("IDENTITY_DATABASE_URL", database_url)
-    monkeypatch.setenv("AUTOMATION_DATABASE_URL", database_url)
-    monkeypatch.setenv("ACCOUNT_SHARD_1_DATABASE_URL", database_url)
-    monkeypatch.setenv("ACCOUNT_SHARD_2_DATABASE_URL", database_url)
+def use_memory_repository(monkeypatch: pytest.MonkeyPatch) -> None:
+    MemoryLoginAccountRepository.accounts_by_email = {}
+    monkeypatch.setattr(
+        handlers,
+        "SQLAlchemyLoginAccountRepository",
+        MemoryLoginAccountRepository,
+    )
 
 
-def test_identity_routes_are_registered() -> None:
-    paths = app.openapi()["paths"]
+@pytest.mark.anyio
+async def test_identity_routes_use_the_global_store_and_session_store() -> None:
+    registry = RecordingSessionRegistry()
+    typed_registry = cast(AsyncSessionRegistry, registry)
+    session_store = FakeSessionStore(ttl_seconds=3600)
 
-    assert "post" in paths["/api/identity/signup"]
-    assert "post" in paths["/api/identity/login"]
+    signup = await handlers.signup(
+        SignupRequest(email="User@example.com", password="not-a-secret"),
+        typed_registry,
+    )
+    login = await handlers.login(
+        LoginRequest(email="user@example.com", password="not-a-secret"),
+        session_store,
+        typed_registry,
+    )
+    session = await handlers.validate_session(
+        ValidateSessionRequest(access_token=login.access_token),
+        session_store,
+    )
+
+    assert signup.email == "user@example.com"
+    assert login.user_id == signup.user_id
+    assert login.token_type == "bearer"
+    assert session.user_id == signup.user_id
+    assert session.shard_id in {"1", "2"}
+    assert registry.targets == [
+        ShardTarget(store="identity"),
+        ShardTarget(store="identity"),
+    ]
 
 
-def test_unimplemented_signup_is_not_reported_as_success(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    monkeypatch.setenv("REDIS_CLUSTER_URL", "redis://localhost:16379")
+@pytest.mark.anyio
+async def test_login_rejects_unknown_credentials() -> None:
+    registry = cast(AsyncSessionRegistry, RecordingSessionRegistry())
 
-    with TestClient(app, raise_server_exceptions=False) as client:
-        response = client.post(
-            "/api/identity/signup",
-            json={"email": "user@example.com", "password": "not-a-secret"},
+    with pytest.raises(HTTPException) as error:
+        await handlers.login(
+            LoginRequest(email="user@example.com", password="not-a-secret"),
+            FakeSessionStore(ttl_seconds=3600),
+            registry,
         )
 
-    assert response.status_code == 500
-
-
-def test_login_resolves_session_store_before_calling_handler(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    monkeypatch.setenv("REDIS_CLUSTER_URL", "redis://localhost:16379")
-
-    with TestClient(app, raise_server_exceptions=False) as client:
-        response = client.post(
-            "/api/identity/login",
-            json={"email": "user@example.com", "password": "not-a-secret"},
-        )
-
-    assert response.status_code == 500
+    assert error.value.status_code == 401

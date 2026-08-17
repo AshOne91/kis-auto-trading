@@ -1,8 +1,8 @@
 # kis-auto-trading Kubernetes base_server
 
-This directory is generated from `autoforge.yaml`. It creates the Proxy/App
-topology only; it never contains Secret values and does not apply itself to a
-cluster.
+This directory is generated from `autoforge.yaml`. It creates
+the Proxy/App topology only; it never contains Secret values and does not apply
+itself to a cluster.
 
 ## Required runtime contract
 
@@ -22,6 +22,12 @@ The Secret must provide these keys before the Deployment starts:
 - `REDIS_CLUSTER_URL`
 Start from the generated zero-value template, fill it locally,
 and keep the completed file out of Git:
+
+Database topology is provider-owned. Database URL keys are bound from this
+Secret.
+
+
+This profile does not create database clusters, Routers, or StatefulSets.
 
 ```powershell
 Copy-Item secret.env.example kis_secret.env
