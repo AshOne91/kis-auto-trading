@@ -457,19 +457,77 @@ services:
         exec redis-cli --cluster create redis-7000:7000 redis-7001:7001 redis-7002:7002 redis-7003:7003 redis-7004:7004 redis-7005:7005 --cluster-replicas 1 --cluster-yes
     restart: "no"
 
-  rabbitmq:
+  rabbitmq-0:
     image: rabbitmq:4.1-management-alpine
     restart: unless-stopped
+    hostname: rabbitmq-0
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-autoforge}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-change-me}
+      RABBITMQ_ERLANG_COOKIE: ${RABBITMQ_ERLANG_COOKIE:?set RABBITMQ_ERLANG_COOKIE}
+      RABBITMQ_NODENAME: rabbit@rabbitmq-0
     volumes:
-      - rabbitmq-data:/var/lib/rabbitmq
+      - rabbitmq-0-data:/var/lib/rabbitmq
+      - ./rabbitmq/rabbitmq-0.conf:/etc/rabbitmq/rabbitmq.conf:ro
+    healthcheck:
+      test: ["CMD-SHELL", "rabbitmq-diagnostics -q check_port_connectivity"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  rabbitmq-1:
+    image: rabbitmq:4.1-management-alpine
+    restart: unless-stopped
+    hostname: rabbitmq-1
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-autoforge}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-change-me}
+      RABBITMQ_ERLANG_COOKIE: ${RABBITMQ_ERLANG_COOKIE:?set RABBITMQ_ERLANG_COOKIE}
+      RABBITMQ_NODENAME: rabbit@rabbitmq-1
+    volumes:
+      - rabbitmq-1-data:/var/lib/rabbitmq
+      - ./rabbitmq/rabbitmq-1.conf:/etc/rabbitmq/rabbitmq.conf:ro
+    healthcheck:
+      test: ["CMD-SHELL", "rabbitmq-diagnostics -q check_port_connectivity"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  rabbitmq-2:
+    image: rabbitmq:4.1-management-alpine
+    restart: unless-stopped
+    hostname: rabbitmq-2
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-autoforge}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-change-me}
+      RABBITMQ_ERLANG_COOKIE: ${RABBITMQ_ERLANG_COOKIE:?set RABBITMQ_ERLANG_COOKIE}
+      RABBITMQ_NODENAME: rabbit@rabbitmq-2
+    volumes:
+      - rabbitmq-2-data:/var/lib/rabbitmq
+      - ./rabbitmq/rabbitmq-2.conf:/etc/rabbitmq/rabbitmq.conf:ro
+    healthcheck:
+      test: ["CMD-SHELL", "rabbitmq-diagnostics -q check_port_connectivity"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  rabbitmq:
+    image: haproxy:3.0-alpine
+    restart: unless-stopped
     ports:
       - "${LOCAL_BIND_ADDRESS:-127.0.0.1}:${RABBITMQ_AMQP_PORT:-49430}:5672"
       - "${LOCAL_BIND_ADDRESS:-127.0.0.1}:${RABBITMQ_MANAGEMENT_PORT:-49431}:15672"
+    volumes:
+      - ./rabbitmq/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    depends_on:
+      rabbitmq-0:
+        condition: service_healthy
+      rabbitmq-1:
+        condition: service_healthy
+      rabbitmq-2:
+        condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "rabbitmq-diagnostics -q check_port_connectivity"]
+      test: ["CMD-SHELL", "nc -z 127.0.0.1 5672"]
       interval: 3s
       timeout: 3s
       retries: 20
@@ -684,5 +742,7 @@ volumes:
   redis-7003-data:
   redis-7004-data:
   redis-7005-data:
-  rabbitmq-data:
+  rabbitmq-0-data:
+  rabbitmq-1-data:
+  rabbitmq-2-data:
   airflow-home:

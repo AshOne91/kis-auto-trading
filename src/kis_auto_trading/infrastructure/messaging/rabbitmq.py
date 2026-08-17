@@ -22,9 +22,9 @@ QUEUE_NAME = "kis.profile.events"
 ROUTING_KEY = "account.profile.#"
 DEAD_LETTER_EXCHANGE = "kis.domain.events.dlx"
 DEAD_LETTER_QUEUE = "kis.profile.events.dead-letter"
-QUEUE_TYPE = "classic"
-QUEUE_ARGUMENTS = {'x-dead-letter-exchange': DEAD_LETTER_EXCHANGE}
-DEAD_LETTER_QUEUE_ARGUMENTS = {}
+QUEUE_TYPE = "quorum"
+QUEUE_ARGUMENTS = {'x-queue-type': 'quorum', 'x-dead-letter-exchange': DEAD_LETTER_EXCHANGE}
+DEAD_LETTER_QUEUE_ARGUMENTS = {'x-queue-type': 'quorum'}
 PREFETCH_COUNT = 32
 
 

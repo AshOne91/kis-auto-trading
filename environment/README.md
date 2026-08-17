@@ -1,6 +1,6 @@
 # Generated integration environment
 
-This disposable profile starts three-node PostgreSQL HA cluster, three-node Redis Cluster, RabbitMQ, Outbox relay, message worker, Airflow, durable-job worker for integration checks.
+This disposable profile starts three-node PostgreSQL HA cluster, three-node Redis Cluster, three-node RabbitMQ cluster, Outbox relay, message worker, Airflow, durable-job worker for integration checks.
 
 ```powershell
 Copy-Item .env.example .env
@@ -9,6 +9,8 @@ docker compose --env-file .env -f compose.integration.yml down
 ```
 
 Long-running services use `restart: unless-stopped`, so they recover after the Docker engine restarts. The host must start Docker automatically; AWS Launch Template UserData is a separate deployment concern and is not part of this disposable integration profile.
+
+RabbitMQ cluster mode keeps the existing `rabbitmq:5672` client endpoint behind HAProxy and requires a shared `RABBITMQ_ERLANG_COOKIE`. It validates container-node recovery only because all nodes share one Docker host.
 
 Run application containers on the Compose network. The Redis Cluster URL uses
 Docker service DNS and is intentionally not a host-process URL.
