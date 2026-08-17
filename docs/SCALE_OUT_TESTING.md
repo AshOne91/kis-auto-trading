@@ -22,10 +22,18 @@ API가 요청을 받아도 동일한 사용자 세션과 shard 위치를 찾아�
 
 ```powershell
 $env:DURABLE_JOB_API_TOKEN = "replace-with-local-integration-token"
-docker compose -f compose.integration.yaml up --build --wait
+$env:KIS_SCALE_OUT_COMPOSE_PROJECT = "kis-scale-out-test"
+$env:KIS_SCALE_OUT_COMPOSE_ENV_FILE = "environment/.env"
+docker compose --env-file environment/.env --project-name kis-scale-out-test -f compose.integration.yaml up --build --wait
 python scripts/verify_scale_out.py
-docker compose -f compose.integration.yaml down -v
+docker compose --env-file environment/.env --project-name kis-scale-out-test -f compose.integration.yaml down -v
 ```
+
+`verify_scale_out.py` uses `KIS_SCALE_OUT_COMPOSE_PROJECT` and
+`KIS_SCALE_OUT_COMPOSE_ENV_FILE` when they are set. This keeps every Compose
+operation pointed at the same profile as the running containers. The Durable Job
+token must match that running API; a placeholder value is rejected before a
+misleading integration failure is reported.
 
 The profile runs `airflow-init`, `airflow-webserver`, and `airflow-scheduler`.
 Airflow is available on `http://localhost:18080`. Generated durable-job DAGs
@@ -41,6 +49,11 @@ TaskInstance/XCom context. It verifies the scheduler process is live but does
 not unpause a cron DAG in the shared metadata database, because that could
 create unrelated scheduled runs. It does not invoke an external news provider
 or validate a production schedule.
+
+This compatibility scale-out profile verifies process recovery, Redis primary
+failover, and cross-instance state. Its PostgreSQL stores, RabbitMQ broker, and
+Airflow scheduler are each single instances, so it is not the generated
+PostgreSQL-HA profile and does not provide physical-host HA.
 
 ## Isolated generated Airflow scheduler check
 

@@ -16,7 +16,20 @@ API_URLS = (
 API_SERVICES = ("api-1", "api-2")
 MAX_ATTEMPTS = 30
 RETRY_SECONDS = 1.0
-COMPOSE = ("docker", "compose", "-f", "compose.integration.yaml")
+
+
+def _compose_command() -> tuple[str, ...]:
+    command = ("docker", "compose")
+    environment_file = os.environ.get("KIS_SCALE_OUT_COMPOSE_ENV_FILE")
+    if environment_file:
+        command += ("--env-file", environment_file)
+    project_name = os.environ.get("KIS_SCALE_OUT_COMPOSE_PROJECT")
+    if project_name:
+        command += ("--project-name", project_name)
+    return (*command, "-f", "compose.integration.yaml")
+
+
+COMPOSE = _compose_command()
 REDIS_SERVICES = {
     "172.29.0.10": "redis-node-1",
     "172.29.0.11": "redis-node-2",
@@ -130,10 +143,17 @@ def durable_job_json(
         },
         method=method,
     )
-    with urllib.request.urlopen(request, timeout=10) as response:
-        if response.status not in {200, 202}:
-            raise RuntimeError(f"Unexpected HTTP status: {response.status}")
-        return json.loads(response.read().decode("utf-8"))
+    try:
+        with urllib.request.urlopen(request, timeout=10) as response:
+            if response.status not in {200, 202}:
+                raise RuntimeError(f"Unexpected HTTP status: {response.status}")
+            return json.loads(response.read().decode("utf-8"))
+    except urllib.error.HTTPError as error:
+        if error.code == 401:
+            raise RuntimeError(
+                "DURABLE_JOB_API_TOKEN does not match the running API"
+            ) from error
+        raise
 
 
 def compose(*arguments: str) -> subprocess.CompletedProcess[str]:

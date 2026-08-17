@@ -79,6 +79,7 @@ services:
 
   redis-node-1: &redis-cluster-node
     image: redis:7-alpine
+    restart: unless-stopped
     command:
       - redis-server
       - --cluster-enabled
@@ -259,6 +260,7 @@ services:
 
   identity-db:
     image: postgres:16-alpine
+    restart: unless-stopped
     environment:
       POSTGRES_USER: kis_test
       POSTGRES_PASSWORD: kis_test
@@ -275,6 +277,7 @@ services:
 
   automation-db:
     image: postgres:16-alpine
+    restart: unless-stopped
     environment:
       POSTGRES_USER: kis_test
       POSTGRES_PASSWORD: kis_test
@@ -291,6 +294,7 @@ services:
 
   airflow-db:
     image: postgres:16-alpine
+    restart: unless-stopped
     environment:
       POSTGRES_USER: kis_test
       POSTGRES_PASSWORD: kis_test
@@ -305,6 +309,7 @@ services:
 
   account-db-1:
     image: postgres:16-alpine
+    restart: unless-stopped
     environment:
       POSTGRES_USER: kis_test
       POSTGRES_PASSWORD: kis_test
@@ -321,6 +326,7 @@ services:
 
   account-db-2:
     image: postgres:16-alpine
+    restart: unless-stopped
     environment:
       POSTGRES_USER: kis_test
       POSTGRES_PASSWORD: kis_test
@@ -365,6 +371,11 @@ services:
       - type: bind
         source: ${LOG_ROOT:-./logs}/outbox-relay
         target: /app/logs
+    healthcheck:
+      test: ["CMD", "python", "-c", "import asyncio, os, aio_pika; connection = asyncio.run(aio_pika.connect(os.environ['RABBITMQ_URL'], timeout=2)); asyncio.run(connection.close())"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -382,6 +393,11 @@ services:
       - type: bind
         source: ${LOG_ROOT:-./logs}/message-worker
         target: /app/logs
+    healthcheck:
+      test: ["CMD", "python", "-c", "import asyncio, os, aio_pika; connection = asyncio.run(aio_pika.connect(os.environ['RABBITMQ_URL'], timeout=2)); asyncio.run(connection.close())"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -399,6 +415,11 @@ services:
       - type: bind
         source: ${LOG_ROOT:-./logs}/durable-job-worker
         target: /app/logs
+    healthcheck:
+      test: ["CMD", "python", "-c", "import asyncio, os, aio_pika; connection = asyncio.run(aio_pika.connect(os.environ['RABBITMQ_URL'], timeout=2)); asyncio.run(connection.close())"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -419,6 +440,7 @@ services:
 
   airflow-webserver:
     image: apache/airflow:2.10.5-python3.12
+    restart: unless-stopped
     environment: *airflow-environment
     volumes:
       - ./airflow/dags:/opt/airflow/dags:ro
@@ -443,6 +465,11 @@ services:
       - airflow-home:/opt/airflow
     command: scheduler
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "airflow", "jobs", "check", "--job-type", "SchedulerJob", "--local"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
     depends_on:
       airflow-init:
         condition: service_completed_successfully
