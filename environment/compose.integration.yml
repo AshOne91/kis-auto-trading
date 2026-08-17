@@ -634,7 +634,7 @@ services:
     restart: "unless-stopped"
     command: ["python", "scripts/run_durable_job_worker.py"]
     healthcheck:
-      test: ["CMD", "python", "-c", "import asyncio, os, aio_pika; connection = asyncio.run(aio_pika.connect(os.environ['RABBITMQ_URL'], timeout=2)); asyncio.run(connection.close())"]
+      test: ["CMD", "python", "-c", "import asyncio, os, aio_pika; connection = asyncio.run(aio_pika.connect(os.environ['RABBITMQ_URL'], timeout=2)); asyncio.run(connection.close()); from urllib.request import urlopen; urlopen(os.environ['RAG_SEARCH_URL'] + '/_cluster/health', timeout=2).read(); urlopen(os.environ['RAG_OLLAMA_URL'] + '/api/tags', timeout=2).read()"]
       interval: 10s
       timeout: 3s
       retries: 3
