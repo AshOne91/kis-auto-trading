@@ -1,6 +1,6 @@
 # Generated integration environment
 
-This disposable profile starts three-node PostgreSQL HA cluster, three-node Redis Cluster, RabbitMQ, Airflow, Outbox relay, durable-job worker for integration checks.
+This disposable profile starts three-node PostgreSQL HA cluster, three-node Redis Cluster, RabbitMQ, Outbox relay, message worker, Airflow, durable-job worker for integration checks.
 
 ```powershell
 Copy-Item .env.example .env
@@ -13,4 +13,5 @@ Long-running services use `restart: unless-stopped`, so they recover after the D
 Run application containers on the Compose network. The Redis Cluster URL uses
 Docker service DNS and is intentionally not a host-process URL.
 The generated application is built from Dockerfile. When Docker is enabled, migrations run before the generated application starts.
-Airflow is generated paused and reads the durable-job API token from .env. The outbox relay and durable-job worker run from the same local image.
+Airflow is generated paused and reads the durable-job API token from .env. The durable-job worker runs from the same local image.
+The outbox relay and scaffolded message worker run from the same local image. Customize the scaffolded worker handler for application event consumption.
