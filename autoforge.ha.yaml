@@ -41,6 +41,8 @@ project:
 
 application:
   framework: fastapi
+  control_plane_heartbeat:
+    enabled: true
   modules:
     - identity
     - account

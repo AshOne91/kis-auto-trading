@@ -23,6 +23,7 @@ Thumbs.db
 
 # === 향후 추가될 매매 시스템 보안 파일 선제 방어 ===
 *.env
+.env.*
 secret_*.json
 key.txt
 
