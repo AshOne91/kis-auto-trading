@@ -19,6 +19,14 @@ $composeArgs = @(
 $composeConfig = docker compose @composeArgs config --format json
 if ($LASTEXITCODE -ne 0) { throw "Docker Compose configuration is invalid." }
 $config = $composeConfig | ConvertFrom-Json
+$ragNetworkDefinition = $config.networks.PSObject.Properties | Where-Object { $_.Name -eq "rag" } | Select-Object -First 1
+if ($null -ne $ragNetworkDefinition -and $ragNetworkDefinition.Value.external) {
+  $ragNetworkName = [string]$ragNetworkDefinition.Value.name
+  docker network inspect $ragNetworkName *> $null
+  if ($LASTEXITCODE -ne 0) {
+    throw "External RAG network '$ragNetworkName' is missing. Start the generated RAG overlay first."
+  }
+}
 $published = @{}
 foreach ($service in $config.services.PSObject.Properties) {
   foreach ($port in @($service.Value.ports)) {
