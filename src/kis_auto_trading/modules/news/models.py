@@ -13,3 +13,4 @@ class NewsArticle:
     symbol: str
     published_at: datetime | None
     publisher: str | None
+    content: str | None = None

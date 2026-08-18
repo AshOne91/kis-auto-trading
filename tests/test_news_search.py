@@ -18,6 +18,7 @@ def _article() -> NewsArticle:
         source_url="https://example.test/article-1",
         provider="test",
         title="AAPL earnings rise",
+        content="Apple revenue increased after earnings.",
         symbol="AAPL",
         published_at=datetime(2026, 8, 11, tzinfo=UTC),
         publisher="test",
@@ -58,6 +59,15 @@ async def test_index_creates_native_hybrid_mapping_and_bulk_upserts() -> None:
     }
     bulk = next(request for request in requests if request.url.path == "/_bulk")
     assert '"_id":"article-1"' in bulk.content.decode()
+    assert (
+        '"content":"Apple revenue increased after earnings."' in bulk.content.decode()
+    )
+    embedding = next(
+        request for request in requests if request.url.path == "/api/embed"
+    )
+    assert json.loads(embedding.content)["input"] == [
+        "AAPL earnings rise\nApple revenue increased after earnings.\nAAPL\ntest"
+    ]
 
 
 @pytest.mark.anyio
@@ -101,7 +111,9 @@ async def test_index_creates_opensearch_knn_mapping_and_bulk_upserts() -> None:
 
 
 @pytest.mark.anyio
-async def test_search_fuses_keyword_and_vector_retrieval_without_elasticsearch_rrf() -> None:
+async def test_search_fuses_keyword_and_vector_retrieval_without_elasticsearch_rrf() -> (
+    None
+):
     requests: list[httpx.Request] = []
 
     def handler(request: httpx.Request) -> httpx.Response:
@@ -157,6 +169,12 @@ async def test_search_fuses_keyword_and_vector_retrieval_without_elasticsearch_r
     keyword_search = next(search for search in searches if "query" in search)
     vector_search = next(search for search in searches if "knn" in search)
     assert keyword_search["query"]["multi_match"]["query"] == "AAPL earnings"
+    assert keyword_search["query"]["multi_match"]["fields"] == [
+        "title^3",
+        "content",
+        "symbol^2",
+        "publisher",
+    ]
     assert vector_search["knn"]["field"] == "embedding"
 
 

@@ -19,6 +19,8 @@ class NewsArticleRecord(Base):
 
     title: Mapped[str] = mapped_column(Text, nullable=False)
 
+    content: Mapped[str | None] = mapped_column(Text, nullable=True)
+
     symbol: Mapped[str] = mapped_column(Text, nullable=False)
 
     published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

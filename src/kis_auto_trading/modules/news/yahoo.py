@@ -83,6 +83,11 @@ def normalize_yahoo_article(
             values.get("providerPublishTime") or values.get("pubDate")
         ),
         publisher=_publisher(values.get("publisher") or values.get("provider")),
+        content=(
+            _string(values.get("summary"))
+            or _string(values.get("description"))
+            or title
+        ),
     )
 
 

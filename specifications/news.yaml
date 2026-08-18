@@ -20,6 +20,11 @@ models:
       - name: title
         type:
           kind: string
+      - name: content
+        type:
+          kind: optional
+          item:
+            kind: string
       - name: symbol
         type:
           kind: string
@@ -51,6 +56,10 @@ database:
         - name: title
           type:
             kind: string
+        - name: content
+          type:
+            kind: string
+          nullable: true
         - name: symbol
           type:
             kind: string

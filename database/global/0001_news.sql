@@ -7,6 +7,7 @@ CREATE TABLE news_articles (
     source_url TEXT NOT NULL,
     provider TEXT NOT NULL,
     title TEXT NOT NULL,
+    content TEXT,
     symbol TEXT NOT NULL,
     published_at TIMESTAMPTZ,
     publisher TEXT,

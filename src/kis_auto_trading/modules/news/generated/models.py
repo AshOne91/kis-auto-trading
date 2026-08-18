@@ -10,6 +10,7 @@ class NewsArticle(BaseModel):
     source_url: str
     provider: str
     title: str
+    content: str | None = None
     symbol: str
     published_at: datetime
     publisher: str

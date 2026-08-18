@@ -61,7 +61,9 @@ class NewsSearchIndexer:
 
         lines: list[str] = []
         for article, embedding in zip(articles, embeddings, strict=True):
-            lines.append(f'{{"index":{{"_index":"{NEWS_INDEX}","_id":"{article.source_key}"}}}}')
+            lines.append(
+                f'{{"index":{{"_index":"{NEWS_INDEX}","_id":"{article.source_key}"}}}}'
+            )
             lines.append(
                 json.dumps(
                     {
@@ -69,6 +71,7 @@ class NewsSearchIndexer:
                         "source_url": article.source_url,
                         "provider": article.provider,
                         "title": article.title,
+                        "content": article.content,
                         "symbol": article.symbol,
                         "published_at": (
                             article.published_at.isoformat()
@@ -104,7 +107,12 @@ class NewsSearchIndexer:
                         "query": {
                             "multi_match": {
                                 "query": query,
-                                "fields": ["title^3", "symbol^2", "publisher"],
+                                "fields": [
+                                    "title^3",
+                                    "content",
+                                    "symbol^2",
+                                    "publisher",
+                                ],
                             }
                         },
                     },
@@ -126,7 +134,9 @@ class NewsSearchIndexer:
                 sources[source_key] = source
                 scores[source_key] = scores.get(source_key, 0.0) + 1.0 / (60 + rank)
 
-        ranked_keys = sorted(scores, key=lambda source_key: (-scores[source_key], source_key))
+        ranked_keys = sorted(
+            scores, key=lambda source_key: (-scores[source_key], source_key)
+        )
         return [sources[source_key] for source_key in ranked_keys[:limit]]
 
     async def _embed(self, inputs: Sequence[str]) -> list[list[float]]:
@@ -188,6 +198,7 @@ class NewsSearchIndexer:
             "source_url": {"type": "keyword", "index": False},
             "provider": {"type": "keyword"},
             "title": {"type": "text"},
+            "content": {"type": "text"},
             "symbol": {"type": "keyword"},
             "published_at": {"type": "date"},
             "publisher": {"type": "keyword"},
@@ -202,7 +213,10 @@ class NewsSearchIndexer:
                     "space_type": "cosinesimil",
                 },
             }
-            return {"settings": {"index": {"knn": True}}, "mappings": {"properties": properties}}
+            return {
+                "settings": {"index": {"knn": True}},
+                "mappings": {"properties": properties},
+            }
         properties["embedding"] = {
             "type": "dense_vector",
             "dims": dimensions,
@@ -213,5 +227,12 @@ class NewsSearchIndexer:
     @staticmethod
     def _content(article: NewsArticle) -> str:
         return "\n".join(
-            value for value in (article.title, article.symbol, article.publisher) if value
+            value
+            for value in (
+                article.title,
+                article.content,
+                article.symbol,
+                article.publisher,
+            )
+            if value
         )
