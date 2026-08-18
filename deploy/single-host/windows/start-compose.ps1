@@ -49,7 +49,7 @@ import os
 urlopen(os.environ["RAG_SEARCH_URL"] + "/_cluster/health", timeout=5).read()
 urlopen(os.environ["RAG_OLLAMA_URL"] + "/api/tags", timeout=5).read()
 '@
-  docker compose @composeArgs run --rm --no-deps --no-TTY --entrypoint python application -c $ragPreflight
+  $ragPreflight | docker compose @composeArgs run --rm --no-deps --no-TTY --entrypoint python application -
   if ($LASTEXITCODE -ne 0) {
     throw "RAG endpoints are unavailable. Start the generated RAG overlay and inference profile first."
   }
