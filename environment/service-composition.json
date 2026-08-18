@@ -1,0 +1,242 @@
+{
+  "compose_file": "environment/compose.integration.yml",
+  "contract_version": "1",
+  "declared_service_contracts": [
+    {
+      "configuration_env": [
+        "REDIS_URL"
+      ],
+      "kind": "redis_session",
+      "mode": "standalone",
+      "name": "session"
+    },
+    {
+      "configuration_env": [
+        "RABBITMQ_URL"
+      ],
+      "event_queue": {
+        "dead_letter_exchange": "kis.domain.events.dlx",
+        "dead_letter_queue": "kis.profile.events.dead-letter",
+        "exchange": "kis.domain.events",
+        "outbox_stores": [
+          "account",
+          "automation"
+        ],
+        "queue": "kis.profile.events",
+        "queue_type": "classic",
+        "routing_key": "account.profile.#"
+      },
+      "kind": "rabbitmq",
+      "name": "domain_events"
+    }
+  ],
+  "durable_jobs": [
+    {
+      "event_type": "news.collection.requested",
+      "name": "news_collection",
+      "routing_key": "news.collection.requested",
+      "schedule": "0 * * * *",
+      "store": "automation"
+    },
+    {
+      "event_type": "news.index.requested",
+      "name": "news_index",
+      "routing_key": "news.index.requested",
+      "schedule": null,
+      "store": "automation"
+    }
+  ],
+  "profile": "local-integration",
+  "services": [
+    {
+      "configuration_env": [
+        "AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION",
+        "AIRFLOW__CORE__EXECUTOR",
+        "AIRFLOW__CORE__LOAD_EXAMPLES",
+        "AIRFLOW__DATABASE__SQL_ALCHEMY_CONN",
+        "DURABLE_JOB_API_TOKEN",
+        "DURABLE_JOB_API_URL"
+      ],
+      "dependencies": {
+        "postgres": "service_healthy"
+      },
+      "healthcheck": false,
+      "lifecycle": "one_shot",
+      "name": "airflow-init",
+      "published_ports": [],
+      "restart_policy": "no"
+    },
+    {
+      "configuration_env": [
+        "AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION",
+        "AIRFLOW__CORE__EXECUTOR",
+        "AIRFLOW__CORE__LOAD_EXAMPLES",
+        "AIRFLOW__DATABASE__SQL_ALCHEMY_CONN",
+        "DURABLE_JOB_API_TOKEN",
+        "DURABLE_JOB_API_URL"
+      ],
+      "dependencies": {
+        "airflow-init": "service_completed_successfully",
+        "application": "service_healthy",
+        "durable-job-worker": "service_started",
+        "outbox-relay": "service_started"
+      },
+      "healthcheck": false,
+      "lifecycle": "long_running",
+      "name": "airflow-scheduler",
+      "published_ports": [],
+      "restart_policy": "unless-stopped"
+    },
+    {
+      "configuration_env": [
+        "AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION",
+        "AIRFLOW__CORE__EXECUTOR",
+        "AIRFLOW__CORE__LOAD_EXAMPLES",
+        "AIRFLOW__DATABASE__SQL_ALCHEMY_CONN",
+        "DURABLE_JOB_API_TOKEN",
+        "DURABLE_JOB_API_URL"
+      ],
+      "dependencies": {
+        "airflow-init": "service_completed_successfully"
+      },
+      "healthcheck": true,
+      "lifecycle": "long_running",
+      "name": "airflow-webserver",
+      "published_ports": [
+        "${LOCAL_BIND_ADDRESS:-127.0.0.1}:${AIRFLOW_PORT:-49440}:8080"
+      ],
+      "restart_policy": "unless-stopped"
+    },
+    {
+      "configuration_env": [
+        "ACCOUNT_SHARD_1_DATABASE_URL",
+        "ACCOUNT_SHARD_2_DATABASE_URL",
+        "AUTOMATION_DATABASE_URL",
+        "DURABLE_JOB_API_TOKEN",
+        "IDENTITY_DATABASE_URL",
+        "LOG_DIRECTORY",
+        "REDIS_URL"
+      ],
+      "dependencies": {
+        "migrate": "service_completed_successfully",
+        "redis": "service_healthy"
+      },
+      "healthcheck": true,
+      "lifecycle": "long_running",
+      "name": "application",
+      "published_ports": [
+        "${LOCAL_BIND_ADDRESS:-127.0.0.1}:${APPLICATION_PORT:-49400}:8000"
+      ],
+      "restart_policy": "unless-stopped"
+    },
+    {
+      "configuration_env": [
+        "ACCOUNT_SHARD_1_DATABASE_URL",
+        "ACCOUNT_SHARD_2_DATABASE_URL",
+        "AUTOMATION_DATABASE_URL",
+        "IDENTITY_DATABASE_URL",
+        "RABBITMQ_URL"
+      ],
+      "dependencies": {
+        "migrate": "service_completed_successfully",
+        "rabbitmq": "service_healthy"
+      },
+      "healthcheck": true,
+      "lifecycle": "long_running",
+      "name": "durable-job-worker",
+      "published_ports": [],
+      "restart_policy": "unless-stopped"
+    },
+    {
+      "configuration_env": [
+        "ACCOUNT_SHARD_1_DATABASE_URL",
+        "ACCOUNT_SHARD_2_DATABASE_URL",
+        "AUTOMATION_DATABASE_URL",
+        "IDENTITY_DATABASE_URL",
+        "RABBITMQ_URL"
+      ],
+      "dependencies": {
+        "migrate": "service_completed_successfully",
+        "rabbitmq": "service_healthy"
+      },
+      "healthcheck": true,
+      "lifecycle": "long_running",
+      "name": "message-worker",
+      "published_ports": [],
+      "restart_policy": "unless-stopped"
+    },
+    {
+      "configuration_env": [
+        "ACCOUNT_SHARD_1_DATABASE_URL",
+        "ACCOUNT_SHARD_2_DATABASE_URL",
+        "AUTOMATION_DATABASE_URL",
+        "IDENTITY_DATABASE_URL"
+      ],
+      "dependencies": {
+        "postgres": "service_healthy"
+      },
+      "healthcheck": false,
+      "lifecycle": "one_shot",
+      "name": "migrate",
+      "published_ports": [],
+      "restart_policy": "no"
+    },
+    {
+      "configuration_env": [
+        "ACCOUNT_SHARD_1_DATABASE_URL",
+        "ACCOUNT_SHARD_2_DATABASE_URL",
+        "AUTOMATION_DATABASE_URL",
+        "IDENTITY_DATABASE_URL",
+        "RABBITMQ_URL"
+      ],
+      "dependencies": {
+        "migrate": "service_completed_successfully",
+        "rabbitmq": "service_healthy"
+      },
+      "healthcheck": true,
+      "lifecycle": "long_running",
+      "name": "outbox-relay",
+      "published_ports": [],
+      "restart_policy": "unless-stopped"
+    },
+    {
+      "configuration_env": [
+        "POSTGRES_DB",
+        "POSTGRES_PASSWORD",
+        "POSTGRES_USER"
+      ],
+      "dependencies": {},
+      "healthcheck": true,
+      "lifecycle": "long_running",
+      "name": "postgres",
+      "published_ports": [
+        "${LOCAL_BIND_ADDRESS:-127.0.0.1}:${POSTGRES_PORT:-49410}:5432"
+      ],
+      "restart_policy": "unless-stopped"
+    },
+    {
+      "configuration_env": [
+        "RABBITMQ_DEFAULT_PASS",
+        "RABBITMQ_DEFAULT_USER"
+      ],
+      "dependencies": {},
+      "healthcheck": true,
+      "lifecycle": "long_running",
+      "name": "rabbitmq",
+      "published_ports": [
+        "${LOCAL_BIND_ADDRESS:-127.0.0.1}:${RABBITMQ_AMQP_PORT:-49430}:5672",
+        "${LOCAL_BIND_ADDRESS:-127.0.0.1}:${RABBITMQ_MANAGEMENT_PORT:-49431}:15672"
+      ],
+      "restart_policy": "unless-stopped"
+    },
+    {
+      "configuration_env": [],
+      "dependencies": {},
+      "healthcheck": true,
+      "lifecycle": "long_running",
+      "name": "redis",
+      "published_ports": [],
+      "restart_policy": "unless-stopped"
+    }
+  ]
+}
