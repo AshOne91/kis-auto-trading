@@ -23,6 +23,7 @@ python -m autoforge.main validate-ports --env-file environment/.env --env-file d
 The check is read-only and rejects duplicate published host ports; it does not
 allocate ports or replace specification validation.
 
+RAG is selected for this project. Start the separately managed `deploy/rag/compose.rag.yaml` overlay (including the `inference` profile when indexing is enabled) before this Compose overlay.
 A Windows Task Scheduler adapter is generated at `deploy/single-host/windows/start-compose.ps1`; register it to run after Docker Desktop starts.
 The Windows bootstrap performs the same read-only Compose port-collision
 preflight, then builds the local application image before starting containers. The public proxy listens on
