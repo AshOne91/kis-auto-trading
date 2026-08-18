@@ -1,33 +1,30 @@
 spec_version: "1"
 
-# Default developer profile: lightweight single-process services. Use
-# autoforge.ha.yaml only for deliberate high-availability drills.
-
+# Explicit multi-replica validation profile. Use only for HA drills:
+# python -m autoforge.main generate --project autoforge.ha.yaml
 tooling:
   kubernetes:
     enabled: true
     image: kis-auto-trading:latest
     secret_name: my-kis-gold-bar
     log_host_path: /run/desktop/mnt/host/c/kis-auto-trading/logs
-    application_replicas: 1
-    proxy_replicas: 1
   local_environment:
     enabled: true
     application_enabled: true
-    postgres_mode: standalone
-    rabbitmq_mode: standalone
+    postgres_mode: ha
+    rabbitmq_mode: cluster
     host_port_base: 49400
   single_host:
     enabled: true
-    application_replicas: 1
+    application_replicas: 3
     bootstrap_provider: windows_task_scheduler
   elk:
-    enabled: false
+    enabled: true
     version: "8.19.17"
     host_port_base: 49600
-    kubernetes_collector_enabled: false
+    kubernetes_collector_enabled: true
   rag:
-    enabled: false
+    enabled: true
     search_backend: opensearch
   ruff_exclude:
     - base_server
@@ -37,7 +34,7 @@ project:
   name: KIS Auto Trading
   package_name: kis_auto_trading
   version: "0.1.0"
-  description: AutoForge로 현대화하는 KIS 자동매매 FastAPI 서비스
+  description: AutoForge로 생성하는 KIS 자동매매 FastAPI 서비스
   dependencies:
     - "httpx>=0.28,<1"
     - "yfinance>=0.2,<1"
@@ -54,7 +51,8 @@ application:
       namespace: kis_session
       ttl_seconds: 3600
       url_env: REDIS_URL
-      mode: standalone
+      mode: cluster
+      cluster_url_env: REDIS_CLUSTER_URL
     - name: domain_events
       kind: rabbitmq
       connection_url_env: RABBITMQ_URL
@@ -63,7 +61,7 @@ application:
       routing_key: account.profile.#
       dead_letter_exchange: kis.domain.events.dlx
       dead_letter_queue: kis.profile.events.dead-letter
-      queue_type: classic
+      queue_type: quorum
       prefetch_count: 32
       outbox_stores:
         - account

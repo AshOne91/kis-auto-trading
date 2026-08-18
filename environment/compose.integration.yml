@@ -1,533 +1,45 @@
 name: kis_auto_trading-integration
 
 services:
-  etcd-0:
-    image: quay.io/coreos/etcd:v3.5.18
-    restart: unless-stopped
-    command:
-      - /usr/local/bin/etcd
-      - --name=etcd-0
-      - --data-dir=/etcd-data
-      - --initial-advertise-peer-urls=http://etcd-0:2380
-      - --listen-peer-urls=http://0.0.0.0:2380
-      - --advertise-client-urls=http://etcd-0:2379
-      - --listen-client-urls=http://0.0.0.0:2379
-      - --initial-cluster=etcd-0=http://etcd-0:2380,etcd-1=http://etcd-1:2380,etcd-2=http://etcd-2:2380
-      - --initial-cluster-state=new
-      - --initial-cluster-token=autoforge-postgres-ha
-    volumes:
-      - etcd-0-data:/etcd-data
-    healthcheck:
-      test: ["CMD", "/usr/local/bin/etcdctl", "endpoint", "health"]
-      interval: 3s
-      timeout: 3s
-      retries: 20
-
-  etcd-1:
-    image: quay.io/coreos/etcd:v3.5.18
-    restart: unless-stopped
-    command:
-      - /usr/local/bin/etcd
-      - --name=etcd-1
-      - --data-dir=/etcd-data
-      - --initial-advertise-peer-urls=http://etcd-1:2380
-      - --listen-peer-urls=http://0.0.0.0:2380
-      - --advertise-client-urls=http://etcd-1:2379
-      - --listen-client-urls=http://0.0.0.0:2379
-      - --initial-cluster=etcd-0=http://etcd-0:2380,etcd-1=http://etcd-1:2380,etcd-2=http://etcd-2:2380
-      - --initial-cluster-state=new
-      - --initial-cluster-token=autoforge-postgres-ha
-    volumes:
-      - etcd-1-data:/etcd-data
-    healthcheck:
-      test: ["CMD", "/usr/local/bin/etcdctl", "endpoint", "health"]
-      interval: 3s
-      timeout: 3s
-      retries: 20
-
-  etcd-2:
-    image: quay.io/coreos/etcd:v3.5.18
-    restart: unless-stopped
-    command:
-      - /usr/local/bin/etcd
-      - --name=etcd-2
-      - --data-dir=/etcd-data
-      - --initial-advertise-peer-urls=http://etcd-2:2380
-      - --listen-peer-urls=http://0.0.0.0:2380
-      - --advertise-client-urls=http://etcd-2:2379
-      - --listen-client-urls=http://0.0.0.0:2379
-      - --initial-cluster=etcd-0=http://etcd-0:2380,etcd-1=http://etcd-1:2380,etcd-2=http://etcd-2:2380
-      - --initial-cluster-state=new
-      - --initial-cluster-token=autoforge-postgres-ha
-    volumes:
-      - etcd-2-data:/etcd-data
-    healthcheck:
-      test: ["CMD", "/usr/local/bin/etcdctl", "endpoint", "health"]
-      interval: 3s
-      timeout: 3s
-      retries: 20
-
-  postgres-ha-0:
-    image: ghcr.io/zalando/spilo-16:3.3-p3
-    restart: unless-stopped
-    environment:
-      SPILO_PROVIDER: local
-      SCOPE: ${POSTGRES_HA_SCOPE:-autoforge-postgres}
-      ETCD3_HOSTS: etcd-0:2379,etcd-1:2379,etcd-2:2379
-      RESTAPI_CONNECT_ADDRESS: postgres-ha-0
-      PGPASSWORD_SUPERUSER: ${POSTGRES_PASSWORD:-change-me}
-      PGUSER_STANDBY: replication
-      PGPASSWORD_STANDBY: ${POSTGRES_REPLICATION_PASSWORD:-change-me-replication}
-      ALLOW_NOSSL: "true"
-      SPILO_CONFIGURATION: |-
-        postgresql:
-          connect_address: postgres-ha-0:5432
-        bootstrap:
-          dcs:
-            ttl: 10
-            loop_wait: 3
-            retry_timeout: 10
-            maximum_lag_on_failover: 1048576
-            synchronous_mode: true
-            synchronous_mode_strict: false
-            postgresql:
-              parameters:
-                wal_level: replica
-                max_wal_senders: 10
-                max_replication_slots: 10
-                hot_standby: "on"
-                synchronous_commit: "on"
-    volumes:
-      - postgres-ha-0-data:/home/postgres/pgdata
-    depends_on:
-      etcd-0:
-        condition: service_healthy
-      etcd-1:
-        condition: service_healthy
-      etcd-2:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://localhost:8008/health || exit 1"]
-      interval: 3s
-      timeout: 3s
-      retries: 30
-
-  postgres-ha-1:
-    image: ghcr.io/zalando/spilo-16:3.3-p3
-    restart: unless-stopped
-    environment:
-      SPILO_PROVIDER: local
-      SCOPE: ${POSTGRES_HA_SCOPE:-autoforge-postgres}
-      ETCD3_HOSTS: etcd-0:2379,etcd-1:2379,etcd-2:2379
-      RESTAPI_CONNECT_ADDRESS: postgres-ha-1
-      PGPASSWORD_SUPERUSER: ${POSTGRES_PASSWORD:-change-me}
-      PGUSER_STANDBY: replication
-      PGPASSWORD_STANDBY: ${POSTGRES_REPLICATION_PASSWORD:-change-me-replication}
-      ALLOW_NOSSL: "true"
-      SPILO_CONFIGURATION: |-
-        postgresql:
-          connect_address: postgres-ha-1:5432
-        bootstrap:
-          dcs:
-            ttl: 10
-            loop_wait: 3
-            retry_timeout: 10
-            maximum_lag_on_failover: 1048576
-            synchronous_mode: true
-            synchronous_mode_strict: false
-            postgresql:
-              parameters:
-                wal_level: replica
-                max_wal_senders: 10
-                max_replication_slots: 10
-                hot_standby: "on"
-                synchronous_commit: "on"
-    volumes:
-      - postgres-ha-1-data:/home/postgres/pgdata
-    depends_on:
-      etcd-0:
-        condition: service_healthy
-      etcd-1:
-        condition: service_healthy
-      etcd-2:
-        condition: service_healthy
-      postgres-ha-0:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://localhost:8008/health || exit 1"]
-      interval: 3s
-      timeout: 3s
-      retries: 30
-
-  postgres-ha-2:
-    image: ghcr.io/zalando/spilo-16:3.3-p3
-    restart: unless-stopped
-    environment:
-      SPILO_PROVIDER: local
-      SCOPE: ${POSTGRES_HA_SCOPE:-autoforge-postgres}
-      ETCD3_HOSTS: etcd-0:2379,etcd-1:2379,etcd-2:2379
-      RESTAPI_CONNECT_ADDRESS: postgres-ha-2
-      PGPASSWORD_SUPERUSER: ${POSTGRES_PASSWORD:-change-me}
-      PGUSER_STANDBY: replication
-      PGPASSWORD_STANDBY: ${POSTGRES_REPLICATION_PASSWORD:-change-me-replication}
-      ALLOW_NOSSL: "true"
-      SPILO_CONFIGURATION: |-
-        postgresql:
-          connect_address: postgres-ha-2:5432
-        bootstrap:
-          dcs:
-            ttl: 10
-            loop_wait: 3
-            retry_timeout: 10
-            maximum_lag_on_failover: 1048576
-            synchronous_mode: true
-            synchronous_mode_strict: false
-            postgresql:
-              parameters:
-                wal_level: replica
-                max_wal_senders: 10
-                max_replication_slots: 10
-                hot_standby: "on"
-                synchronous_commit: "on"
-    volumes:
-      - postgres-ha-2-data:/home/postgres/pgdata
-    depends_on:
-      etcd-0:
-        condition: service_healthy
-      etcd-1:
-        condition: service_healthy
-      etcd-2:
-        condition: service_healthy
-      postgres-ha-1:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://localhost:8008/health || exit 1"]
-      interval: 3s
-      timeout: 3s
-      retries: 30
-
   postgres:
-    image: haproxy:3.0-alpine
+    image: postgres:16-alpine
     restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-autoforge}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me}
+      POSTGRES_DB: postgres
     ports:
       - "${LOCAL_BIND_ADDRESS:-127.0.0.1}:${POSTGRES_PORT:-49410}:5432"
     volumes:
-      - ./postgres-ha/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
-    depends_on:
-      postgres-ha-0:
-        condition: service_started
-      postgres-ha-1:
-        condition: service_started
-      postgres-ha-2:
-        condition: service_started
+      - ./postgres-init/00-databases.sql:/docker-entrypoint-initdb.d/00-databases.sql:ro
     healthcheck:
-      test: ["CMD-SHELL", "haproxy -c -f /usr/local/etc/haproxy/haproxy.cfg"]
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d postgres"]
       interval: 3s
       timeout: 3s
       retries: 20
 
-  postgres-ha-init:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_SUPERUSER: postgres
-      POSTGRES_USER: ${POSTGRES_USER:-autoforge}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me}
-      PGPASSWORD: ${POSTGRES_PASSWORD:-change-me}
-    volumes:
-      - ./postgres-init/00-databases.sql:/postgres-init/00-databases.sql:ro
-    depends_on:
-      postgres:
-        condition: service_healthy
-    command:
-      - /bin/sh
-      - -ec
-      - |-
-        until psql -h postgres -U $$POSTGRES_SUPERUSER -d postgres -c 'SELECT 1' >/dev/null 2>&1; do sleep 1; done
-        psql -h postgres -U $$POSTGRES_SUPERUSER -d postgres -v ON_ERROR_STOP=1 -v application_user="$$POSTGRES_USER" -v application_password="$$POSTGRES_PASSWORD" <<'SQL'
-        SELECT format('CREATE ROLE %I LOGIN', :'application_user')
-        WHERE NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = :'application_user')
-        \gexec
-        SELECT format('ALTER ROLE %I LOGIN PASSWORD %L', :'application_user', :'application_password')
-        \gexec
-        SQL
-        psql -h postgres -U $$POSTGRES_SUPERUSER -d postgres -v ON_ERROR_STOP=1 -f /postgres-init/00-databases.sql
-        psql -h postgres -U $$POSTGRES_SUPERUSER -d postgres -v ON_ERROR_STOP=1 -v application_user="$$POSTGRES_USER" <<'SQL'
-        SELECT format('ALTER DATABASE %I OWNER TO %I', database_name, :'application_user')
-        FROM (VALUES ('identity'), ('automation'), ('account_shard_1'), ('account_shard_2'), ('airflow')) AS requested(database_name)
-        \gexec
-        SQL
-    restart: "no"
-
-  redis-7000:
+  redis:
     image: redis:7-alpine
     restart: unless-stopped
-    command:
-      - redis-server
-      - --port
-      - "7000"
-      - --cluster-enabled
-      - yes
-      - --cluster-config-file
-      - nodes.conf
-      - --cluster-node-timeout
-      - "5000"
-      - --cluster-announce-hostname
-      - redis-7000
-      - --cluster-preferred-endpoint-type
-      - hostname
-      - --appendonly
-      - yes
-    volumes:
-      - redis-7000-data:/data
     healthcheck:
-      test: ["CMD-SHELL", "redis-cli -p 7000 ping | grep -q PONG"]
-      interval: 3s
-      timeout: 3s
-      retries: 20
-
-  redis-7001:
-    image: redis:7-alpine
-    restart: unless-stopped
-    command:
-      - redis-server
-      - --port
-      - "7001"
-      - --cluster-enabled
-      - yes
-      - --cluster-config-file
-      - nodes.conf
-      - --cluster-node-timeout
-      - "5000"
-      - --cluster-announce-hostname
-      - redis-7001
-      - --cluster-preferred-endpoint-type
-      - hostname
-      - --appendonly
-      - yes
-    volumes:
-      - redis-7001-data:/data
-    healthcheck:
-      test: ["CMD-SHELL", "redis-cli -p 7001 ping | grep -q PONG"]
-      interval: 3s
-      timeout: 3s
-      retries: 20
-
-  redis-7002:
-    image: redis:7-alpine
-    restart: unless-stopped
-    command:
-      - redis-server
-      - --port
-      - "7002"
-      - --cluster-enabled
-      - yes
-      - --cluster-config-file
-      - nodes.conf
-      - --cluster-node-timeout
-      - "5000"
-      - --cluster-announce-hostname
-      - redis-7002
-      - --cluster-preferred-endpoint-type
-      - hostname
-      - --appendonly
-      - yes
-    volumes:
-      - redis-7002-data:/data
-    healthcheck:
-      test: ["CMD-SHELL", "redis-cli -p 7002 ping | grep -q PONG"]
-      interval: 3s
-      timeout: 3s
-      retries: 20
-
-  redis-7003:
-    image: redis:7-alpine
-    restart: unless-stopped
-    command:
-      - redis-server
-      - --port
-      - "7003"
-      - --cluster-enabled
-      - yes
-      - --cluster-config-file
-      - nodes.conf
-      - --cluster-node-timeout
-      - "5000"
-      - --cluster-announce-hostname
-      - redis-7003
-      - --cluster-preferred-endpoint-type
-      - hostname
-      - --appendonly
-      - yes
-    volumes:
-      - redis-7003-data:/data
-    healthcheck:
-      test: ["CMD-SHELL", "redis-cli -p 7003 ping | grep -q PONG"]
-      interval: 3s
-      timeout: 3s
-      retries: 20
-
-  redis-7004:
-    image: redis:7-alpine
-    restart: unless-stopped
-    command:
-      - redis-server
-      - --port
-      - "7004"
-      - --cluster-enabled
-      - yes
-      - --cluster-config-file
-      - nodes.conf
-      - --cluster-node-timeout
-      - "5000"
-      - --cluster-announce-hostname
-      - redis-7004
-      - --cluster-preferred-endpoint-type
-      - hostname
-      - --appendonly
-      - yes
-    volumes:
-      - redis-7004-data:/data
-    healthcheck:
-      test: ["CMD-SHELL", "redis-cli -p 7004 ping | grep -q PONG"]
-      interval: 3s
-      timeout: 3s
-      retries: 20
-
-  redis-7005:
-    image: redis:7-alpine
-    restart: unless-stopped
-    command:
-      - redis-server
-      - --port
-      - "7005"
-      - --cluster-enabled
-      - yes
-      - --cluster-config-file
-      - nodes.conf
-      - --cluster-node-timeout
-      - "5000"
-      - --cluster-announce-hostname
-      - redis-7005
-      - --cluster-preferred-endpoint-type
-      - hostname
-      - --appendonly
-      - yes
-    volumes:
-      - redis-7005-data:/data
-    healthcheck:
-      test: ["CMD-SHELL", "redis-cli -p 7005 ping | grep -q PONG"]
-      interval: 3s
-      timeout: 3s
-      retries: 20
-
-  redis-cluster-init:
-    image: redis:7-alpine
-    depends_on:
-      redis-7000:
-        condition: service_healthy
-      redis-7001:
-        condition: service_healthy
-      redis-7002:
-        condition: service_healthy
-      redis-7003:
-        condition: service_healthy
-      redis-7004:
-        condition: service_healthy
-      redis-7005:
-        condition: service_healthy
-    command:
-      - /bin/sh
-      - -c
-      - |-
-        if redis-cli -h redis-7000 -p 7000 cluster nodes | grep -q '[0-9]-[0-9]'; then
-          for port in 7001 7002 7003 7004 7005; do
-            set -- $$(getent hosts redis-$$port)
-            redis-cli -h redis-7000 -p 7000 cluster meet "$$1" "$$port"
-          done
-          for _ in $(seq 1 20); do
-            topology=$(redis-cli -h redis-7000 -p 7000 cluster nodes)
-            masters=$(printf '%s\n' "$$topology" | awk '$3 ~ /master/ && $8 == "connected" { count++ } END { print count + 0 }')
-            replicas=$(printf '%s\n' "$$topology" | awk '$3 ~ /slave/ && $8 == "connected" { count++ } END { print count + 0 }')
-            redis-cli -h redis-7000 -p 7000 cluster info | grep -q 'cluster_state:ok' && [ "$$masters" -eq 3 ] && [ "$$replicas" -eq 3 ] && exit 0
-            sleep 1
-          done
-          echo 'existing Redis cluster did not meet the 3-primary/3-replica topology' >&2
-          exit 1
-        fi
-        exec redis-cli --cluster create redis-7000:7000 redis-7001:7001 redis-7002:7002 redis-7003:7003 redis-7004:7004 redis-7005:7005 --cluster-replicas 1 --cluster-yes
-    restart: "no"
-
-  rabbitmq-0:
-    image: rabbitmq:4.1-management-alpine
-    restart: unless-stopped
-    hostname: rabbitmq-0
-    environment:
-      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-autoforge}
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-change-me}
-      RABBITMQ_ERLANG_COOKIE: ${RABBITMQ_ERLANG_COOKIE:?set RABBITMQ_ERLANG_COOKIE}
-      RABBITMQ_NODENAME: rabbit@rabbitmq-0
-    volumes:
-      - rabbitmq-0-data:/var/lib/rabbitmq
-      - ./rabbitmq/rabbitmq-0.conf:/etc/rabbitmq/rabbitmq.conf:ro
-    healthcheck:
-      test: ["CMD-SHELL", "rabbitmq-diagnostics -q check_port_connectivity"]
-      interval: 3s
-      timeout: 3s
-      retries: 20
-
-  rabbitmq-1:
-    image: rabbitmq:4.1-management-alpine
-    restart: unless-stopped
-    hostname: rabbitmq-1
-    environment:
-      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-autoforge}
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-change-me}
-      RABBITMQ_ERLANG_COOKIE: ${RABBITMQ_ERLANG_COOKIE:?set RABBITMQ_ERLANG_COOKIE}
-      RABBITMQ_NODENAME: rabbit@rabbitmq-1
-    volumes:
-      - rabbitmq-1-data:/var/lib/rabbitmq
-      - ./rabbitmq/rabbitmq-1.conf:/etc/rabbitmq/rabbitmq.conf:ro
-    healthcheck:
-      test: ["CMD-SHELL", "rabbitmq-diagnostics -q check_port_connectivity"]
-      interval: 3s
-      timeout: 3s
-      retries: 20
-
-  rabbitmq-2:
-    image: rabbitmq:4.1-management-alpine
-    restart: unless-stopped
-    hostname: rabbitmq-2
-    environment:
-      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-autoforge}
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-change-me}
-      RABBITMQ_ERLANG_COOKIE: ${RABBITMQ_ERLANG_COOKIE:?set RABBITMQ_ERLANG_COOKIE}
-      RABBITMQ_NODENAME: rabbit@rabbitmq-2
-    volumes:
-      - rabbitmq-2-data:/var/lib/rabbitmq
-      - ./rabbitmq/rabbitmq-2.conf:/etc/rabbitmq/rabbitmq.conf:ro
-    healthcheck:
-      test: ["CMD-SHELL", "rabbitmq-diagnostics -q check_port_connectivity"]
+      test: ["CMD-SHELL", "redis-cli ping | grep -q PONG"]
       interval: 3s
       timeout: 3s
       retries: 20
 
   rabbitmq:
-    image: haproxy:3.0-alpine
+    image: rabbitmq:4.1-management-alpine
     restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-autoforge}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-change-me}
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
     ports:
       - "${LOCAL_BIND_ADDRESS:-127.0.0.1}:${RABBITMQ_AMQP_PORT:-49430}:5672"
       - "${LOCAL_BIND_ADDRESS:-127.0.0.1}:${RABBITMQ_MANAGEMENT_PORT:-49431}:15672"
-    volumes:
-      - ./rabbitmq/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
-    depends_on:
-      rabbitmq-0:
-        condition: service_healthy
-      rabbitmq-1:
-        condition: service_healthy
-      rabbitmq-2:
-        condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "nc -z 127.0.0.1 5672"]
+      test: ["CMD-SHELL", "rabbitmq-diagnostics -q check_port_connectivity"]
       interval: 3s
       timeout: 3s
       retries: 20
@@ -545,8 +57,8 @@ services:
       ACCOUNT_SHARD_1_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-autoforge}:${POSTGRES_PASSWORD:-change-me}@postgres:5432/account_shard_1
       ACCOUNT_SHARD_2_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-autoforge}:${POSTGRES_PASSWORD:-change-me}@postgres:5432/account_shard_2
     depends_on:
-      postgres-ha-init:
-        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
     restart: "no"
 
   application:
@@ -558,28 +70,20 @@ services:
       AUTOMATION_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-autoforge}:${POSTGRES_PASSWORD:-change-me}@postgres:5432/automation
       ACCOUNT_SHARD_1_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-autoforge}:${POSTGRES_PASSWORD:-change-me}@postgres:5432/account_shard_1
       ACCOUNT_SHARD_2_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-autoforge}:${POSTGRES_PASSWORD:-change-me}@postgres:5432/account_shard_2
-      REDIS_CLUSTER_URL: ${REDIS_CLUSTER_URL:-redis://redis-7000:7000}
-      REDIS_CLUSTER_STARTUP_NODES: ${REDIS_CLUSTER_STARTUP_NODES:-redis://redis-7000:7000,redis://redis-7001:7001,redis://redis-7002:7002,redis://redis-7003:7003,redis://redis-7004:7004,redis://redis-7005:7005}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379}
       DURABLE_JOB_API_TOKEN: ${DURABLE_JOB_API_TOKEN:?set DURABLE_JOB_API_TOKEN}
-      RAG_SEARCH_BACKEND: ${RAG_SEARCH_BACKEND:-opensearch}
-      RAG_SEARCH_URL: ${RAG_SEARCH_URL:-http://opensearch:9200}
-      RAG_OLLAMA_URL: ${RAG_OLLAMA_URL:-http://ollama:11434}
-      RAG_EMBEDDING_MODEL: ${RAG_EMBEDDING_MODEL:-embeddinggemma}
       LOG_DIRECTORY: /app/logs
     ports:
       - "${LOCAL_BIND_ADDRESS:-127.0.0.1}:${APPLICATION_PORT:-49400}:8000"
     volumes:
       - ../logs:/app/logs
-    networks:
-      - default
-      - rag
     depends_on:
       migrate:
         condition: service_completed_successfully
-      redis-cluster-init:
-        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
     healthcheck:
-      test: ["CMD", "python", "-c", "from urllib.request import urlopen; import socket; import asyncio, os; from urllib.parse import urlparse; from redis.cluster import ClusterNode; from redis.asyncio.cluster import RedisCluster; urlopen('http://127.0.0.1:8000/health').read(); [socket.create_connection(target, 2).close() for target in [('postgres', 5432)]]; startup_nodes=[ClusterNode(urlparse(value).hostname, urlparse(value).port or 6379) for value in os.environ['REDIS_CLUSTER_STARTUP_NODES'].split(',')]; client=RedisCluster.from_url(os.environ['REDIS_CLUSTER_URL'], startup_nodes=startup_nodes, decode_responses=True, require_full_coverage=True); asyncio.run(client.ping())"]
+      test: ["CMD", "python", "-c", "from urllib.request import urlopen; import socket; import asyncio, os; from redis.asyncio import Redis; urlopen('http://127.0.0.1:8000/health').read(); [socket.create_connection(target, 2).close() for target in [('postgres', 5432), ('redis', 6379)]]; client=Redis.from_url(os.environ['REDIS_URL']); asyncio.run(client.ping())"]
       interval: 5s
       timeout: 3s
       retries: 20
@@ -634,7 +138,7 @@ services:
     restart: "unless-stopped"
     command: ["python", "scripts/run_durable_job_worker.py"]
     healthcheck:
-      test: ["CMD", "python", "-c", "import asyncio, os, aio_pika; connection = asyncio.run(aio_pika.connect(os.environ['RABBITMQ_URL'], timeout=2)); asyncio.run(connection.close()); from urllib.request import urlopen; urlopen(os.environ['RAG_SEARCH_URL'] + '/_cluster/health', timeout=2).read(); urlopen(os.environ['RAG_OLLAMA_URL'] + '/api/tags', timeout=2).read()"]
+      test: ["CMD", "python", "-c", "import asyncio, os, aio_pika; connection = asyncio.run(aio_pika.connect(os.environ['RABBITMQ_URL'], timeout=2)); asyncio.run(connection.close())"]
       interval: 10s
       timeout: 3s
       retries: 3
@@ -644,13 +148,6 @@ services:
       ACCOUNT_SHARD_1_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-autoforge}:${POSTGRES_PASSWORD:-change-me}@postgres:5432/account_shard_1
       ACCOUNT_SHARD_2_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-autoforge}:${POSTGRES_PASSWORD:-change-me}@postgres:5432/account_shard_2
       RABBITMQ_URL: ${RABBITMQ_URL:?set RABBITMQ_URL}
-      RAG_SEARCH_BACKEND: ${RAG_SEARCH_BACKEND:-opensearch}
-      RAG_SEARCH_URL: ${RAG_SEARCH_URL:-http://opensearch:9200}
-      RAG_OLLAMA_URL: ${RAG_OLLAMA_URL:-http://ollama:11434}
-      RAG_EMBEDDING_MODEL: ${RAG_EMBEDDING_MODEL:-embeddinggemma}
-    networks:
-      - default
-      - rag
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -660,8 +157,8 @@ services:
   airflow-init:
     image: apache/airflow:2.10.5-python3.12
     depends_on:
-      postgres-ha-init:
-        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
     environment:
       AIRFLOW__CORE__EXECUTOR: SequentialExecutor
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER:-autoforge}:${POSTGRES_PASSWORD:-change-me}@postgres:5432/airflow
@@ -691,7 +188,7 @@ services:
       - airflow-home:/opt/airflow
     ports:
       - "${LOCAL_BIND_ADDRESS:-127.0.0.1}:${AIRFLOW_PORT:-49440}:8080"
-    command: webserver
+    command: webserver --pid /tmp/airflow-webserver.pid
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "curl --fail http://localhost:8080/health || exit 1"]
@@ -724,25 +221,6 @@ services:
     command: scheduler
     restart: unless-stopped
 
-networks:
-  rag:
-    name: ${RAG_NETWORK_NAME:-kis_auto_trading-rag}
-    external: true
-
 volumes:
-  postgres-ha-0-data:
-  postgres-ha-1-data:
-  postgres-ha-2-data:
-  etcd-0-data:
-  etcd-1-data:
-  etcd-2-data:
-  redis-7000-data:
-  redis-7001-data:
-  redis-7002-data:
-  redis-7003-data:
-  redis-7004-data:
-  redis-7005-data:
-  rabbitmq-0-data:
-  rabbitmq-1-data:
-  rabbitmq-2-data:
+  rabbitmq-data:
   airflow-home:

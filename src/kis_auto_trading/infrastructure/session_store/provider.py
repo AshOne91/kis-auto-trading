@@ -2,47 +2,27 @@ import os
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from typing import Annotated
-from urllib.parse import urlparse
 
 from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from redis.asyncio.cluster import RedisCluster
-from redis.cluster import ClusterNode
+from redis.asyncio import Redis
 
 from .protocol import SessionData, SessionStore, SessionStoreError
 from .redis import RedisSessionStore
 
-REDIS_CLUSTER_URL_ENV = "REDIS_CLUSTER_URL"
-REDIS_CLUSTER_STARTUP_NODES_ENV = "REDIS_CLUSTER_STARTUP_NODES"
-
-
-def _cluster_startup_nodes() -> list[ClusterNode]:
-    raw_nodes = os.environ.get(REDIS_CLUSTER_STARTUP_NODES_ENV, "")
-    nodes: list[ClusterNode] = []
-    for value in raw_nodes.split(","):
-        parsed = urlparse(value.strip())
-        if value.strip() and parsed.hostname:
-            nodes.append(ClusterNode(parsed.hostname, parsed.port or 6379))
-    return nodes
+REDIS_URL_ENV = "REDIS_URL"
 
 
 @asynccontextmanager
 async def session_store_lifespan(
     app: FastAPI,
 ) -> AsyncIterator[None]:
-    cluster_url = os.environ.get(REDIS_CLUSTER_URL_ENV)
-    if not cluster_url:
+    redis_url = os.environ.get(REDIS_URL_ENV)
+    if not redis_url:
         raise SessionStoreError(
-            f"Required environment variable is missing: "
-            f"{REDIS_CLUSTER_URL_ENV}"
+            f"Required environment variable is missing: {REDIS_URL_ENV}"
         )
-    client = RedisCluster.from_url(
-        cluster_url,
-        startup_nodes=_cluster_startup_nodes() or None,
-        decode_responses=True,
-        require_full_coverage=True,
-        reinitialize_steps=1,
-    )
+    client = Redis.from_url(redis_url, decode_responses=True)
     app.state.session_store = RedisSessionStore(client)
     try:
         yield

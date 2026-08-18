@@ -1,7 +1,7 @@
 services:
   application:
     deploy:
-      replicas: 3
+      replicas: 1
     ports: !reset []
     volumes:
       - ${LOG_ROOT:-../logs}:/app/logs
