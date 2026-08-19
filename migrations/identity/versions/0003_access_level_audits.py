@@ -3,7 +3,7 @@
 import sqlalchemy as sa
 from alembic import op
 
-revision = "kis_identity_access_level_audit_0001"
+revision = "kis_identity_audit_0001"
 down_revision = "kis_identity_access_level_0001"
 branch_labels = None
 depends_on = None
