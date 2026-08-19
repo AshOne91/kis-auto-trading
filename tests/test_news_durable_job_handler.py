@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace
 
+import httpx
 import pytest
 
 from kis_auto_trading.application.durable_job_handler import (
@@ -271,3 +272,75 @@ async def test_news_index_handler_skips_indexer_when_no_canonical_article_exists
         "source_keys_requested": 1,
         "articles_indexed": 0,
     }
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize(
+    ("status_code", "retries"),
+    [(None, 1), (408, 1), (429, 1), (503, 1), (400, 0)],
+)
+async def test_news_index_handler_retries_only_transient_search_failures(
+    status_code: int | None,
+    retries: int,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    article = await FakeProvider().collect("AAPL")
+    requested: list[dict[str, object]] = []
+
+    class FakeNewsRepository:
+        def __init__(self, session) -> None:
+            del session
+
+        async def find_by_source_keys(self, source_keys):
+            assert source_keys == ["AAPL-key"]
+            return article
+
+    class FakeDurableJobRepository:
+        def __init__(self, session) -> None:
+            del session
+
+        async def request(self, **kwargs) -> SimpleNamespace:
+            requested.append(kwargs)
+            return SimpleNamespace(job_id="retry-job-1")
+
+    class FailingIndexer:
+        async def index(self, articles) -> int:
+            assert articles == article
+            request = httpx.Request("POST", "http://search.test/_bulk")
+            if status_code is None:
+                raise httpx.ConnectError("search unavailable", request=request)
+            response = httpx.Response(status_code, request=request)
+            raise httpx.HTTPStatusError(
+                "search failed", request=request, response=response
+            )
+
+    monkeypatch.setattr(
+        "kis_auto_trading.application.durable_job_handler.NewsArticleRepository",
+        FakeNewsRepository,
+    )
+    monkeypatch.setattr(
+        "kis_auto_trading.application.durable_job_handler.DurableJobRepository",
+        FakeDurableJobRepository,
+    )
+
+    with pytest.raises(httpx.HTTPError):
+        await ApplicationDurableJobHandler(
+            FakeRegistry(), FakeProvider(), FailingIndexer()
+        ).handle(
+            DurableJobExecution(
+                job_id="job-4",
+                job_type="news_index",
+                run_key="news-index:job-1",
+                payload={"source_keys": ["AAPL-key"]},
+            )
+        )
+
+    assert len(requested) == retries
+    if retries:
+        assert requested[0]["job_type"] == "news_index"
+        assert requested[0]["run_key"] == "news-index:job-1:retry:1"
+        assert requested[0]["payload"] == {
+            "source_keys": ["AAPL-key"],
+            "_news_retry_attempt": 1,
+            "_news_retry_root_run_key": "news-index:job-1",
+        }

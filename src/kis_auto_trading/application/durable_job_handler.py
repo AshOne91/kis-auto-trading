@@ -1,6 +1,8 @@
 import logging
 from datetime import UTC, datetime, timedelta
 
+import httpx
+
 from kis_auto_trading.infrastructure.database.routing import ShardTarget
 from kis_auto_trading.infrastructure.database.session import AsyncSessionRegistry
 from kis_auto_trading.infrastructure.durable_jobs.repository import DurableJobRepository
@@ -12,7 +14,7 @@ from kis_auto_trading.modules.news.yahoo import (
     YahooFinanceNewsProvider,
 )
 
-MAX_NEWS_COLLECTION_ATTEMPTS = 3
+MAX_NEWS_DURABLE_JOB_ATTEMPTS = 3
 logger = logging.getLogger(__name__)
 
 
@@ -45,7 +47,7 @@ class ApplicationDurableJobHandler:
             for symbol in symbols:
                 articles.extend(await self._provider.collect(symbol))
         except YahooFinanceNewsError:
-            await self._request_news_retry(execution, symbols)
+            await self._request_news_retry(execution, {"symbols": symbols})
             raise
 
         async with self._session_registry.session(
@@ -68,30 +70,31 @@ class ApplicationDurableJobHandler:
         }
 
     async def _request_news_retry(
-        self, execution: DurableJobExecution, symbols: list[str]
+        self, execution: DurableJobExecution, payload: dict[str, object]
     ) -> None:
         attempt = _news_retry_attempt(execution.payload)
-        if attempt >= MAX_NEWS_COLLECTION_ATTEMPTS - 1:
+        if attempt >= MAX_NEWS_DURABLE_JOB_ATTEMPTS - 1:
             logger.error(
-                "news collection retries exhausted: job_id=%s run_key=%s attempt=%s",
+                "%s retries exhausted: job_id=%s run_key=%s attempt=%s",
+                execution.job_type.replace("_", " "),
                 execution.job_id,
                 execution.run_key,
                 attempt + 1,
                 extra={
-                    "event_type": "news_collection_retries_exhausted",
+                    "event_type": f"{execution.job_type}_retries_exhausted",
                     "job_type": execution.job_type,
                     "job_id": execution.job_id,
                     "run_key": execution.run_key,
                     "attempt": attempt + 1,
-                    "max_attempts": MAX_NEWS_COLLECTION_ATTEMPTS,
+                    "max_attempts": MAX_NEWS_DURABLE_JOB_ATTEMPTS,
                 },
             )
             return
 
         retry_attempt = attempt + 1
         root_run_key = _news_retry_root_run_key(execution)
-        retry_payload: dict[str, object] = {
-            "symbols": symbols,
+        retry_payload = {
+            **payload,
             "_news_retry_attempt": retry_attempt,
             "_news_retry_root_run_key": root_run_key,
         }
@@ -99,7 +102,7 @@ class ApplicationDurableJobHandler:
             ShardTarget(store="automation")
         ) as session:
             await DurableJobRepository(session).request(
-                job_type="news_collection",
+                job_type=execution.job_type,
                 run_key=f"{root_run_key}:retry:{retry_attempt}",
                 payload=retry_payload,
                 available_at=datetime.now(UTC) + timedelta(seconds=2**retry_attempt),
@@ -120,7 +123,12 @@ class ApplicationDurableJobHandler:
                 "articles_indexed": 0,
             }
         indexer = self._indexer or NewsSearchIndexer.from_environment()
-        indexed = await indexer.index(articles)
+        try:
+            indexed = await indexer.index(articles)
+        except httpx.HTTPError as error:
+            if _is_transient_search_error(error):
+                await self._request_news_retry(execution, {"source_keys": source_keys})
+            raise
         return {
             "job_type": execution.job_type,
             "source_keys_requested": len(source_keys),
@@ -168,6 +176,17 @@ def _news_retry_attempt(payload: dict[str, object]) -> int:
 def _news_retry_root_run_key(execution: DurableJobExecution) -> str:
     root = execution.payload.get("_news_retry_root_run_key")
     return root if isinstance(root, str) and root else execution.run_key
+
+
+def _is_transient_search_error(error: httpx.HTTPError) -> bool:
+    if isinstance(error, httpx.RequestError):
+        return True
+    if isinstance(error, httpx.HTTPStatusError):
+        return (
+            error.response.status_code in {408, 429}
+            or error.response.status_code >= 500
+        )
+    return False
 
 
 def create_durable_job_handler(
