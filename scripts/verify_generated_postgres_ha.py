@@ -38,6 +38,7 @@ class GeneratedEnvironment:
                 "POSTGRES_PORT": str(POSTGRES_PORT),
                 "APPLICATION_PORT": str(APPLICATION_PORT),
                 "RABBITMQ_URL": "amqp://autoforge:change-me@rabbitmq:5672/",
+                "RABBITMQ_ERLANG_COOKIE": "generated-postgres-ha-test-cookie",
                 "DURABLE_JOB_API_TOKEN": "generated-postgres-ha-test-token",
             }
         )
