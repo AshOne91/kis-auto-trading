@@ -48,6 +48,9 @@ async def update_profile(
     )
     async with session_registry.session(target) as session:
         repository = SQLAlchemyUserProfileRepository(session)
+        existing_profile = await repository.find_by_id(user_id)
+        if existing_profile == profile:
+            return profile
         await repository.save(profile)
         OutboxWriter(session).add(
             EventMessage(

@@ -107,6 +107,29 @@ async def test_update_and_get_profile_use_session_shard() -> None:
 
 
 @pytest.mark.anyio
+async def test_repeated_profile_update_does_not_duplicate_outbox_event() -> None:
+    current_session = SessionData(
+        session_id="session-id",
+        user_id=str(uuid4()),
+        data={"shard_id": "1"},
+    )
+    registry = RecordingSessionRegistry()
+    typed_registry = cast(AsyncSessionRegistry, registry)
+    request = UpdateProfileRequest(
+        investment_experience="BEGINNER",
+        risk_tolerance="MODERATE",
+        investment_goal="GROWTH",
+        monthly_budget=0,
+    )
+
+    first = await handlers.update_profile(request, current_session, typed_registry)
+    second = await handlers.update_profile(request, current_session, typed_registry)
+
+    assert first == second
+    assert len(registry.recording_session.added) == 1
+
+
+@pytest.mark.anyio
 async def test_get_profile_returns_not_found() -> None:
     current_session = SessionData(
         session_id="session-id",
