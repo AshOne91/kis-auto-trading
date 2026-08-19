@@ -9,7 +9,10 @@ from kis_auto_trading.application.durable_job_handler import (
 )
 from kis_auto_trading.infrastructure.durable_jobs.worker import DurableJobExecution
 from kis_auto_trading.modules.news.models import NewsArticle
-from kis_auto_trading.modules.news.yahoo import YahooFinanceNewsTimeoutError
+from kis_auto_trading.modules.news.yahoo import (
+    YahooFinanceNewsProviderError,
+    YahooFinanceNewsTimeoutError,
+)
 
 
 class FakeProvider:
@@ -99,14 +102,19 @@ async def test_news_handler_requires_explicit_symbols() -> None:
 
 
 @pytest.mark.anyio
-async def test_news_handler_schedules_retry_for_provider_timeout(
+@pytest.mark.parametrize(
+    "error_type",
+    [YahooFinanceNewsTimeoutError, YahooFinanceNewsProviderError],
+)
+async def test_news_handler_schedules_retry_for_retryable_provider_failure(
+    error_type: type[YahooFinanceNewsTimeoutError | YahooFinanceNewsProviderError],
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     requested: list[dict[str, object]] = []
 
-    class TimeoutProvider:
+    class FailingProvider:
         async def collect(self, symbol: str) -> list[NewsArticle]:
-            raise YahooFinanceNewsTimeoutError(f"timed out: {symbol}")
+            raise error_type(f"provider failure: {symbol}")
 
     class FakeDurableJobRepository:
         def __init__(self, session) -> None:
@@ -121,8 +129,8 @@ async def test_news_handler_schedules_retry_for_provider_timeout(
         FakeDurableJobRepository,
     )
     before_request = datetime.now(UTC)
-    with pytest.raises(YahooFinanceNewsTimeoutError):
-        await ApplicationDurableJobHandler(FakeRegistry(), TimeoutProvider()).handle(
+    with pytest.raises(error_type):
+        await ApplicationDurableJobHandler(FakeRegistry(), FailingProvider()).handle(
             DurableJobExecution(
                 job_id="job-1",
                 job_type="news_collection",
