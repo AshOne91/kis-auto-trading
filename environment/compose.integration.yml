@@ -85,7 +85,7 @@ services:
       redis:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "python", "-c", "from urllib.request import urlopen; import socket; import asyncio, os; from redis.asyncio import Redis; urlopen('http://127.0.0.1:8000/health').read(); [socket.create_connection(target, 2).close() for target in [('postgres', 5432), ('redis', 6379)]]; client=Redis.from_url(os.environ['REDIS_URL']); asyncio.run(client.ping())"]
+      test: ["CMD", "python", "-c", "from urllib.request import urlopen; urlopen('http://127.0.0.1:8000/readiness').read()"]
       interval: 5s
       timeout: 3s
       retries: 20

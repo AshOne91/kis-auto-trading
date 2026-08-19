@@ -1,6 +1,7 @@
 from collections.abc import AsyncIterator, Mapping
 from contextlib import asynccontextmanager
 
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
@@ -30,6 +31,13 @@ class AsyncSessionRegistry:
         factory = async_sessionmaker(engine, expire_on_commit=False)
         async with factory() as session, session.begin():
             yield session
+
+    async def health_check(self) -> None:
+        for engine in (
+            *self._global_engines.values(), *self._shard_engines.values()
+        ):
+            async with engine.connect() as connection:
+                await connection.execute(text('SELECT 1'))
 
     def _engine_for(self, target: ShardTarget) -> AsyncEngine:
         if target.is_global:

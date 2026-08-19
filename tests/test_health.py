@@ -10,8 +10,20 @@ def test_health(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("AUTOMATION_DATABASE_URL", "postgresql+asyncpg://user:password@localhost/database")
     monkeypatch.setenv("ACCOUNT_SHARD_1_DATABASE_URL", "postgresql+asyncpg://user:password@localhost/database")
     monkeypatch.setenv("ACCOUNT_SHARD_2_DATABASE_URL", "postgresql+asyncpg://user:password@localhost/database")
+    class ReadyDependency:
+        async def health_check(self) -> None:
+            return None
+
     with TestClient(app) as client:
         response = client.get("/health")
+        app.state.session_registry = None
+        not_ready = client.get("/readiness")
+        app.state.session_registry = ReadyDependency()
+        app.state.session_store = ReadyDependency()
+        readiness = client.get("/readiness")
 
     assert response.status_code == 200
     assert response.json() == {"status": "ok"}
+    assert not_ready.status_code == 503
+    assert readiness.status_code == 200
+    assert readiness.json() == {"status": "ready"}

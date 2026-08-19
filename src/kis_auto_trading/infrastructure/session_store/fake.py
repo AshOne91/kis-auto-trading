@@ -15,6 +15,9 @@ class FakeSessionStore:
         self._sessions: dict[str, tuple[SessionData, float]] = {}
         self._user_sessions: dict[str, set[str]] = {}
 
+    async def health_check(self) -> None:
+        return None
+
     async def create(self, session: SessionData) -> None:
         await self.revoke(session.session_id)
         expires_at = self._clock() + self._ttl_seconds

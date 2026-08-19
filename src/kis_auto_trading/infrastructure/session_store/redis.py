@@ -19,6 +19,13 @@ class RedisSessionStore:
     def __init__(self, client: Redis | RedisCluster) -> None:
         self._client = client
 
+    async def health_check(self) -> None:
+        try:
+            if not await self._client.ping():
+                raise SessionStoreError('Redis session health check failed')
+        except RedisError as error:
+            raise SessionStoreError('Redis session health check failed') from error
+
     async def create(self, session: SessionData) -> None:
         if _session_routing_tag(session.session_id) != _user_routing_tag(
             session.user_id
