@@ -63,6 +63,7 @@ endpoints:
     response:
       model: UserProfile
     handler: update_profile
+    idempotency: true
     access_level: user
     dependencies:
       - current_session
