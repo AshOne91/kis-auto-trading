@@ -24,7 +24,7 @@ async def readiness(request: Request) -> dict[str, str]:
             )
         try:
             await health_check()
-        except (SQLAlchemyError, SessionStoreError):
+        except (SQLAlchemyError, OSError, SessionStoreError):
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                 detail=f'{state_name} is not ready',

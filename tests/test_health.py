@@ -14,9 +14,13 @@ def test_health(monkeypatch: pytest.MonkeyPatch) -> None:
         async def health_check(self) -> None:
             return None
 
+    class UnavailableDependency:
+        async def health_check(self) -> None:
+            raise OSError('database unavailable')
+
     with TestClient(app) as client:
         response = client.get("/health")
-        app.state.session_registry = None
+        app.state.session_registry = UnavailableDependency()
         not_ready = client.get("/readiness")
         app.state.session_registry = ReadyDependency()
         app.state.session_store = ReadyDependency()
