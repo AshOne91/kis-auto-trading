@@ -1,7 +1,7 @@
 {
   "document_kind": "generation_job",
   "format_version": "1",
-  "job_id": "a00a2338-ca20-4af1-92fb-f9700728938f",
+  "job_id": "d99a1a88-b770-425f-86c4-681f5101cc1d",
   "units": [
     {
       "kind": "project",
@@ -73,11 +73,11 @@
             "generator_id": "autoforge.generator.kubernetes-base-server",
             "generator_version": "0.2.0",
             "ownership": "generated",
-            "previous_content_hash": "1419652dc1f5f0a2456be76c6fcb1859ec45733a90715f7de47ebf528d4b7828",
+            "previous_content_hash": "27ef10a89cdfa8fcb8a91d35686e3f7a489664239c879e7e0a1cf4fe36eca682",
             "relative_path": "deploy/kubernetes/README.md",
             "source": "project:kubernetes-base-server",
             "specification_hash": "c787c9e4d70b39dc5b730abec3594ae2fe346cf8231205d597c83d8b90ded878",
-            "status": "unchanged"
+            "status": "changed"
           },
           {
             "content_hash": "e7b728fff02717e5969bc71a35eb0fa842a5f8962b21b8975259e6d67b0c8811",
@@ -85,10 +85,22 @@
             "generator_id": "autoforge.generator.kubernetes-base-server",
             "generator_version": "0.2.0",
             "ownership": "generated",
-            "previous_content_hash": "e7b728fff02717e5969bc71a35eb0fa842a5f8962b21b8975259e6d67b0c8811",
+            "previous_content_hash": "c752379fa911b964c5ea6dd7e3aa5676105dbd1b0302d82f7005f552e47a7057",
             "relative_path": "deploy/kubernetes/base-server.yaml",
             "source": "project:kubernetes-base-server",
             "specification_hash": "c787c9e4d70b39dc5b730abec3594ae2fe346cf8231205d597c83d8b90ded878",
+            "status": "changed"
+          },
+          {
+            "content_hash": "e919dc3856929d83ebdd1a7315e1c35276034516706bb32d1cab3ec711d4840d",
+            "error": null,
+            "generator_id": "autoforge.generator.kubernetes-base-server",
+            "generator_version": "0.2.0",
+            "ownership": "generated",
+            "previous_content_hash": "e919dc3856929d83ebdd1a7315e1c35276034516706bb32d1cab3ec711d4840d",
+            "relative_path": "deploy/kubernetes/observability-filebeat.yaml",
+            "source": "project:kubernetes-base-server",
+            "specification_hash": "f0a1864dd629ef98fe395718df829e94857ceec1adbcf58d475c8e9ec7bcb3d3",
             "status": "unchanged"
           },
           {
@@ -97,10 +109,82 @@
             "generator_id": "autoforge.generator.kubernetes-base-server",
             "generator_version": "0.2.0",
             "ownership": "generated",
-            "previous_content_hash": "7664b92725fa766742f4c1286b62ef78948c53618283d979276f8fc1ee89dd99",
+            "previous_content_hash": "6a0e90f26e43ae1d912bfbfefb1cc4704457e6456107c43534708757487ddec2",
             "relative_path": "deploy/kubernetes/secret.env.example",
             "source": "project:kubernetes-base-server",
             "specification_hash": "c787c9e4d70b39dc5b730abec3594ae2fe346cf8231205d597c83d8b90ded878",
+            "status": "changed"
+          },
+          {
+            "content_hash": "771ddac35bfc7d9e39157f3944575885eab5b691022ef2540b9215873f484113",
+            "error": null,
+            "generator_id": "autoforge.generator.elk",
+            "generator_version": "0.1.0",
+            "ownership": "generated",
+            "previous_content_hash": "771ddac35bfc7d9e39157f3944575885eab5b691022ef2540b9215873f484113",
+            "relative_path": "deploy/observability/README.md",
+            "source": "project:elk",
+            "specification_hash": "f0a1864dd629ef98fe395718df829e94857ceec1adbcf58d475c8e9ec7bcb3d3",
+            "status": "unchanged"
+          },
+          {
+            "content_hash": "552fce1c9bbaa7531e4828cf478e4ec8a4907f553ba813c1b0b43e7d618fc1a3",
+            "error": null,
+            "generator_id": "autoforge.generator.elk",
+            "generator_version": "0.1.0",
+            "ownership": "generated",
+            "previous_content_hash": "552fce1c9bbaa7531e4828cf478e4ec8a4907f553ba813c1b0b43e7d618fc1a3",
+            "relative_path": "deploy/observability/compose.elk.yaml",
+            "source": "project:elk",
+            "specification_hash": "f0a1864dd629ef98fe395718df829e94857ceec1adbcf58d475c8e9ec7bcb3d3",
+            "status": "unchanged"
+          },
+          {
+            "content_hash": "fe6a37a26065506d5fd661d51d0081448fc731f9809177ca453be9cf39895364",
+            "error": null,
+            "generator_id": "autoforge.generator.elk",
+            "generator_version": "0.1.0",
+            "ownership": "generated",
+            "previous_content_hash": "fe6a37a26065506d5fd661d51d0081448fc731f9809177ca453be9cf39895364",
+            "relative_path": "deploy/observability/filebeat.yml",
+            "source": "project:elk",
+            "specification_hash": "f0a1864dd629ef98fe395718df829e94857ceec1adbcf58d475c8e9ec7bcb3d3",
+            "status": "unchanged"
+          },
+          {
+            "content_hash": "491ac07f22f3e2407b294b2cd6991265b05857b3a3d0003cfddb3a582f0a721d",
+            "error": null,
+            "generator_id": "autoforge.generator.rag_infrastructure",
+            "generator_version": "0.1.0",
+            "ownership": "generated",
+            "previous_content_hash": "491ac07f22f3e2407b294b2cd6991265b05857b3a3d0003cfddb3a582f0a721d",
+            "relative_path": "deploy/rag/.env.example",
+            "source": "project:rag_infrastructure",
+            "specification_hash": "f0a1864dd629ef98fe395718df829e94857ceec1adbcf58d475c8e9ec7bcb3d3",
+            "status": "unchanged"
+          },
+          {
+            "content_hash": "94451da97c1e6487ced45f2ea3a55cda85cd296adcc2e7679b48b5c30adab091",
+            "error": null,
+            "generator_id": "autoforge.generator.rag_infrastructure",
+            "generator_version": "0.1.0",
+            "ownership": "generated",
+            "previous_content_hash": "94451da97c1e6487ced45f2ea3a55cda85cd296adcc2e7679b48b5c30adab091",
+            "relative_path": "deploy/rag/README.md",
+            "source": "project:rag_infrastructure",
+            "specification_hash": "f0a1864dd629ef98fe395718df829e94857ceec1adbcf58d475c8e9ec7bcb3d3",
+            "status": "unchanged"
+          },
+          {
+            "content_hash": "6aa7e5541224766a4d404dfd29931854974b1adde6725bd2bc630cd8bfcfc11b",
+            "error": null,
+            "generator_id": "autoforge.generator.rag_infrastructure",
+            "generator_version": "0.1.0",
+            "ownership": "generated",
+            "previous_content_hash": "6aa7e5541224766a4d404dfd29931854974b1adde6725bd2bc630cd8bfcfc11b",
+            "relative_path": "deploy/rag/compose.rag.yaml",
+            "source": "project:rag_infrastructure",
+            "specification_hash": "f0a1864dd629ef98fe395718df829e94857ceec1adbcf58d475c8e9ec7bcb3d3",
             "status": "unchanged"
           },
           {
@@ -109,11 +193,11 @@
             "generator_id": "autoforge.generator.single-host",
             "generator_version": "0.1.0",
             "ownership": "generated",
-            "previous_content_hash": "e118fd5412c5c9f0545a799fc0cc7dc7186cf7a67f053faa6787ccab01df65a2",
+            "previous_content_hash": "3f3d80f0e32a713c73181846f17a8ef4644e4129454bf1373a819c77250716d0",
             "relative_path": "deploy/single-host/README.md",
             "source": "project:single-host",
             "specification_hash": "c787c9e4d70b39dc5b730abec3594ae2fe346cf8231205d597c83d8b90ded878",
-            "status": "unchanged"
+            "status": "changed"
           },
           {
             "content_hash": "e086d3932207f6bbb963889e34890d9f09fe4ac57b1f4d261e39bbd8d6d6c159",
@@ -121,11 +205,11 @@
             "generator_id": "autoforge.generator.single-host",
             "generator_version": "0.1.0",
             "ownership": "generated",
-            "previous_content_hash": "e086d3932207f6bbb963889e34890d9f09fe4ac57b1f4d261e39bbd8d6d6c159",
+            "previous_content_hash": "23ae68345b219e3be01984b378f4092de4b051ae68c97de6c8c0782f0e94d66b",
             "relative_path": "deploy/single-host/compose.override.yml",
             "source": "project:single-host",
             "specification_hash": "c787c9e4d70b39dc5b730abec3594ae2fe346cf8231205d597c83d8b90ded878",
-            "status": "unchanged"
+            "status": "changed"
           },
           {
             "content_hash": "e93faefa63e7abe5c1615afa33b758a91a739014c051bca3e5abc8c68c8eb455",
@@ -205,11 +289,11 @@
             "generator_id": "autoforge.generator.local-environment",
             "generator_version": "0.1.0",
             "ownership": "generated",
-            "previous_content_hash": "26d3c9f4f962195606fc90e9034ccf722155134601d682555a8007c8cc668adf",
+            "previous_content_hash": "76df52c154f9bf9eebd41882cf5511fe1824f546611c83e96c979be85adf9374",
             "relative_path": "environment/.env.example",
             "source": "project:local-environment",
             "specification_hash": "c787c9e4d70b39dc5b730abec3594ae2fe346cf8231205d597c83d8b90ded878",
-            "status": "unchanged"
+            "status": "changed"
           },
           {
             "content_hash": "774aae4aa1ee5ecf6a6d8a8cacf578c4c7cd0921bd02b06e274e531c0d7e307d",
@@ -217,11 +301,11 @@
             "generator_id": "autoforge.generator.local-environment",
             "generator_version": "0.1.0",
             "ownership": "generated",
-            "previous_content_hash": "774aae4aa1ee5ecf6a6d8a8cacf578c4c7cd0921bd02b06e274e531c0d7e307d",
+            "previous_content_hash": "bdf6548b220a511aaea335f09e2a0dd6e540c636e26f10255b983bb5f7a36599",
             "relative_path": "environment/README.md",
             "source": "project:local-environment",
             "specification_hash": "c787c9e4d70b39dc5b730abec3594ae2fe346cf8231205d597c83d8b90ded878",
-            "status": "unchanged"
+            "status": "changed"
           },
           {
             "content_hash": "f13ddbc6765e18ef3343d98b89b350331fb74793422270aa3b242a1323ae6d31",
@@ -229,10 +313,22 @@
             "generator_id": "autoforge.generator.local-environment",
             "generator_version": "0.1.0",
             "ownership": "generated",
-            "previous_content_hash": "f13ddbc6765e18ef3343d98b89b350331fb74793422270aa3b242a1323ae6d31",
+            "previous_content_hash": "47d965f0b184f757190ff0f7d1dfcef6185194f01ffcabe930345925b42584fb",
             "relative_path": "environment/compose.integration.yml",
             "source": "project:local-environment",
             "specification_hash": "c787c9e4d70b39dc5b730abec3594ae2fe346cf8231205d597c83d8b90ded878",
+            "status": "changed"
+          },
+          {
+            "content_hash": "d964e37b84a914ec5f079dc923fd244f349a38c0127acbfb0e23bfb7191d6681",
+            "error": null,
+            "generator_id": "autoforge.generator.local-environment",
+            "generator_version": "0.1.0",
+            "ownership": "generated",
+            "previous_content_hash": "d964e37b84a914ec5f079dc923fd244f349a38c0127acbfb0e23bfb7191d6681",
+            "relative_path": "environment/postgres-ha/haproxy.cfg",
+            "source": "project:local-environment",
+            "specification_hash": "f0a1864dd629ef98fe395718df829e94857ceec1adbcf58d475c8e9ec7bcb3d3",
             "status": "unchanged"
           },
           {
@@ -248,16 +344,64 @@
             "status": "unchanged"
           },
           {
+            "content_hash": "f4c9e84204e0b0e576441518d3d2e67e67f787f370b5e747edc953b28472788d",
+            "error": null,
+            "generator_id": "autoforge.generator.local-environment",
+            "generator_version": "0.1.0",
+            "ownership": "generated",
+            "previous_content_hash": "f4c9e84204e0b0e576441518d3d2e67e67f787f370b5e747edc953b28472788d",
+            "relative_path": "environment/rabbitmq/haproxy.cfg",
+            "source": "project:local-environment",
+            "specification_hash": "f0a1864dd629ef98fe395718df829e94857ceec1adbcf58d475c8e9ec7bcb3d3",
+            "status": "unchanged"
+          },
+          {
+            "content_hash": "7d81a9b35bd21528db18a651f3ceb9493087f68cb173b95bee0101a9103a1fdc",
+            "error": null,
+            "generator_id": "autoforge.generator.local-environment",
+            "generator_version": "0.1.0",
+            "ownership": "generated",
+            "previous_content_hash": "7d81a9b35bd21528db18a651f3ceb9493087f68cb173b95bee0101a9103a1fdc",
+            "relative_path": "environment/rabbitmq/rabbitmq-0.conf",
+            "source": "project:local-environment",
+            "specification_hash": "f0a1864dd629ef98fe395718df829e94857ceec1adbcf58d475c8e9ec7bcb3d3",
+            "status": "unchanged"
+          },
+          {
+            "content_hash": "7d81a9b35bd21528db18a651f3ceb9493087f68cb173b95bee0101a9103a1fdc",
+            "error": null,
+            "generator_id": "autoforge.generator.local-environment",
+            "generator_version": "0.1.0",
+            "ownership": "generated",
+            "previous_content_hash": "7d81a9b35bd21528db18a651f3ceb9493087f68cb173b95bee0101a9103a1fdc",
+            "relative_path": "environment/rabbitmq/rabbitmq-1.conf",
+            "source": "project:local-environment",
+            "specification_hash": "f0a1864dd629ef98fe395718df829e94857ceec1adbcf58d475c8e9ec7bcb3d3",
+            "status": "unchanged"
+          },
+          {
+            "content_hash": "7d81a9b35bd21528db18a651f3ceb9493087f68cb173b95bee0101a9103a1fdc",
+            "error": null,
+            "generator_id": "autoforge.generator.local-environment",
+            "generator_version": "0.1.0",
+            "ownership": "generated",
+            "previous_content_hash": "7d81a9b35bd21528db18a651f3ceb9493087f68cb173b95bee0101a9103a1fdc",
+            "relative_path": "environment/rabbitmq/rabbitmq-2.conf",
+            "source": "project:local-environment",
+            "specification_hash": "f0a1864dd629ef98fe395718df829e94857ceec1adbcf58d475c8e9ec7bcb3d3",
+            "status": "unchanged"
+          },
+          {
             "content_hash": "3cd4126b4247d3dc80dd903659539b7175c5977508193f326156a73c9682ad84",
             "error": null,
             "generator_id": "autoforge.generator.local-environment",
             "generator_version": "0.1.0",
             "ownership": "generated",
-            "previous_content_hash": "3cd4126b4247d3dc80dd903659539b7175c5977508193f326156a73c9682ad84",
+            "previous_content_hash": "d4665a27b6bb5afdceae8796640e3ec89a71062834020262a0c55bf324fa962c",
             "relative_path": "environment/service-composition.json",
             "source": "project:local-environment",
             "specification_hash": "c787c9e4d70b39dc5b730abec3594ae2fe346cf8231205d597c83d8b90ded878",
-            "status": "unchanged"
+            "status": "changed"
           },
           {
             "content_hash": "0e7ad7d27109d4fa563ea2fc8cc49561d87129455de5bafe658304ef7931906d",
@@ -373,11 +517,11 @@
             "generator_id": "autoforge.generator.fastapi.project",
             "generator_version": "0.1.0",
             "ownership": "generated",
-            "previous_content_hash": "cee411d9b700d98a3315c2d71d16f5b0befd5d6a0d7f9dc1a08aeac96587082e",
+            "previous_content_hash": "5aee2df3d5f91ddbb67b311f559979eb7d1d7fb7d0152f0082252c77b23a8f5a",
             "relative_path": "pyproject.toml",
             "source": "project:kis_auto_trading",
             "specification_hash": "c787c9e4d70b39dc5b730abec3594ae2fe346cf8231205d597c83d8b90ded878",
-            "status": "unchanged"
+            "status": "changed"
           },
           {
             "content_hash": "948fccec093d33b1428e5452b5f899f772abd62fcc3136a2ff70ad3e55e63df3",
@@ -697,11 +841,11 @@
             "generator_id": "autoforge.generator.service.messaging",
             "generator_version": "0.1.0",
             "ownership": "generated",
-            "previous_content_hash": "082387927436309071d3b34c3f6938305900adf0125f91de612235095323297e",
+            "previous_content_hash": "c6878cdfce133d4971e65c986f7b2e031f5e51e1ced7e1b003d58dcae968afc1",
             "relative_path": "src/kis_auto_trading/infrastructure/messaging/rabbitmq.py",
             "source": "project:rabbitmq-outbox",
             "specification_hash": "c787c9e4d70b39dc5b730abec3594ae2fe346cf8231205d597c83d8b90ded878",
-            "status": "unchanged"
+            "status": "changed"
           },
           {
             "content_hash": "e8e85dd79178ea63ed4133460ced2c09b3c7941a5a5305a8fc5b7058d779508a",
@@ -805,11 +949,11 @@
             "generator_id": "autoforge.generator.service.session_store",
             "generator_version": "0.1.0",
             "ownership": "generated",
-            "previous_content_hash": "da86af99e6d484c15ca96e7b6f574b1f950b83d7738fe6628df5486763756615",
+            "previous_content_hash": "e6692e439e35a5321b1c5d0f771a8e23b5f119680320e63edec4b6dbc0dc5a0f",
             "relative_path": "src/kis_auto_trading/infrastructure/session_store/provider.py",
             "source": "project:kis_auto_trading:session-store",
             "specification_hash": "c787c9e4d70b39dc5b730abec3594ae2fe346cf8231205d597c83d8b90ded878",
-            "status": "unchanged"
+            "status": "changed"
           },
           {
             "content_hash": "cf30a5d85dca0c068d67de15b72a11a7dd8537ed48f9028baa8043651a2ee6b4",
@@ -889,14 +1033,14 @@
             "generator_id": "autoforge.generator.fastapi.project",
             "generator_version": "0.1.0",
             "ownership": "generated",
-            "previous_content_hash": "173f4f65da09edefaaf75ec230bebf5a038f25d2285f6ecae5ef38bef875ff85",
+            "previous_content_hash": "37680f0a5812b0cb5f6b5d33212debb771c0a70b2f7a5f00df1c8df92f68dbdb",
             "relative_path": "tests/test_health.py",
             "source": "project:kis_auto_trading",
             "specification_hash": "c787c9e4d70b39dc5b730abec3594ae2fe346cf8231205d597c83d8b90ded878",
-            "status": "unchanged"
+            "status": "changed"
           }
         ],
-        "job_id": "a00a2338-ca20-4af1-92fb-f9700728938f",
+        "job_id": "d99a1a88-b770-425f-86c4-681f5101cc1d",
         "specification_hash": "c787c9e4d70b39dc5b730abec3594ae2fe346cf8231205d597c83d8b90ded878",
         "specification_version": "1"
       },
@@ -1051,7 +1195,7 @@
             "status": "preserved"
           }
         ],
-        "job_id": "a00a2338-ca20-4af1-92fb-f9700728938f",
+        "job_id": "d99a1a88-b770-425f-86c4-681f5101cc1d",
         "specification_hash": "9929ac59ec5025ee885d10888dd72a1bf18c3b52571cf1e698227bd3a97ff0a3",
         "specification_version": "1"
       },
@@ -1206,7 +1350,7 @@
             "status": "preserved"
           }
         ],
-        "job_id": "a00a2338-ca20-4af1-92fb-f9700728938f",
+        "job_id": "d99a1a88-b770-425f-86c4-681f5101cc1d",
         "specification_hash": "ffcbba6369441bc33b33e85b52aacc18fd43545bdbdd72e6cdc3bdd4957151aa",
         "specification_version": "1"
       },
@@ -1222,11 +1366,11 @@
             "generator_id": "autoforge.generator.postgresql-ddl",
             "generator_version": "0.1.0",
             "ownership": "generated",
-            "previous_content_hash": "d33fd6e50d76d97f09d32eef8cc911290881ac37fa1fbdac2d7282c19b394b08",
+            "previous_content_hash": "107643c76706f1de2efc3ea4e01afee61cc59446412caa6a72588049a2820766",
             "relative_path": "database/global/0001_news.sql",
             "source": "module:news:postgresql-ddl",
             "specification_hash": "dbd43c8deea8c236e56bb7973e9ae2b8d233d8f957a7944efa6021f93fdf0037",
-            "status": "changed"
+            "status": "unchanged"
           },
           {
             "content_hash": "57867ad8a7920128dd2930c1fa762c03bb32bcee19c6fa862587a1ed67c47921",
@@ -1282,11 +1426,11 @@
             "generator_id": "autoforge.generator.fastapi.module",
             "generator_version": "0.1.0",
             "ownership": "generated",
-            "previous_content_hash": "f4f996ec5754b7b32915d5c2a6d2d7878bddae60dc0bdbbcb6c023123116d6b3",
+            "previous_content_hash": "6a64ce97a62ea5973d7c59790ea09fce64bc44cb63ab603979739df56d041d03",
             "relative_path": "src/kis_auto_trading/modules/news/generated/models.py",
             "source": "module:news",
             "specification_hash": "dbd43c8deea8c236e56bb7973e9ae2b8d233d8f957a7944efa6021f93fdf0037",
-            "status": "changed"
+            "status": "unchanged"
           },
           {
             "content_hash": "358f28b78211a723a35aec60edea989f8974b196fa1813a62e5acc5e90e9d5a6",
@@ -1330,11 +1474,11 @@
             "generator_id": "autoforge.generator.sqlalchemy.model",
             "generator_version": "0.1.0",
             "ownership": "generated",
-            "previous_content_hash": "4d394dbf53be68dbd83049f139999d2de2da393bafefdd23f6b4bd8e4fb2aad2",
+            "previous_content_hash": "60442e31f9b98d7560cac3c2bfe190b3365cb5c569de43793f11f8564e50c41a",
             "relative_path": "src/kis_auto_trading/modules/news/generated/sqlalchemy_models.py",
             "source": "module:news:sqlalchemy-model",
             "specification_hash": "dbd43c8deea8c236e56bb7973e9ae2b8d233d8f957a7944efa6021f93fdf0037",
-            "status": "changed"
+            "status": "unchanged"
           },
           {
             "content_hash": "bcc4f210083f9f9b7577c71dc8afa143489c9b5194d594f72c1b8d04d609e413",
@@ -1342,11 +1486,11 @@
             "generator_id": "autoforge.generator.sqlalchemy.model",
             "generator_version": "0.1.0",
             "ownership": "generated",
-            "previous_content_hash": "d216a9815a903395a429ceb2fc2b95460b7bdc53b4e7e46fdc4afde8740c789d",
+            "previous_content_hash": "bcc4f210083f9f9b7577c71dc8afa143489c9b5194d594f72c1b8d04d609e413",
             "relative_path": "src/kis_auto_trading/modules/news/generated/sqlalchemy_repositories.py",
             "source": "module:news:sqlalchemy-model",
             "specification_hash": "dbd43c8deea8c236e56bb7973e9ae2b8d233d8f957a7944efa6021f93fdf0037",
-            "status": "changed"
+            "status": "unchanged"
           },
           {
             "content_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -1361,7 +1505,7 @@
             "status": "preserved"
           }
         ],
-        "job_id": "a00a2338-ca20-4af1-92fb-f9700728938f",
+        "job_id": "d99a1a88-b770-425f-86c4-681f5101cc1d",
         "specification_hash": "dbd43c8deea8c236e56bb7973e9ae2b8d233d8f957a7944efa6021f93fdf0037",
         "specification_version": "1"
       },
