@@ -63,6 +63,21 @@ python -m autoforge.main generate `
   --validation-python .venv\\Scripts\\python.exe
 ```
 
+## Opt-in KIS read-only integration check
+
+The default test suite never contacts KIS. To run one real domestic current-price
+GET after exporting `KIS_API_URL`, `KIS_APP_KEY`, and `KIS_APP_SECRET`, explicitly
+enable the check:
+
+```powershell
+$env:KIS_READ_ONLY_INTEGRATION = "1"
+$env:KIS_INTEGRATION_STOCK_CODE = "005930" # optional
+pytest -p no:cacheprovider tests/integration/test_kis_market_data_integration.py -q
+```
+
+The check has no account, order, hash-key, WebSocket, polling, or background
+behavior. It closes its HTTP and Redis clients after the one read-only request.
+
 ## Local operator access bootstrap
 
 After applying the Identity migrations, a host operator can grant one existing
