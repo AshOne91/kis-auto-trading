@@ -3,7 +3,7 @@ from datetime import datetime
 from secrets import compare_digest
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Header, HTTPException, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, status
 from pydantic import BaseModel, Field
 
 from kis_auto_trading.infrastructure.database.provider import get_session_registry
@@ -97,6 +97,22 @@ async def trigger_durable_job(
     return DurableJobTriggerResponse(
         job_id=result.job_id, created=result.created
     )
+
+
+@router.get('/{job_type}', response_model=list[DurableJobStatusResponse])
+async def list_durable_jobs(
+    job_type: str,
+    session_registry: Annotated[
+        AsyncSessionRegistry, Depends(get_session_registry)
+    ],
+    limit: Annotated[int, Query(ge=1, le=100)] = 20,
+) -> list[DurableJobStatusResponse]:
+    definition = _definition(job_type)
+    async with session_registry.session(ShardTarget(store=definition.store)) as session:
+        jobs = await DurableJobRepository(session).list_recent(
+            job_type=definition.name, limit=limit
+        )
+    return [_status_response(job) for job in jobs]
 
 
 @router.get('/{job_type}/{job_id}', response_model=DurableJobStatusResponse)

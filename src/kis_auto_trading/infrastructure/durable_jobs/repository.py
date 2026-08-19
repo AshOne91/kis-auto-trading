@@ -82,6 +82,19 @@ class DurableJobRepository:
             DurableJobRecord, job_id, populate_existing=True
         )
 
+    async def list_recent(
+        self, *, job_type: str, limit: int
+    ) -> list[DurableJobRecord]:
+        records = await self._session.execute(
+            select(DurableJobRecord)
+            .where(DurableJobRecord.job_type == job_type)
+            .order_by(
+                DurableJobRecord.updated_at.desc(), DurableJobRecord.job_id.desc()
+            )
+            .limit(limit)
+        )
+        return list(records.scalars())
+
     async def transition(
         self,
         *,

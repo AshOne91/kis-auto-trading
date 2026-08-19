@@ -49,6 +49,11 @@ def test_durable_job_api_authenticates_and_reuses_run_key(
             del kwargs
             return record if job_id == record.job_id else None
 
+        async def list_recent(self, *, job_type: str, limit: int):
+            assert job_type == "news_collection"
+            assert limit == 5
+            return [record]
+
         async def transition(self, *, expected_status, status, **kwargs):
             del kwargs
             if self.cancel_raced:
@@ -81,6 +86,10 @@ def test_durable_job_api_authenticates_and_reuses_run_key(
             "/internal/jobs/news_collection",
             headers={"Authorization": "Bearer test-token"},
             json=body,
+        )
+        history = client.get(
+            "/internal/jobs/news_collection?limit=5",
+            headers={"Authorization": "Bearer test-token"},
         )
         status = client.get(
             "/internal/jobs/news_collection/job-1",
@@ -115,6 +124,9 @@ def test_durable_job_api_authenticates_and_reuses_run_key(
     assert created.json() == {"job_id": "job-1", "created": True}
     assert repeated.status_code == 202
     assert repeated.json() == {"job_id": "job-1", "created": False}
+    assert history.status_code == 200
+    assert history.json()[0]["job_id"] == "job-1"
+    assert history.json()[0]["status"] == "requested"
     assert requests == [
         {"job_type": "news_collection", **body},
         {"job_type": "news_collection", **body},
@@ -131,6 +143,7 @@ def test_durable_job_api_authenticates_and_reuses_run_key(
     assert raced_cancel.json()["status"] == "cancelled"
     assert running_cancel.status_code == 409
     assert [target.store for target in registry.targets] == [
+        "automation",
         "automation",
         "automation",
         "automation",
