@@ -1,9 +1,13 @@
 from __future__ import annotations
 
+from contextlib import asynccontextmanager
 from dataclasses import dataclass
+from typing import ClassVar
 
 from fastapi.testclient import TestClient
+from sqlalchemy.exc import SQLAlchemyError
 
+from kis_auto_trading.application import market_price_snapshots
 from kis_auto_trading.application.app_factory import create_app
 from kis_auto_trading.infrastructure.kis_market_data import (
     KisDomesticStockPrice,
@@ -26,6 +30,29 @@ class _FakeMarketDataClient:
             raise self.error
         assert self.result is not None
         return self.result
+
+
+class _RecordingSessionRegistry:
+    def __init__(self) -> None:
+        self.targets = []
+
+    @asynccontextmanager
+    async def session(self, target):
+        self.targets.append(target)
+        yield object()
+
+
+class _RecordingSnapshotRepository:
+    saved: ClassVar[list[object]] = []
+    error: ClassVar[Exception | None] = None
+
+    def __init__(self, session: object) -> None:
+        del session
+
+    async def save(self, snapshot) -> None:
+        if self.error is not None:
+            raise self.error
+        self.saved.append(snapshot)
 
 
 def _configure_environment(monkeypatch) -> None:
@@ -109,3 +136,66 @@ def test_operator_market_data_maps_kis_failures_without_exposing_details(monkeyp
 
     assert response.status_code == 502
     assert response.json() == {"detail": "KIS market data is unavailable"}
+
+
+def test_operator_market_data_persists_a_snapshot_only_through_post(monkeypatch) -> None:
+    _configure_environment(monkeypatch)
+    _RecordingSnapshotRepository.saved = []
+    _RecordingSnapshotRepository.error = None
+    monkeypatch.setattr(
+        market_price_snapshots,
+        "SQLAlchemyMarketPriceSnapshotRepository",
+        _RecordingSnapshotRepository,
+    )
+    app = create_app()
+    session_registry = _RecordingSessionRegistry()
+
+    with TestClient(app) as client:
+        app.state.kis_market_data = _FakeMarketDataClient(
+            result=KisDomesticStockPrice(
+                stock_code="005930",
+                current_price="70000",
+                output={"stck_prpr": "70000"},
+            )
+        )
+        app.state.session_registry = session_registry
+        response = client.post(
+            "/internal/operator/market-data/domestic-stock-price/snapshots?stock_code=005930",
+            headers={"Authorization": "Bearer operator-token"},
+        )
+
+    assert response.status_code == 200
+    assert response.json()["stock_code"] == "005930"
+    assert response.json()["current_price"] == "70000"
+    assert [target.store for target in session_registry.targets] == ["automation"]
+    assert _RecordingSnapshotRepository.saved[0].stock_code == "005930"
+    assert _RecordingSnapshotRepository.saved[0].current_price == "70000"
+
+
+def test_operator_market_data_hides_snapshot_persistence_failures(monkeypatch) -> None:
+    _configure_environment(monkeypatch)
+    _RecordingSnapshotRepository.saved = []
+    _RecordingSnapshotRepository.error = SQLAlchemyError("database detail")
+    monkeypatch.setattr(
+        market_price_snapshots,
+        "SQLAlchemyMarketPriceSnapshotRepository",
+        _RecordingSnapshotRepository,
+    )
+    app = create_app()
+
+    with TestClient(app) as client:
+        app.state.kis_market_data = _FakeMarketDataClient(
+            result=KisDomesticStockPrice(
+                stock_code="005930",
+                current_price="70000",
+                output={"stck_prpr": "70000"},
+            )
+        )
+        app.state.session_registry = _RecordingSessionRegistry()
+        response = client.post(
+            "/internal/operator/market-data/domestic-stock-price/snapshots?stock_code=005930",
+            headers={"Authorization": "Bearer operator-token"},
+        )
+
+    assert response.status_code == 503
+    assert response.json() == {"detail": "KIS market data persistence is unavailable"}
