@@ -18,7 +18,7 @@ from kis_auto_trading.infrastructure.messaging.rabbitmq import RabbitMQConsumer
 
 RABBITMQ_URL_ENV = "RABBITMQ_URL"
 DURABLE_JOB_QUEUE = "kis.profile.events.durable-jobs"
-DURABLE_JOB_EVENT_TYPES = ["news.collection.requested", "news.index.requested"]
+DURABLE_JOB_EVENT_TYPES = ["news.collection.requested", "news.index.requested", "durable-job.history.index.requested"]
 GLOBAL_DATABASE_URL_ENVS = {"automation": "AUTOMATION_DATABASE_URL"}
 
 

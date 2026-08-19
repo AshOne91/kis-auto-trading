@@ -44,6 +44,13 @@
       "routing_key": "news.index.requested",
       "schedule": null,
       "store": "automation"
+    },
+    {
+      "event_type": "durable-job.history.index.requested",
+      "name": "durable_job_history_index",
+      "routing_key": "durable-job.history.index.requested",
+      "schedule": null,
+      "store": "automation"
     }
   ],
   "profile": "local-integration",

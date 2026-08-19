@@ -5,6 +5,7 @@ import httpx
 
 from kis_auto_trading.infrastructure.database.routing import ShardTarget
 from kis_auto_trading.infrastructure.database.session import AsyncSessionRegistry
+from kis_auto_trading.infrastructure.durable_jobs.contracts import JOB_DEFINITIONS
 from kis_auto_trading.infrastructure.durable_jobs.repository import DurableJobRepository
 from kis_auto_trading.infrastructure.durable_jobs.worker import DurableJobExecution
 from kis_auto_trading.modules.news.persistence import NewsArticleRepository
@@ -12,6 +13,9 @@ from kis_auto_trading.modules.news.search import NewsSearchIndexer
 from kis_auto_trading.modules.news.yahoo import (
     YahooFinanceNewsError,
     YahooFinanceNewsProvider,
+)
+from kis_auto_trading.modules.operations.durable_job_history_search import (
+    DurableJobHistorySearchIndexer,
 )
 
 MAX_NEWS_DURABLE_JOB_ATTEMPTS = 3
@@ -24,10 +28,12 @@ class ApplicationDurableJobHandler:
         session_registry: AsyncSessionRegistry,
         provider: YahooFinanceNewsProvider | None = None,
         indexer: NewsSearchIndexer | None = None,
+        durable_job_history_indexer: DurableJobHistorySearchIndexer | None = None,
     ) -> None:
         self._session_registry = session_registry
         self._provider = provider or YahooFinanceNewsProvider()
         self._indexer = indexer
+        self._durable_job_history_indexer = durable_job_history_indexer
 
     async def handle(
         self, execution: DurableJobExecution
@@ -36,6 +42,8 @@ class ApplicationDurableJobHandler:
             return await self._collect_news(execution)
         if execution.job_type == "news_index":
             return await self._index_news(execution)
+        if execution.job_type == "durable_job_history_index":
+            return await self._index_durable_job_history(execution)
         raise ValueError(f"unsupported durable job type: {execution.job_type}")
 
     async def _collect_news(
@@ -151,8 +159,43 @@ class ApplicationDurableJobHandler:
             "articles_indexed": indexed,
         }
 
+    async def _index_durable_job_history(
+        self, execution: DurableJobExecution
+    ) -> dict[str, object]:
+        history_job_type, limit = _history_request_from_payload(execution.payload)
+        if not self._durable_job_history_indexing_enabled():
+            self._log_durable_job_history_indexing_skipped(execution, history_job_type)
+            return {
+                "job_type": execution.job_type,
+                "history_job_type": history_job_type,
+                "records_indexed": 0,
+                "indexing_status": "skipped",
+            }
+        async with self._session_registry.session(
+            ShardTarget(store="automation")
+        ) as session:
+            records = await DurableJobRepository(session).list_recent(
+                job_type=history_job_type, limit=limit
+            )
+        indexer = (
+            self._durable_job_history_indexer
+            or DurableJobHistorySearchIndexer.from_environment()
+        )
+        indexed = await indexer.index(records)
+        return {
+            "job_type": execution.job_type,
+            "history_job_type": history_job_type,
+            "records_indexed": indexed,
+        }
+
     def _indexing_enabled(self) -> bool:
         return self._indexer is not None or NewsSearchIndexer.is_configured_from_environment()
+
+    def _durable_job_history_indexing_enabled(self) -> bool:
+        return (
+            self._durable_job_history_indexer is not None
+            or DurableJobHistorySearchIndexer.is_configured_from_environment()
+        )
 
     @staticmethod
     def _log_indexing_skipped(execution: DurableJobExecution) -> None:
@@ -162,6 +205,20 @@ class ApplicationDurableJobHandler:
                 "event_type": "news_index_skipped",
                 "job_id": execution.job_id,
                 "run_key": execution.run_key,
+            },
+        )
+
+    @staticmethod
+    def _log_durable_job_history_indexing_skipped(
+        execution: DurableJobExecution, history_job_type: str
+    ) -> None:
+        logger.info(
+            "durable job history indexing skipped because the RAG profile is not configured",
+            extra={
+                "event_type": "durable_job_history_index_skipped",
+                "job_id": execution.job_id,
+                "run_key": execution.run_key,
+                "history_job_type": history_job_type,
             },
         )
 
@@ -196,6 +253,16 @@ def _source_keys_from_payload(payload: dict[str, object]) -> list[str]:
     if not normalized:
         raise ValueError("news_index payload requires at least one source key")
     return normalized
+
+
+def _history_request_from_payload(payload: dict[str, object]) -> tuple[str, int]:
+    job_type = payload.get("history_job_type")
+    if not isinstance(job_type, str) or job_type not in JOB_DEFINITIONS:
+        raise ValueError("history_job_type must name a configured durable job")
+    limit = payload.get("limit", 100)
+    if not isinstance(limit, int) or isinstance(limit, bool) or not 1 <= limit <= 100:
+        raise ValueError("history limit must be between 1 and 100")
+    return job_type, limit
 
 
 def _news_retry_attempt(payload: dict[str, object]) -> int:

@@ -188,6 +188,54 @@ async def test_news_index_handler_skips_without_rag_configuration(
 
 
 @pytest.mark.anyio
+async def test_durable_job_history_indexer_reads_generated_history_contract(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    records = [SimpleNamespace(job_id="job-1")]
+    indexed: list[object] = []
+
+    class FakeDurableJobRepository:
+        def __init__(self, session) -> None:
+            del session
+
+        async def list_recent(self, *, job_type: str, limit: int) -> list[object]:
+            assert job_type == "news_collection"
+            assert limit == 5
+            return records
+
+    class FakeHistoryIndexer:
+        async def index(self, candidates: list[object]) -> int:
+            indexed.extend(candidates)
+            return len(candidates)
+
+    monkeypatch.setattr(
+        "kis_auto_trading.application.durable_job_handler.DurableJobRepository",
+        FakeDurableJobRepository,
+    )
+    registry = FakeRegistry()
+    result = await ApplicationDurableJobHandler(
+        registry,
+        FakeProvider(),
+        durable_job_history_indexer=FakeHistoryIndexer(),
+    ).handle(
+        DurableJobExecution(
+            job_id="history-index-job-1",
+            job_type="durable_job_history_index",
+            run_key="durable-history:news-collection",
+            payload={"history_job_type": "news_collection", "limit": 5},
+        )
+    )
+
+    assert result == {
+        "job_type": "durable_job_history_index",
+        "history_job_type": "news_collection",
+        "records_indexed": 1,
+    }
+    assert indexed == records
+    assert registry.targets[0].store == "automation"
+
+
+@pytest.mark.anyio
 async def test_news_handler_requires_explicit_symbols() -> None:
     with pytest.raises(TypeError, match="symbols list"):
         await ApplicationDurableJobHandler(FakeRegistry(), FakeProvider()).handle(

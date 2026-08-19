@@ -30,5 +30,11 @@ JOB_DEFINITIONS: dict[str, DurableJobDefinition] = {
         store="automation",
         event_type="news.index.requested",
         routing_key="news.index.requested",
+    ),
+    "durable_job_history_index": DurableJobDefinition(
+        name="durable_job_history_index",
+        store="automation",
+        event_type="durable-job.history.index.requested",
+        routing_key="durable-job.history.index.requested",
     )
 }
