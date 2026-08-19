@@ -13,6 +13,7 @@ tooling:
     application_enabled: true
     postgres_mode: ha
     rabbitmq_mode: cluster
+    airflow_scheduler_replicas: 2
     host_port_base: 49400
   single_host:
     enabled: true
