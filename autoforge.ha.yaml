@@ -27,6 +27,24 @@ tooling:
   rag:
     enabled: true
     search_backend: opensearch
+  external_provider:
+    enabled: true
+    url_environment: KIS_API_URL
+    timeout_seconds: 5
+    max_retries: 2
+    retry_delay_seconds: 0.1
+  distributed_lock:
+    enabled: true
+    mode: cluster
+    cluster_url_environment: REDIS_CLUSTER_URL
+    key_prefix: kis-lock
+    ttl_seconds: 30
+  key_value_store:
+    enabled: true
+    mode: cluster
+    cluster_url_environment: REDIS_CLUSTER_URL
+    key_prefix: kis-cache
+    ttl_seconds: 86400
   ruff_exclude:
     - base_server
     - test.py

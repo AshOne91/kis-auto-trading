@@ -1,0 +1,13 @@
+from typing import Protocol
+
+
+class DistributedLockClient(Protocol):
+    async def health_check(self) -> None: ...
+
+    async def acquire(
+        self, key: str, *, ttl_seconds: int | None = None
+    ) -> str | None: ...
+
+    async def release(self, key: str, token: str) -> bool: ...
+
+    async def aclose(self) -> None: ...
