@@ -18,6 +18,7 @@ The Secret must provide these keys before the Deployment starts:
 - `AUTOMATION_DATABASE_URL`
 - `DURABLE_JOB_API_TOKEN`
 - `IDENTITY_DATABASE_URL`
+- `OPERATOR_API_TOKEN`
 - `RABBITMQ_URL`
 - `REDIS_URL`
 Start from the generated zero-value template, fill it locally,

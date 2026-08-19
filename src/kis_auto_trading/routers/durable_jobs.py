@@ -1,9 +1,7 @@
-import os
 from datetime import datetime
-from secrets import compare_digest
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
 
 from kis_auto_trading.infrastructure.database.provider import get_session_registry
@@ -14,6 +12,7 @@ from kis_auto_trading.infrastructure.durable_jobs.contracts import (
     DurableJobStatus,
 )
 from kis_auto_trading.infrastructure.durable_jobs.repository import DurableJobRepository
+from kis_auto_trading.infrastructure.service_tokens import require_service_token
 
 
 class DurableJobTriggerRequest(BaseModel):
@@ -38,21 +37,10 @@ class DurableJobStatusResponse(BaseModel):
     updated_at: datetime
 
 
-def require_durable_job_api_token(
-    authorization: Annotated[str | None, Header()] = None,
-) -> None:
-    expected_token = os.getenv('DURABLE_JOB_API_TOKEN')
-    if not expected_token:
-        raise HTTPException(status_code=503, detail='durable job API token is not configured')
-    scheme, _, token = (authorization or '').partition(' ')
-    if scheme != 'Bearer' or not compare_digest(token, expected_token):
-        raise HTTPException(status_code=401, detail='invalid durable job API token')
-
-
 router = APIRouter(
     prefix='/internal/jobs',
     tags=['durable-jobs'],
-    dependencies=[Depends(require_durable_job_api_token)],
+    dependencies=[Depends(require_service_token('durable_jobs'))],
 )
 
 

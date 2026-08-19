@@ -65,6 +65,7 @@ def test_durable_job_api_authenticates_and_reuses_run_key(
             return True
 
     monkeypatch.setenv("DURABLE_JOB_API_TOKEN", "test-token")
+    monkeypatch.setenv("OPERATOR_API_TOKEN", "operator-token")
     monkeypatch.setattr(durable_jobs, "DurableJobRepository", FakeDurableJobRepository)
     app = FastAPI()
     app.include_router(durable_jobs.router)
@@ -76,6 +77,14 @@ def test_durable_job_api_authenticates_and_reuses_run_key(
     }
     with TestClient(app) as client:
         assert client.post("/internal/jobs/news_collection", json=body).status_code == 401
+        assert (
+            client.post(
+                "/internal/jobs/news_collection",
+                headers={"Authorization": "Bearer operator-token"},
+                json=body,
+            ).status_code
+            == 401
+        )
 
         created = client.post(
             "/internal/jobs/news_collection",

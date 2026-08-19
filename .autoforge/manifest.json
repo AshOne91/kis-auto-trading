@@ -1,7 +1,7 @@
 {
   "document_kind": "generation_job",
   "format_version": "1",
-  "job_id": "7faa8409-c143-4f0d-a14b-97c1b9a87be0",
+  "job_id": "aac2f73c-2a9e-4791-a388-3177e9533ffc",
   "units": [
     {
       "kind": "project",
@@ -16,7 +16,7 @@
             "previous_content_hash": "9ef67b97143313b28ce53b006472f008c15bb75e96ff56cab87fba4c6b4d5acf",
             "relative_path": ".gitignore",
             "source": "project:kis_auto_trading",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "preserved"
           },
           {
@@ -28,7 +28,7 @@
             "previous_content_hash": "2345731279615a92f9a0dfeea0c5e45078614bdda6fcb63155ad397f7703490d",
             "relative_path": "Dockerfile",
             "source": "project:kis_auto_trading",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "unchanged"
           },
           {
@@ -40,7 +40,7 @@
             "previous_content_hash": "4d340d05f510c0a568cab39f8ec334ab1fdb32c403a3978af1a414cedb61d3f3",
             "relative_path": "README.md",
             "source": "project:kis_auto_trading",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "preserved"
           },
           {
@@ -52,7 +52,7 @@
             "previous_content_hash": "1df592079ca0f967604344162df9733c4d45b2b1fad97c8211c51bd1b7183e27",
             "relative_path": "airflow/dags/news_collection.py",
             "source": "project:durable-jobs",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "unchanged"
           },
           {
@@ -64,31 +64,31 @@
             "previous_content_hash": "5b0d9f34e0aefc55dcb5c6407f2890822bd9c261337dfacc8e41c83877b0277f",
             "relative_path": "alembic.ini",
             "source": "project:alembic-environment",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "unchanged"
           },
           {
-            "content_hash": "1419652dc1f5f0a2456be76c6fcb1859ec45733a90715f7de47ebf528d4b7828",
+            "content_hash": "aead34b4aac28ab7d09fe1dc55f71114e5ef24e57de7f9004136f93ce8da03ae",
             "error": null,
             "generator_id": "autoforge.generator.kubernetes-base-server",
             "generator_version": "0.2.0",
             "ownership": "generated",
-            "previous_content_hash": "1419652dc1f5f0a2456be76c6fcb1859ec45733a90715f7de47ebf528d4b7828",
+            "previous_content_hash": "aead34b4aac28ab7d09fe1dc55f71114e5ef24e57de7f9004136f93ce8da03ae",
             "relative_path": "deploy/kubernetes/README.md",
             "source": "project:kubernetes-base-server",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "unchanged"
           },
           {
-            "content_hash": "d0a254d2ffdd4f54bb3d34561e2268bfbe8f0bc7c70dca7eca37872822c67f10",
+            "content_hash": "536299e11595240c5ca8d7bb23f57915dbc51278f655e49541e6ad145402abdc",
             "error": null,
             "generator_id": "autoforge.generator.kubernetes-base-server",
             "generator_version": "0.2.0",
             "ownership": "generated",
-            "previous_content_hash": "d0a254d2ffdd4f54bb3d34561e2268bfbe8f0bc7c70dca7eca37872822c67f10",
+            "previous_content_hash": "536299e11595240c5ca8d7bb23f57915dbc51278f655e49541e6ad145402abdc",
             "relative_path": "deploy/kubernetes/base-server.yaml",
             "source": "project:kubernetes-base-server",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "unchanged"
           },
           {
@@ -104,15 +104,15 @@
             "status": "unchanged"
           },
           {
-            "content_hash": "7664b92725fa766742f4c1286b62ef78948c53618283d979276f8fc1ee89dd99",
+            "content_hash": "7f5837c0496af0a49cfe4e636f963277f73c250a3ef3862561dfac77ca0ad8c1",
             "error": null,
             "generator_id": "autoforge.generator.kubernetes-base-server",
             "generator_version": "0.2.0",
             "ownership": "generated",
-            "previous_content_hash": "7664b92725fa766742f4c1286b62ef78948c53618283d979276f8fc1ee89dd99",
+            "previous_content_hash": "7f5837c0496af0a49cfe4e636f963277f73c250a3ef3862561dfac77ca0ad8c1",
             "relative_path": "deploy/kubernetes/secret.env.example",
             "source": "project:kubernetes-base-server",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "unchanged"
           },
           {
@@ -196,7 +196,7 @@
             "previous_content_hash": "e118fd5412c5c9f0545a799fc0cc7dc7186cf7a67f053faa6787ccab01df65a2",
             "relative_path": "deploy/single-host/README.md",
             "source": "project:single-host",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "unchanged"
           },
           {
@@ -208,7 +208,7 @@
             "previous_content_hash": "e086d3932207f6bbb963889e34890d9f09fe4ac57b1f4d261e39bbd8d6d6c159",
             "relative_path": "deploy/single-host/compose.override.yml",
             "source": "project:single-host",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "unchanged"
           },
           {
@@ -220,7 +220,7 @@
             "previous_content_hash": "e93faefa63e7abe5c1615afa33b758a91a739014c051bca3e5abc8c68c8eb455",
             "relative_path": "deploy/single-host/nginx/default.conf.template",
             "source": "project:single-host",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "unchanged"
           },
           {
@@ -232,7 +232,7 @@
             "previous_content_hash": "8c5b93b5898147b12f7afbe4625589aaef12d063dfe09701fce4282649fa2d3b",
             "relative_path": "deploy/single-host/runtime.env.example",
             "source": "project:single-host",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "unchanged"
           },
           {
@@ -244,7 +244,7 @@
             "previous_content_hash": "3651a04a37da34c63b95562e25c77353bcff6b7372c1b0e533092773f9174383",
             "relative_path": "deploy/single-host/windows/start-compose.ps1",
             "source": "project:single-host",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "unchanged"
           },
           {
@@ -256,7 +256,7 @@
             "previous_content_hash": "8990c9cc26bf2cf506ff3f41db9ffa1503cee2e5df4501c8442a68a4404edb4c",
             "relative_path": "deploy/storage/.env.example",
             "source": "project:object_storage",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "unchanged"
           },
           {
@@ -268,7 +268,7 @@
             "previous_content_hash": "3716b3c9e997ec4144e5b320e72831c416d1eed2a779797f916139bb6806073e",
             "relative_path": "deploy/storage/README.md",
             "source": "project:object_storage",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "unchanged"
           },
           {
@@ -280,19 +280,19 @@
             "previous_content_hash": "f11f608cee39098e1652a04921f2a4b6cb7f6f3cd341896368ce86609dae1c3e",
             "relative_path": "deploy/storage/compose.storage.yaml",
             "source": "project:object_storage",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "unchanged"
           },
           {
-            "content_hash": "26d3c9f4f962195606fc90e9034ccf722155134601d682555a8007c8cc668adf",
+            "content_hash": "26b3278d288190a1678ab13028011fd3210830c5a3ac9454cfb988c447b34827",
             "error": null,
             "generator_id": "autoforge.generator.local-environment",
             "generator_version": "0.1.0",
             "ownership": "generated",
-            "previous_content_hash": "26d3c9f4f962195606fc90e9034ccf722155134601d682555a8007c8cc668adf",
+            "previous_content_hash": "26b3278d288190a1678ab13028011fd3210830c5a3ac9454cfb988c447b34827",
             "relative_path": "environment/.env.example",
             "source": "project:local-environment",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "unchanged"
           },
           {
@@ -304,19 +304,19 @@
             "previous_content_hash": "774aae4aa1ee5ecf6a6d8a8cacf578c4c7cd0921bd02b06e274e531c0d7e307d",
             "relative_path": "environment/README.md",
             "source": "project:local-environment",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "unchanged"
           },
           {
-            "content_hash": "fd3d33587bfcdf425639de758b89e3a858363f33c7be0a0c157f4fc34d782341",
+            "content_hash": "08afd3d1aa4be73736ae693f69a59007dff0f0c8392cb6b8fc36f75d118601b8",
             "error": null,
             "generator_id": "autoforge.generator.local-environment",
             "generator_version": "0.1.0",
             "ownership": "generated",
-            "previous_content_hash": "fd3d33587bfcdf425639de758b89e3a858363f33c7be0a0c157f4fc34d782341",
+            "previous_content_hash": "08afd3d1aa4be73736ae693f69a59007dff0f0c8392cb6b8fc36f75d118601b8",
             "relative_path": "environment/compose.integration.yml",
             "source": "project:local-environment",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "unchanged"
           },
           {
@@ -340,7 +340,7 @@
             "previous_content_hash": "8123fc4c5aa18418e3b0ea43690e65d59a46024848c12876d4b436d5d6293ff2",
             "relative_path": "environment/postgres-init/00-databases.sql",
             "source": "project:local-environment",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "unchanged"
           },
           {
@@ -392,15 +392,15 @@
             "status": "unchanged"
           },
           {
-            "content_hash": "8992108dbecded4e802fd176175b6de39179864e39c29f5f7ba26af6f5d3d728",
+            "content_hash": "7ac4ed1138ca82bc43d99fa0c5aaa39ec197c87df24896faf6f3ec5378e4c447",
             "error": null,
             "generator_id": "autoforge.generator.local-environment",
             "generator_version": "0.1.0",
             "ownership": "generated",
-            "previous_content_hash": "8992108dbecded4e802fd176175b6de39179864e39c29f5f7ba26af6f5d3d728",
+            "previous_content_hash": "7ac4ed1138ca82bc43d99fa0c5aaa39ec197c87df24896faf6f3ec5378e4c447",
             "relative_path": "environment/service-composition.json",
             "source": "project:local-environment",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "unchanged"
           },
           {
@@ -412,7 +412,7 @@
             "previous_content_hash": "0e7ad7d27109d4fa563ea2fc8cc49561d87129455de5bafe658304ef7931906d",
             "relative_path": "migrations/account/env.py",
             "source": "project:alembic-environment",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "unchanged"
           },
           {
@@ -424,7 +424,7 @@
             "previous_content_hash": "9dd47f6696857eb34d0324818c003b30f0ccda5f8bdc1bcdeaf48ea7e4aa9bc8",
             "relative_path": "migrations/account/script.py.mako",
             "source": "project:alembic-environment",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "unchanged"
           },
           {
@@ -436,7 +436,7 @@
             "previous_content_hash": "a61a5c6572cee727d98c420027c370b4a0ad23e6eb3c3c0c1368150bf8f39def",
             "relative_path": "migrations/account/versions/0002_outbox.py",
             "source": "project:rabbitmq-outbox",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "preserved"
           },
           {
@@ -448,7 +448,7 @@
             "previous_content_hash": "0e7ad7d27109d4fa563ea2fc8cc49561d87129455de5bafe658304ef7931906d",
             "relative_path": "migrations/automation/env.py",
             "source": "project:alembic-environment",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "unchanged"
           },
           {
@@ -460,7 +460,7 @@
             "previous_content_hash": "9dd47f6696857eb34d0324818c003b30f0ccda5f8bdc1bcdeaf48ea7e4aa9bc8",
             "relative_path": "migrations/automation/script.py.mako",
             "source": "project:alembic-environment",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "unchanged"
           },
           {
@@ -472,7 +472,7 @@
             "previous_content_hash": "fe2b09e38a8720578d29b59ed7350fa81437d61bcb83f6f9dd8981650cd49985",
             "relative_path": "migrations/automation/versions/0002_outbox.py",
             "source": "project:rabbitmq-outbox",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "preserved"
           },
           {
@@ -484,7 +484,7 @@
             "previous_content_hash": "9651054df913ffd8efd7bf1353124c090d7bd05498a4265abda08e693ae4481d",
             "relative_path": "migrations/automation/versions/0003_durable_jobs.py",
             "source": "project:durable-jobs",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "preserved"
           },
           {
@@ -496,7 +496,7 @@
             "previous_content_hash": "0e7ad7d27109d4fa563ea2fc8cc49561d87129455de5bafe658304ef7931906d",
             "relative_path": "migrations/identity/env.py",
             "source": "project:alembic-environment",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "unchanged"
           },
           {
@@ -508,7 +508,7 @@
             "previous_content_hash": "9dd47f6696857eb34d0324818c003b30f0ccda5f8bdc1bcdeaf48ea7e4aa9bc8",
             "relative_path": "migrations/identity/script.py.mako",
             "source": "project:alembic-environment",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "unchanged"
           },
           {
@@ -520,7 +520,7 @@
             "previous_content_hash": "cee411d9b700d98a3315c2d71d16f5b0befd5d6a0d7f9dc1a08aeac96587082e",
             "relative_path": "pyproject.toml",
             "source": "project:kis_auto_trading",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "unchanged"
           },
           {
@@ -532,7 +532,7 @@
             "previous_content_hash": "948fccec093d33b1428e5452b5f899f772abd62fcc3136a2ff70ad3e55e63df3",
             "relative_path": "scripts/migrate.py",
             "source": "project:alembic-environment",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "unchanged"
           },
           {
@@ -544,7 +544,7 @@
             "previous_content_hash": "0ecb707d38290b81c7d487431c6a6885eb56323ae67c3c2e1a2483a8f146e1c8",
             "relative_path": "scripts/run_durable_job_worker.py",
             "source": "project:durable-jobs",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "unchanged"
           },
           {
@@ -556,7 +556,7 @@
             "previous_content_hash": "77279895a19415accddb6c6a480f7ff3b116ca6c9a76206aef0ba3eb637831a8",
             "relative_path": "scripts/run_message_worker.py",
             "source": "project:rabbitmq-outbox",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "preserved"
           },
           {
@@ -568,7 +568,7 @@
             "previous_content_hash": "0ac9c915beb997eff7258bca7b56964bf4087863d90303f995173a101934b929",
             "relative_path": "scripts/run_outbox_relay.py",
             "source": "project:rabbitmq-outbox",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "unchanged"
           },
           {
@@ -580,7 +580,7 @@
             "previous_content_hash": "91447944015cec709e8aa7655f7e9d64e1e4508e7023a57fe3746911c0fc6fed",
             "relative_path": "src/kis_auto_trading/__init__.py",
             "source": "project:kis_auto_trading",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "unchanged"
           },
           {
@@ -592,7 +592,7 @@
             "previous_content_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "relative_path": "src/kis_auto_trading/application/__init__.py",
             "source": "project:kis_auto_trading",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "unchanged"
           },
           {
@@ -601,11 +601,11 @@
             "generator_id": "autoforge.generator.fastapi.project",
             "generator_version": "0.1.0",
             "ownership": "generated",
-            "previous_content_hash": "dd96fd4d3ca6361df199de4fa7e85ed0befb83af46bebf1d6f8c75f2c7d098a4",
+            "previous_content_hash": "0129f00dfdf3e4e151ca65afd1d9afc90abcf50bcacfd586c7c7af67e0eb3187",
             "relative_path": "src/kis_auto_trading/application/app_factory.py",
             "source": "project:kis_auto_trading",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
-            "status": "changed"
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
+            "status": "unchanged"
           },
           {
             "content_hash": "417f79640f69eb6b3a691bfc999904f352089816081c23ee44b2e4cd137a0e7a",
@@ -616,19 +616,19 @@
             "previous_content_hash": "417f79640f69eb6b3a691bfc999904f352089816081c23ee44b2e4cd137a0e7a",
             "relative_path": "src/kis_auto_trading/application/durable_job_handler.py",
             "source": "project:durable-jobs",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "preserved"
           },
           {
-            "content_hash": "bb1887a006c236332a1152635553e7ceb9fc066c540b36bbd64a28f9e997301e",
+            "content_hash": "cae49d5147229d8765ddd72988d294f17c07e861bb50d4d9c4eec34dd2ad30a7",
             "error": null,
             "generator_id": "autoforge.generator.fastapi.project",
             "generator_version": "0.1.0",
             "ownership": "scaffolded",
-            "previous_content_hash": "bb1887a006c236332a1152635553e7ceb9fc066c540b36bbd64a28f9e997301e",
+            "previous_content_hash": "cae49d5147229d8765ddd72988d294f17c07e861bb50d4d9c4eec34dd2ad30a7",
             "relative_path": "src/kis_auto_trading/application/extensions.py",
             "source": "project:kis_auto_trading",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "preserved"
           },
           {
@@ -640,19 +640,19 @@
             "previous_content_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "relative_path": "src/kis_auto_trading/application/generated/__init__.py",
             "source": "project:kis_auto_trading",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "unchanged"
           },
           {
-            "content_hash": "69217bd96d30cc1ebe561d613eb88fccf209b9a23f025d05aea3ffe31839a0a8",
+            "content_hash": "5e25897cdb86775cdbb782671a2a48b7312c83d41dd0a6ac79e04c6bc0af543b",
             "error": null,
             "generator_id": "autoforge.generator.fastapi.project",
             "generator_version": "0.1.0",
             "ownership": "generated",
-            "previous_content_hash": "69217bd96d30cc1ebe561d613eb88fccf209b9a23f025d05aea3ffe31839a0a8",
+            "previous_content_hash": "5e25897cdb86775cdbb782671a2a48b7312c83d41dd0a6ac79e04c6bc0af543b",
             "relative_path": "src/kis_auto_trading/application/generated/lifespan.py",
             "source": "project:kis_auto_trading",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "unchanged"
           },
           {
@@ -664,7 +664,7 @@
             "previous_content_hash": "203f28beebf7d92493d3b7f57e56cb6a4e90b2b72583ad6e578b8d3ca10eadcc",
             "relative_path": "src/kis_auto_trading/application/generated/module_registry.py",
             "source": "project:kis_auto_trading",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "unchanged"
           },
           {
@@ -676,7 +676,7 @@
             "previous_content_hash": "85110d05e747e1dfa42793d8a7d2636b90b8a114389f54e47eb0acec3a35e688",
             "relative_path": "src/kis_auto_trading/application/generated/service_heartbeat.py",
             "source": "project:kis_auto_trading",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "unchanged"
           },
           {
@@ -688,7 +688,7 @@
             "previous_content_hash": "b1f4f784b343a70affe4b7c0df485ddd26fbd9c6cab93bf2018b3928cda2b565",
             "relative_path": "src/kis_auto_trading/application/observability.py",
             "source": "project:kis_auto_trading",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "unchanged"
           },
           {
@@ -700,7 +700,7 @@
             "previous_content_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "relative_path": "src/kis_auto_trading/infrastructure/__init__.py",
             "source": "project:kis_auto_trading:sqlalchemy",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "unchanged"
           },
           {
@@ -712,7 +712,7 @@
             "previous_content_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "relative_path": "src/kis_auto_trading/infrastructure/database/__init__.py",
             "source": "project:kis_auto_trading:sqlalchemy",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "unchanged"
           },
           {
@@ -724,7 +724,7 @@
             "previous_content_hash": "987edfd9dfe38b2c49492c7d1a4e774015d16b72e2281b018e4160be6b47d560",
             "relative_path": "src/kis_auto_trading/infrastructure/database/base.py",
             "source": "project:kis_auto_trading:sqlalchemy",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "unchanged"
           },
           {
@@ -736,7 +736,7 @@
             "previous_content_hash": "4efeb42c7394c84877224886548c8dca7fb986706f7730d23e70583a17cfcac5",
             "relative_path": "src/kis_auto_trading/infrastructure/database/provider.py",
             "source": "project:kis_auto_trading:sqlalchemy",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "unchanged"
           },
           {
@@ -748,7 +748,7 @@
             "previous_content_hash": "94632c64a9f0b5f399315a18cd7cb47fd600e6ff6f2b0c18811f3accb672e67f",
             "relative_path": "src/kis_auto_trading/infrastructure/database/routing.py",
             "source": "project:kis_auto_trading:sqlalchemy",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "unchanged"
           },
           {
@@ -760,7 +760,7 @@
             "previous_content_hash": "1d32124d7acb646be3edc17738d6a351e24ba771dbcd0d4b7da04885b817550c",
             "relative_path": "src/kis_auto_trading/infrastructure/database/session.py",
             "source": "project:kis_auto_trading:sqlalchemy",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "unchanged"
           },
           {
@@ -772,7 +772,7 @@
             "previous_content_hash": "6b3476f724532f5d955d11e4ecd4aa82976328c17cb2d02467af9bb609a56a54",
             "relative_path": "src/kis_auto_trading/infrastructure/durable_jobs/__init__.py",
             "source": "project:durable-jobs",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "unchanged"
           },
           {
@@ -784,7 +784,7 @@
             "previous_content_hash": "8ac230329f193b39566f1100a21824c64573041e6d6d0f0f9c575cb89f608895",
             "relative_path": "src/kis_auto_trading/infrastructure/durable_jobs/contracts.py",
             "source": "project:durable-jobs",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "unchanged"
           },
           {
@@ -796,7 +796,7 @@
             "previous_content_hash": "3d4353b1f1629c54d67cef15ad2f81aa32e37ade83ac63fe7098dcb8f4b110b6",
             "relative_path": "src/kis_auto_trading/infrastructure/durable_jobs/models.py",
             "source": "project:durable-jobs",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "unchanged"
           },
           {
@@ -808,7 +808,7 @@
             "previous_content_hash": "c1e2a09170a8ca9c9fe41590b83c5961a3f6ea35a29e33771bfa3f8498059241",
             "relative_path": "src/kis_auto_trading/infrastructure/durable_jobs/repository.py",
             "source": "project:durable-jobs",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "unchanged"
           },
           {
@@ -820,7 +820,7 @@
             "previous_content_hash": "7c35f6a25b619186175255fd3673b078d6a6fb60918f9fb7a88bb1e064c2c199",
             "relative_path": "src/kis_auto_trading/infrastructure/durable_jobs/worker.py",
             "source": "project:durable-jobs",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "unchanged"
           },
           {
@@ -832,7 +832,7 @@
             "previous_content_hash": "f6becf4b09991da1d759e094f89a090e51bef19c9865b47450561d1bbe76d92b",
             "relative_path": "src/kis_auto_trading/infrastructure/messaging/__init__.py",
             "source": "project:rabbitmq-outbox",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "unchanged"
           },
           {
@@ -844,7 +844,7 @@
             "previous_content_hash": "e029949c2078cf1a4e75490d18fd9b42cc3b9ab0d61f7c57e9abd5de609ccf5d",
             "relative_path": "src/kis_auto_trading/infrastructure/messaging/protocol.py",
             "source": "project:rabbitmq-outbox",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "unchanged"
           },
           {
@@ -856,7 +856,7 @@
             "previous_content_hash": "082387927436309071d3b34c3f6938305900adf0125f91de612235095323297e",
             "relative_path": "src/kis_auto_trading/infrastructure/messaging/rabbitmq.py",
             "source": "project:rabbitmq-outbox",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "unchanged"
           },
           {
@@ -868,7 +868,7 @@
             "previous_content_hash": "e8e85dd79178ea63ed4133460ced2c09b3c7941a5a5305a8fc5b7058d779508a",
             "relative_path": "src/kis_auto_trading/infrastructure/outbox/__init__.py",
             "source": "project:rabbitmq-outbox",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "unchanged"
           },
           {
@@ -880,7 +880,7 @@
             "previous_content_hash": "5b047e067d99ea5fc3fbfdbd6a23d8cad76023634360a6bdfe40c5c519b3b5c5",
             "relative_path": "src/kis_auto_trading/infrastructure/outbox/inbox.py",
             "source": "project:rabbitmq-outbox",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "unchanged"
           },
           {
@@ -892,7 +892,7 @@
             "previous_content_hash": "f051e95f8f42ec49b2cdd8b16fccadba48c41df8932135a6878dea3e8f6c2b79",
             "relative_path": "src/kis_auto_trading/infrastructure/outbox/models.py",
             "source": "project:rabbitmq-outbox",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "unchanged"
           },
           {
@@ -904,7 +904,7 @@
             "previous_content_hash": "d72fabb1aec55c8c6ab395aa900a8109700a323e6996b88b3e04a9422f339255",
             "relative_path": "src/kis_auto_trading/infrastructure/outbox/relay.py",
             "source": "project:rabbitmq-outbox",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "unchanged"
           },
           {
@@ -916,7 +916,19 @@
             "previous_content_hash": "fff0408dc50903d50283a3ba4b29eeee3ea8a18422e359da75a96fe3cd387039",
             "relative_path": "src/kis_auto_trading/infrastructure/outbox/repository.py",
             "source": "project:rabbitmq-outbox",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
+            "status": "unchanged"
+          },
+          {
+            "content_hash": "894a578d2f5c8004a83bd96967a8e71f82f06558a261b66aaa99d91d2e56881a",
+            "error": null,
+            "generator_id": "autoforge.generator.fastapi.project",
+            "generator_version": "0.1.0",
+            "ownership": "generated",
+            "previous_content_hash": "894a578d2f5c8004a83bd96967a8e71f82f06558a261b66aaa99d91d2e56881a",
+            "relative_path": "src/kis_auto_trading/infrastructure/service_tokens.py",
+            "source": "project:kis_auto_trading",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "unchanged"
           },
           {
@@ -928,7 +940,7 @@
             "previous_content_hash": "1a48f5abb09f9373d7cbb2f88e83f97562403ddfe83678480c75da9a16ef6859",
             "relative_path": "src/kis_auto_trading/infrastructure/session_store/__init__.py",
             "source": "project:kis_auto_trading:session-store",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "unchanged"
           },
           {
@@ -940,7 +952,7 @@
             "previous_content_hash": "11cfc979ce0c18774b5cfaf334a66d3f8aed7c7d3e0adeae880332ffb77f0ab7",
             "relative_path": "src/kis_auto_trading/infrastructure/session_store/fake.py",
             "source": "project:kis_auto_trading:session-store",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "unchanged"
           },
           {
@@ -952,7 +964,7 @@
             "previous_content_hash": "8a2a8d8cec436df969f9ed264f1c9372756651dc9433f4b821ba6d54afeca3fa",
             "relative_path": "src/kis_auto_trading/infrastructure/session_store/protocol.py",
             "source": "project:kis_auto_trading:session-store",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "unchanged"
           },
           {
@@ -964,7 +976,7 @@
             "previous_content_hash": "da86af99e6d484c15ca96e7b6f574b1f950b83d7738fe6628df5486763756615",
             "relative_path": "src/kis_auto_trading/infrastructure/session_store/provider.py",
             "source": "project:kis_auto_trading:session-store",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "unchanged"
           },
           {
@@ -976,7 +988,7 @@
             "previous_content_hash": "742f63c2438ee53c607551a54fa7d1669812d92f511938179f1999c5d96617db",
             "relative_path": "src/kis_auto_trading/infrastructure/session_store/redis.py",
             "source": "project:kis_auto_trading:session-store",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "unchanged"
           },
           {
@@ -988,7 +1000,7 @@
             "previous_content_hash": "e1485f9e386d38f48dd5ac93a91a123854def24a7ff2034fd8d48c84f01d0e99",
             "relative_path": "src/kis_auto_trading/main.py",
             "source": "project:kis_auto_trading",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "unchanged"
           },
           {
@@ -1000,7 +1012,7 @@
             "previous_content_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "relative_path": "src/kis_auto_trading/modules/__init__.py",
             "source": "project:kis_auto_trading",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "unchanged"
           },
           {
@@ -1012,19 +1024,19 @@
             "previous_content_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "relative_path": "src/kis_auto_trading/routers/__init__.py",
             "source": "project:kis_auto_trading",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "unchanged"
           },
           {
-            "content_hash": "c367c0d00b629dd8927bc4ee8d6a5609f96e12d0f0076875fbe0a2b4c0acc661",
+            "content_hash": "e6790025ee6eb49bbb8cb3ffd0928a16a03bb39a7c6fa63eb2399dffd2d54723",
             "error": null,
             "generator_id": "autoforge.generator.fastapi.project",
             "generator_version": "0.1.0",
             "ownership": "generated",
-            "previous_content_hash": "c367c0d00b629dd8927bc4ee8d6a5609f96e12d0f0076875fbe0a2b4c0acc661",
+            "previous_content_hash": "e6790025ee6eb49bbb8cb3ffd0928a16a03bb39a7c6fa63eb2399dffd2d54723",
             "relative_path": "src/kis_auto_trading/routers/durable_jobs.py",
             "source": "project:kis_auto_trading",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "unchanged"
           },
           {
@@ -1036,7 +1048,7 @@
             "previous_content_hash": "d81a8a891637b9b1d1d42e272b07377237283b3516794fdef1527c8ea83874de",
             "relative_path": "src/kis_auto_trading/routers/health.py",
             "source": "project:kis_auto_trading",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "unchanged"
           },
           {
@@ -1048,12 +1060,12 @@
             "previous_content_hash": "aa2d208edf4c3d8430dbe3c362aca2ea4c12095b293c7073d34427310284cb6e",
             "relative_path": "tests/test_health.py",
             "source": "project:kis_auto_trading",
-            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
             "status": "unchanged"
           }
         ],
-        "job_id": "7faa8409-c143-4f0d-a14b-97c1b9a87be0",
-        "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+        "job_id": "aac2f73c-2a9e-4791-a388-3177e9533ffc",
+        "specification_hash": "3adcef33cb32a97a8b79170c3fc4bc4afd0b8177135c4145c94dc1a5a88db004",
         "specification_version": "1"
       },
       "unit_id": "project"
@@ -1071,7 +1083,7 @@
             "previous_content_hash": "651620ca0c31b29be6b6ef211a0ed898e5dd39864a9ac604571901c532465a23",
             "relative_path": "database/sharded/0001_account.sql",
             "source": "module:account:postgresql-ddl",
-            "specification_hash": "9929ac59ec5025ee885d10888dd72a1bf18c3b52571cf1e698227bd3a97ff0a3",
+            "specification_hash": "cb190424a28244b93809a838782fb2fdd291ec3a1c495ac6242623827f43f264",
             "status": "unchanged"
           },
           {
@@ -1083,7 +1095,7 @@
             "previous_content_hash": "3a4838a4f52f4df7e031751d1e05f8d7f7ab596bb3cacf8db852f2c153e9ee5b",
             "relative_path": "migrations/account/versions/0001_account.py",
             "source": "module:account:alembic-baseline",
-            "specification_hash": "9929ac59ec5025ee885d10888dd72a1bf18c3b52571cf1e698227bd3a97ff0a3",
+            "specification_hash": "cb190424a28244b93809a838782fb2fdd291ec3a1c495ac6242623827f43f264",
             "status": "preserved"
           },
           {
@@ -1095,7 +1107,7 @@
             "previous_content_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "relative_path": "src/kis_auto_trading/modules/account/__init__.py",
             "source": "module:account",
-            "specification_hash": "9929ac59ec5025ee885d10888dd72a1bf18c3b52571cf1e698227bd3a97ff0a3",
+            "specification_hash": "cb190424a28244b93809a838782fb2fdd291ec3a1c495ac6242623827f43f264",
             "status": "unchanged"
           },
           {
@@ -1107,7 +1119,7 @@
             "previous_content_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "relative_path": "src/kis_auto_trading/modules/account/generated/__init__.py",
             "source": "module:account",
-            "specification_hash": "9929ac59ec5025ee885d10888dd72a1bf18c3b52571cf1e698227bd3a97ff0a3",
+            "specification_hash": "cb190424a28244b93809a838782fb2fdd291ec3a1c495ac6242623827f43f264",
             "status": "unchanged"
           },
           {
@@ -1119,7 +1131,7 @@
             "previous_content_hash": "de37f0173c55fd1af834a1fc2c43ba4e785273998ae39018f5869fe397667d8b",
             "relative_path": "src/kis_auto_trading/modules/account/generated/fake_repository.py",
             "source": "module:account:repository",
-            "specification_hash": "9929ac59ec5025ee885d10888dd72a1bf18c3b52571cf1e698227bd3a97ff0a3",
+            "specification_hash": "cb190424a28244b93809a838782fb2fdd291ec3a1c495ac6242623827f43f264",
             "status": "unchanged"
           },
           {
@@ -1131,7 +1143,7 @@
             "previous_content_hash": "68d2579c1c73f80872138b37fa3330cca88be66a1184db59973e53509cc911ac",
             "relative_path": "src/kis_auto_trading/modules/account/generated/models.py",
             "source": "module:account",
-            "specification_hash": "9929ac59ec5025ee885d10888dd72a1bf18c3b52571cf1e698227bd3a97ff0a3",
+            "specification_hash": "cb190424a28244b93809a838782fb2fdd291ec3a1c495ac6242623827f43f264",
             "status": "unchanged"
           },
           {
@@ -1143,7 +1155,7 @@
             "previous_content_hash": "4713cef28d6161e671a2585ada804b9684ff15b6eaa8f4d01e231db2c1bf8a64",
             "relative_path": "src/kis_auto_trading/modules/account/generated/repository.py",
             "source": "module:account:repository",
-            "specification_hash": "9929ac59ec5025ee885d10888dd72a1bf18c3b52571cf1e698227bd3a97ff0a3",
+            "specification_hash": "cb190424a28244b93809a838782fb2fdd291ec3a1c495ac6242623827f43f264",
             "status": "unchanged"
           },
           {
@@ -1155,7 +1167,7 @@
             "previous_content_hash": "baa46bf2b099d16b0a8c7d591562a8f7d4929a7d8da0a8aedc0ffcff599ea617",
             "relative_path": "src/kis_auto_trading/modules/account/generated/router.py",
             "source": "module:account",
-            "specification_hash": "9929ac59ec5025ee885d10888dd72a1bf18c3b52571cf1e698227bd3a97ff0a3",
+            "specification_hash": "cb190424a28244b93809a838782fb2fdd291ec3a1c495ac6242623827f43f264",
             "status": "unchanged"
           },
           {
@@ -1167,7 +1179,7 @@
             "previous_content_hash": "0ffab535483b2b8b021454914493eab4ec2da9ff80871a41799ad6a8cf22a3b7",
             "relative_path": "src/kis_auto_trading/modules/account/generated/schemas.py",
             "source": "module:account",
-            "specification_hash": "9929ac59ec5025ee885d10888dd72a1bf18c3b52571cf1e698227bd3a97ff0a3",
+            "specification_hash": "cb190424a28244b93809a838782fb2fdd291ec3a1c495ac6242623827f43f264",
             "status": "unchanged"
           },
           {
@@ -1179,7 +1191,7 @@
             "previous_content_hash": "884dca3507d0e0915d889e1564aee206ad074667e5e938cf4f3eb36e5c131901",
             "relative_path": "src/kis_auto_trading/modules/account/generated/sqlalchemy_models.py",
             "source": "module:account:sqlalchemy-model",
-            "specification_hash": "9929ac59ec5025ee885d10888dd72a1bf18c3b52571cf1e698227bd3a97ff0a3",
+            "specification_hash": "cb190424a28244b93809a838782fb2fdd291ec3a1c495ac6242623827f43f264",
             "status": "unchanged"
           },
           {
@@ -1191,7 +1203,7 @@
             "previous_content_hash": "b45bda499c0191e0bb0c040e6d2c1af1c424673df32cf86e3dff59f741d2ef01",
             "relative_path": "src/kis_auto_trading/modules/account/generated/sqlalchemy_repositories.py",
             "source": "module:account:sqlalchemy-model",
-            "specification_hash": "9929ac59ec5025ee885d10888dd72a1bf18c3b52571cf1e698227bd3a97ff0a3",
+            "specification_hash": "cb190424a28244b93809a838782fb2fdd291ec3a1c495ac6242623827f43f264",
             "status": "unchanged"
           },
           {
@@ -1203,12 +1215,12 @@
             "previous_content_hash": "fab2ee325f0342e306862d43333ef735f85dcee2e69a25d4c5c2fd5307239da3",
             "relative_path": "src/kis_auto_trading/modules/account/handlers.py",
             "source": "module:account",
-            "specification_hash": "9929ac59ec5025ee885d10888dd72a1bf18c3b52571cf1e698227bd3a97ff0a3",
+            "specification_hash": "cb190424a28244b93809a838782fb2fdd291ec3a1c495ac6242623827f43f264",
             "status": "preserved"
           }
         ],
-        "job_id": "7faa8409-c143-4f0d-a14b-97c1b9a87be0",
-        "specification_hash": "9929ac59ec5025ee885d10888dd72a1bf18c3b52571cf1e698227bd3a97ff0a3",
+        "job_id": "aac2f73c-2a9e-4791-a388-3177e9533ffc",
+        "specification_hash": "cb190424a28244b93809a838782fb2fdd291ec3a1c495ac6242623827f43f264",
         "specification_version": "1"
       },
       "unit_id": "module:account"
@@ -1226,7 +1238,7 @@
             "previous_content_hash": "58daa6b569676fba5b49195260a82a91227b99b1a13a497830f8362d46552f9f",
             "relative_path": "database/global/0001_identity.sql",
             "source": "module:identity:postgresql-ddl",
-            "specification_hash": "ffcbba6369441bc33b33e85b52aacc18fd43545bdbdd72e6cdc3bdd4957151aa",
+            "specification_hash": "d95e76ba981936e16757617807ba98615e34c4f8da12fc91069ebc0077583370",
             "status": "unchanged"
           },
           {
@@ -1238,7 +1250,7 @@
             "previous_content_hash": "4644cf34a908d55dbc26050c43b0fb4ca705ef369d9b75302de0b72ce28ec9f9",
             "relative_path": "migrations/identity/versions/0001_identity.py",
             "source": "module:identity:alembic-baseline",
-            "specification_hash": "ffcbba6369441bc33b33e85b52aacc18fd43545bdbdd72e6cdc3bdd4957151aa",
+            "specification_hash": "d95e76ba981936e16757617807ba98615e34c4f8da12fc91069ebc0077583370",
             "status": "preserved"
           },
           {
@@ -1250,7 +1262,7 @@
             "previous_content_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "relative_path": "src/kis_auto_trading/modules/identity/__init__.py",
             "source": "module:identity",
-            "specification_hash": "ffcbba6369441bc33b33e85b52aacc18fd43545bdbdd72e6cdc3bdd4957151aa",
+            "specification_hash": "d95e76ba981936e16757617807ba98615e34c4f8da12fc91069ebc0077583370",
             "status": "unchanged"
           },
           {
@@ -1262,7 +1274,7 @@
             "previous_content_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "relative_path": "src/kis_auto_trading/modules/identity/generated/__init__.py",
             "source": "module:identity",
-            "specification_hash": "ffcbba6369441bc33b33e85b52aacc18fd43545bdbdd72e6cdc3bdd4957151aa",
+            "specification_hash": "d95e76ba981936e16757617807ba98615e34c4f8da12fc91069ebc0077583370",
             "status": "unchanged"
           },
           {
@@ -1274,7 +1286,7 @@
             "previous_content_hash": "371a3722cb51f8102b474ffbd1959db1b630a86f98e6741150a732c1a9577536",
             "relative_path": "src/kis_auto_trading/modules/identity/generated/fake_repository.py",
             "source": "module:identity:repository",
-            "specification_hash": "ffcbba6369441bc33b33e85b52aacc18fd43545bdbdd72e6cdc3bdd4957151aa",
+            "specification_hash": "d95e76ba981936e16757617807ba98615e34c4f8da12fc91069ebc0077583370",
             "status": "unchanged"
           },
           {
@@ -1286,7 +1298,7 @@
             "previous_content_hash": "79a58af0da3d5c82ac316868acacafc78b9d77c8f95ac8674b08f0f8098c833a",
             "relative_path": "src/kis_auto_trading/modules/identity/generated/models.py",
             "source": "module:identity",
-            "specification_hash": "ffcbba6369441bc33b33e85b52aacc18fd43545bdbdd72e6cdc3bdd4957151aa",
+            "specification_hash": "d95e76ba981936e16757617807ba98615e34c4f8da12fc91069ebc0077583370",
             "status": "unchanged"
           },
           {
@@ -1298,7 +1310,7 @@
             "previous_content_hash": "34daba0535593bc40baa3defa43f657ac94bceb7483e26af6d18d641ec859e9b",
             "relative_path": "src/kis_auto_trading/modules/identity/generated/repository.py",
             "source": "module:identity:repository",
-            "specification_hash": "ffcbba6369441bc33b33e85b52aacc18fd43545bdbdd72e6cdc3bdd4957151aa",
+            "specification_hash": "d95e76ba981936e16757617807ba98615e34c4f8da12fc91069ebc0077583370",
             "status": "unchanged"
           },
           {
@@ -1310,7 +1322,7 @@
             "previous_content_hash": "cb46532ac06e1d2004a6890ddfa0ef5b8b29e8b417bf818403c3fca3c1f940a0",
             "relative_path": "src/kis_auto_trading/modules/identity/generated/router.py",
             "source": "module:identity",
-            "specification_hash": "ffcbba6369441bc33b33e85b52aacc18fd43545bdbdd72e6cdc3bdd4957151aa",
+            "specification_hash": "d95e76ba981936e16757617807ba98615e34c4f8da12fc91069ebc0077583370",
             "status": "unchanged"
           },
           {
@@ -1322,7 +1334,7 @@
             "previous_content_hash": "928d7e9b498cfdcb68888b9f250cf8d89c36f25f45110233ca5540aecfe3ce22",
             "relative_path": "src/kis_auto_trading/modules/identity/generated/schemas.py",
             "source": "module:identity",
-            "specification_hash": "ffcbba6369441bc33b33e85b52aacc18fd43545bdbdd72e6cdc3bdd4957151aa",
+            "specification_hash": "d95e76ba981936e16757617807ba98615e34c4f8da12fc91069ebc0077583370",
             "status": "unchanged"
           },
           {
@@ -1334,7 +1346,7 @@
             "previous_content_hash": "3bd630a6bdaf4be2db159b9873e7393b3a4c5616ba9bf39b455e5efa6174797d",
             "relative_path": "src/kis_auto_trading/modules/identity/generated/sqlalchemy_models.py",
             "source": "module:identity:sqlalchemy-model",
-            "specification_hash": "ffcbba6369441bc33b33e85b52aacc18fd43545bdbdd72e6cdc3bdd4957151aa",
+            "specification_hash": "d95e76ba981936e16757617807ba98615e34c4f8da12fc91069ebc0077583370",
             "status": "unchanged"
           },
           {
@@ -1346,7 +1358,7 @@
             "previous_content_hash": "b400b802a1fe8a5be00cc5e0cd7213f475dde7092ac7baaf756ec8aeaccf9ec1",
             "relative_path": "src/kis_auto_trading/modules/identity/generated/sqlalchemy_repositories.py",
             "source": "module:identity:sqlalchemy-model",
-            "specification_hash": "ffcbba6369441bc33b33e85b52aacc18fd43545bdbdd72e6cdc3bdd4957151aa",
+            "specification_hash": "d95e76ba981936e16757617807ba98615e34c4f8da12fc91069ebc0077583370",
             "status": "unchanged"
           },
           {
@@ -1358,12 +1370,12 @@
             "previous_content_hash": "55318d05a16244fef01afedb64591a03f769bacce6ced8ca46ebf0657eea0d36",
             "relative_path": "src/kis_auto_trading/modules/identity/handlers.py",
             "source": "module:identity",
-            "specification_hash": "ffcbba6369441bc33b33e85b52aacc18fd43545bdbdd72e6cdc3bdd4957151aa",
+            "specification_hash": "d95e76ba981936e16757617807ba98615e34c4f8da12fc91069ebc0077583370",
             "status": "preserved"
           }
         ],
-        "job_id": "7faa8409-c143-4f0d-a14b-97c1b9a87be0",
-        "specification_hash": "ffcbba6369441bc33b33e85b52aacc18fd43545bdbdd72e6cdc3bdd4957151aa",
+        "job_id": "aac2f73c-2a9e-4791-a388-3177e9533ffc",
+        "specification_hash": "d95e76ba981936e16757617807ba98615e34c4f8da12fc91069ebc0077583370",
         "specification_version": "1"
       },
       "unit_id": "module:identity"
@@ -1517,7 +1529,7 @@
             "status": "preserved"
           }
         ],
-        "job_id": "7faa8409-c143-4f0d-a14b-97c1b9a87be0",
+        "job_id": "aac2f73c-2a9e-4791-a388-3177e9533ffc",
         "specification_hash": "dbd43c8deea8c236e56bb7973e9ae2b8d233d8f957a7944efa6021f93fdf0037",
         "specification_version": "1"
       },

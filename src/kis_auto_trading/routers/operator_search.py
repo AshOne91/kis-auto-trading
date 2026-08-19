@@ -6,11 +6,11 @@ import httpx
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 
+from kis_auto_trading.infrastructure.service_tokens import require_service_token
 from kis_auto_trading.modules.news.search import NewsSearchIndexer
 from kis_auto_trading.modules.operations.durable_job_history_search import (
     DurableJobHistorySearchIndexer,
 )
-from kis_auto_trading.routers.durable_jobs import require_durable_job_api_token
 
 logger = logging.getLogger(__name__)
 
@@ -52,7 +52,7 @@ def get_news_search_indexer() -> NewsSearchIndexer:
 router = APIRouter(
     prefix="/internal/operator/search",
     tags=["operator-search"],
-    dependencies=[Depends(require_durable_job_api_token)],
+    dependencies=[Depends(require_service_token("operator"))],
 )
 
 

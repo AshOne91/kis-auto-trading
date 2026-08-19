@@ -3,6 +3,7 @@ from contextlib import AsyncExitStack, asynccontextmanager
 
 from fastapi import FastAPI
 
+from kis_auto_trading.application import extensions
 from kis_auto_trading.application.generated.service_heartbeat import (
     service_heartbeat_lifespan,
 )
@@ -22,6 +23,8 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         await stack.enter_async_context(database_lifespan(app))
         await stack.enter_async_context(session_store_lifespan(app))
         await stack.enter_async_context(service_heartbeat_lifespan(app))
+        for lifespan_factory in getattr(extensions, 'USER_LIFESPANS', ()):
+            await stack.enter_async_context(lifespan_factory(app))
         try:
             yield
         finally:

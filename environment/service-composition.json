@@ -124,6 +124,7 @@
         "DURABLE_JOB_API_TOKEN",
         "IDENTITY_DATABASE_URL",
         "LOG_DIRECTORY",
+        "OPERATOR_API_TOKEN",
         "REDIS_URL"
       ],
       "dependencies": {

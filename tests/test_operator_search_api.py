@@ -64,10 +64,10 @@ def test_user_owned_extension_registers_operator_router() -> None:
     assert USER_ROUTERS == (router,)
 
 
-def test_operator_search_requires_durable_job_token(
+def test_operator_search_requires_operator_token(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    monkeypatch.setenv("DURABLE_JOB_API_TOKEN", "test-token")
+    monkeypatch.setenv("OPERATOR_API_TOKEN", "test-token")
 
     with TestClient(_app(FakeIndexer())) as client:
         response = client.get("/internal/operator/search/durable-jobs?query=news")
@@ -78,14 +78,20 @@ def test_operator_search_requires_durable_job_token(
 def test_operator_search_returns_safe_projection(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    monkeypatch.setenv("DURABLE_JOB_API_TOKEN", "test-token")
+    monkeypatch.setenv("DURABLE_JOB_API_TOKEN", "durable-token")
+    monkeypatch.setenv("OPERATOR_API_TOKEN", "operator-token")
 
     with TestClient(_app(FakeIndexer())) as client:
+        denied = client.get(
+            "/internal/operator/search/durable-jobs?query=news%20index&limit=1",
+            headers={"Authorization": "Bearer durable-token"},
+        )
         response = client.get(
             "/internal/operator/search/durable-jobs?query=news%20index&limit=1",
-            headers={"Authorization": "Bearer test-token"},
+            headers={"Authorization": "Bearer operator-token"},
         )
 
+    assert denied.status_code == 401
     assert response.status_code == 200
     document = response.json()[0]
     assert document["job_id"] == "job-1"
@@ -104,7 +110,7 @@ def test_operator_search_returns_safe_projection(
 def test_operator_news_search_returns_canonical_projection(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    monkeypatch.setenv("DURABLE_JOB_API_TOKEN", "test-token")
+    monkeypatch.setenv("OPERATOR_API_TOKEN", "test-token")
 
     with TestClient(_app(FakeIndexer(), FakeNewsIndexer())) as client:
         response = client.get(
