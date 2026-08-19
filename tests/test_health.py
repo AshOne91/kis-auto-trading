@@ -10,6 +10,9 @@ def test_health(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("AUTOMATION_DATABASE_URL", "postgresql+asyncpg://user:password@localhost/database")
     monkeypatch.setenv("ACCOUNT_SHARD_1_DATABASE_URL", "postgresql+asyncpg://user:password@localhost/database")
     monkeypatch.setenv("ACCOUNT_SHARD_2_DATABASE_URL", "postgresql+asyncpg://user:password@localhost/database")
+    monkeypatch.setenv("KIS_API_URL", "https://example.invalid")
+    monkeypatch.setenv("KIS_APP_KEY", "test-app-key")
+    monkeypatch.setenv("KIS_APP_SECRET", "test-app-secret")
     class ReadyDependency:
         async def health_check(self) -> None:
             return None
