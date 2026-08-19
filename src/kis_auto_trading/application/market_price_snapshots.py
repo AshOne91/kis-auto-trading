@@ -1,5 +1,5 @@
 from datetime import UTC, datetime
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 from kis_auto_trading.infrastructure.database.routing import ShardTarget
 from kis_auto_trading.infrastructure.database.session import AsyncSessionRegistry
@@ -23,3 +23,11 @@ async def save_market_price_snapshot(
     async with session_registry.session(ShardTarget(store="automation")) as session:
         await SQLAlchemyMarketPriceSnapshotRepository(session).save(snapshot)
     return snapshot
+
+
+async def get_market_price_snapshot(
+    session_registry: AsyncSessionRegistry,
+    snapshot_id: UUID,
+) -> MarketPriceSnapshot | None:
+    async with session_registry.session(ShardTarget(store="automation")) as session:
+        return await SQLAlchemyMarketPriceSnapshotRepository(session).find_by_id(snapshot_id)

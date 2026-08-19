@@ -1,5 +1,6 @@
 import logging
 from typing import Annotated
+from uuid import UUID
 
 import httpx
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
@@ -7,6 +8,7 @@ from pydantic import BaseModel
 from sqlalchemy.exc import SQLAlchemyError
 
 from kis_auto_trading.application.market_price_snapshots import (
+    get_market_price_snapshot,
     save_market_price_snapshot,
 )
 from kis_auto_trading.infrastructure.database.provider import get_session_registry
@@ -54,6 +56,32 @@ async def get_domestic_stock_price(
     market_data: Annotated[KisMarketDataClient, Depends(get_kis_market_data)],
 ) -> KisDomesticStockPrice:
     return await _get_domestic_stock_price(market_data, stock_code)
+
+
+@router.get(
+    "/domestic-stock-price/snapshots/{snapshot_id}",
+    response_model=MarketPriceSnapshot,
+)
+async def get_domestic_stock_price_snapshot(
+    snapshot_id: UUID,
+    session_registry: Annotated[
+        AsyncSessionRegistry, Depends(get_session_registry)
+    ],
+) -> MarketPriceSnapshot:
+    try:
+        snapshot = await get_market_price_snapshot(session_registry, snapshot_id)
+    except (ShardRoutingError, SQLAlchemyError) as error:
+        logger.warning("operator market price snapshot lookup failed: %s", type(error).__name__)
+        raise HTTPException(
+            status_code=503,
+            detail="KIS market data persistence is unavailable",
+        ) from error
+    if snapshot is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Market price snapshot was not found",
+        )
+    return snapshot
 
 
 @router.post(
