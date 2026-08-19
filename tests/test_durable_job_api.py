@@ -29,7 +29,7 @@ def test_durable_job_api_authenticates_and_reuses_run_key(
         run_key="news_collection:2026-08-12T00:00:00+00:00",
         status="requested",
         payload={"symbols": ["AAPL"]},
-        result=None,
+        result={"indexed": 1},
         error=None,
         requested_at=datetime(2026, 8, 12, tzinfo=UTC),
         updated_at=datetime(2026, 8, 12, tzinfo=UTC),
@@ -121,6 +121,7 @@ def test_durable_job_api_authenticates_and_reuses_run_key(
     ]
     assert status.status_code == 200
     assert status.json()["status"] == "requested"
+    assert status.json()["result"] == {"indexed": 1}
     assert cancelled.status_code == 200
     assert cancelled.json()["status"] == "cancelled"
     assert cancelled_again.status_code == 200
