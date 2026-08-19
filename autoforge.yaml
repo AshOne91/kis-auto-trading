@@ -64,6 +64,12 @@ application:
   framework: fastapi
   control_plane_heartbeat:
     enabled: true
+  runtime_environments:
+    - name: KIS_API_URL
+    - name: KIS_APP_KEY
+    - name: KIS_APP_SECRET
+    - name: KIS_TOKEN_SCOPE
+      required: false
   modules:
     - identity
     - account

@@ -18,6 +18,10 @@ The Secret must provide these keys before the Deployment starts:
 - `AUTOMATION_DATABASE_URL`
 - `DURABLE_JOB_API_TOKEN`
 - `IDENTITY_DATABASE_URL`
+- `KIS_API_URL`
+- `KIS_APP_KEY`
+- `KIS_APP_SECRET`
+- `KIS_TOKEN_SCOPE`
 - `OPERATOR_API_TOKEN`
 - `RABBITMQ_URL`
 - `REDIS_URL`

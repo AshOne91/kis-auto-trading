@@ -76,6 +76,26 @@ spec:
             secretKeyRef:
               name: my-kis-gold-bar
               key: IDENTITY_DATABASE_URL
+        - name: KIS_API_URL
+          valueFrom:
+            secretKeyRef:
+              name: my-kis-gold-bar
+              key: KIS_API_URL
+        - name: KIS_APP_KEY
+          valueFrom:
+            secretKeyRef:
+              name: my-kis-gold-bar
+              key: KIS_APP_KEY
+        - name: KIS_APP_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: my-kis-gold-bar
+              key: KIS_APP_SECRET
+        - name: KIS_TOKEN_SCOPE
+          valueFrom:
+            secretKeyRef:
+              name: my-kis-gold-bar
+              key: KIS_TOKEN_SCOPE
         - name: OPERATOR_API_TOKEN
           valueFrom:
             secretKeyRef:

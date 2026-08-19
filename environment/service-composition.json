@@ -126,6 +126,10 @@
         "CONTROL_PLANE_HEARTBEAT_URL",
         "DURABLE_JOB_API_TOKEN",
         "IDENTITY_DATABASE_URL",
+        "KIS_API_URL",
+        "KIS_APP_KEY",
+        "KIS_APP_SECRET",
+        "KIS_TOKEN_SCOPE",
         "LOG_DIRECTORY",
         "OPERATOR_API_TOKEN",
         "REDIS_URL"
