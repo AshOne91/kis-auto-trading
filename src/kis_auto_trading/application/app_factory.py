@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 
+from kis_auto_trading.application.extensions import USER_ROUTERS
 from kis_auto_trading.application.generated.lifespan import lifespan
 from kis_auto_trading.application.generated.module_registry import MODULE_ROUTERS
 from kis_auto_trading.application.observability import (
@@ -20,6 +21,8 @@ def create_app() -> FastAPI:
     install_request_logging(app)
     app.include_router(health_router)
     app.include_router(durable_jobs_router)
+    for router in USER_ROUTERS:
+        app.include_router(router)
     for router in MODULE_ROUTERS:
         app.include_router(router)
     return app

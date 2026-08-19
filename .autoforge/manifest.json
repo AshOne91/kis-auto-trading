@@ -1,7 +1,7 @@
 {
   "document_kind": "generation_job",
   "format_version": "1",
-  "job_id": "d3f20bd7-7d04-4238-a272-0ba0a68ec07c",
+  "job_id": "7faa8409-c143-4f0d-a14b-97c1b9a87be0",
   "units": [
     {
       "kind": "project",
@@ -596,16 +596,16 @@
             "status": "unchanged"
           },
           {
-            "content_hash": "1440063ed4111a91c3e2bea9e2b9f114227beb2604778c247ec86e04f1d31fdc",
+            "content_hash": "0129f00dfdf3e4e151ca65afd1d9afc90abcf50bcacfd586c7c7af67e0eb3187",
             "error": null,
             "generator_id": "autoforge.generator.fastapi.project",
             "generator_version": "0.1.0",
             "ownership": "generated",
-            "previous_content_hash": "1440063ed4111a91c3e2bea9e2b9f114227beb2604778c247ec86e04f1d31fdc",
+            "previous_content_hash": "dd96fd4d3ca6361df199de4fa7e85ed0befb83af46bebf1d6f8c75f2c7d098a4",
             "relative_path": "src/kis_auto_trading/application/app_factory.py",
             "source": "project:kis_auto_trading",
             "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
-            "status": "unchanged"
+            "status": "changed"
           },
           {
             "content_hash": "417f79640f69eb6b3a691bfc999904f352089816081c23ee44b2e4cd137a0e7a",
@@ -616,6 +616,18 @@
             "previous_content_hash": "417f79640f69eb6b3a691bfc999904f352089816081c23ee44b2e4cd137a0e7a",
             "relative_path": "src/kis_auto_trading/application/durable_job_handler.py",
             "source": "project:durable-jobs",
+            "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
+            "status": "preserved"
+          },
+          {
+            "content_hash": "bb1887a006c236332a1152635553e7ceb9fc066c540b36bbd64a28f9e997301e",
+            "error": null,
+            "generator_id": "autoforge.generator.fastapi.project",
+            "generator_version": "0.1.0",
+            "ownership": "scaffolded",
+            "previous_content_hash": "bb1887a006c236332a1152635553e7ceb9fc066c540b36bbd64a28f9e997301e",
+            "relative_path": "src/kis_auto_trading/application/extensions.py",
+            "source": "project:kis_auto_trading",
             "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
             "status": "preserved"
           },
@@ -1004,12 +1016,12 @@
             "status": "unchanged"
           },
           {
-            "content_hash": "a1defa9bac180a6f551d17f0e54003ce5425db25c0edd55feb5b5ff8868ea8b1",
+            "content_hash": "c367c0d00b629dd8927bc4ee8d6a5609f96e12d0f0076875fbe0a2b4c0acc661",
             "error": null,
             "generator_id": "autoforge.generator.fastapi.project",
             "generator_version": "0.1.0",
             "ownership": "generated",
-            "previous_content_hash": "a1defa9bac180a6f551d17f0e54003ce5425db25c0edd55feb5b5ff8868ea8b1",
+            "previous_content_hash": "c367c0d00b629dd8927bc4ee8d6a5609f96e12d0f0076875fbe0a2b4c0acc661",
             "relative_path": "src/kis_auto_trading/routers/durable_jobs.py",
             "source": "project:kis_auto_trading",
             "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
@@ -1040,7 +1052,7 @@
             "status": "unchanged"
           }
         ],
-        "job_id": "d3f20bd7-7d04-4238-a272-0ba0a68ec07c",
+        "job_id": "7faa8409-c143-4f0d-a14b-97c1b9a87be0",
         "specification_hash": "636be74e317c7ebe3dd5136a0a01a760bcb7ef102910ec0e909cf7320a6e3159",
         "specification_version": "1"
       },
@@ -1195,7 +1207,7 @@
             "status": "preserved"
           }
         ],
-        "job_id": "d3f20bd7-7d04-4238-a272-0ba0a68ec07c",
+        "job_id": "7faa8409-c143-4f0d-a14b-97c1b9a87be0",
         "specification_hash": "9929ac59ec5025ee885d10888dd72a1bf18c3b52571cf1e698227bd3a97ff0a3",
         "specification_version": "1"
       },
@@ -1350,7 +1362,7 @@
             "status": "preserved"
           }
         ],
-        "job_id": "d3f20bd7-7d04-4238-a272-0ba0a68ec07c",
+        "job_id": "7faa8409-c143-4f0d-a14b-97c1b9a87be0",
         "specification_hash": "ffcbba6369441bc33b33e85b52aacc18fd43545bdbdd72e6cdc3bdd4957151aa",
         "specification_version": "1"
       },
@@ -1505,7 +1517,7 @@
             "status": "preserved"
           }
         ],
-        "job_id": "d3f20bd7-7d04-4238-a272-0ba0a68ec07c",
+        "job_id": "7faa8409-c143-4f0d-a14b-97c1b9a87be0",
         "specification_hash": "dbd43c8deea8c236e56bb7973e9ae2b8d233d8f957a7944efa6021f93fdf0037",
         "specification_version": "1"
       },

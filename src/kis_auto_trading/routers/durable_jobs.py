@@ -38,7 +38,7 @@ class DurableJobStatusResponse(BaseModel):
     updated_at: datetime
 
 
-def _require_durable_job_api_token(
+def require_durable_job_api_token(
     authorization: Annotated[str | None, Header()] = None,
 ) -> None:
     expected_token = os.getenv('DURABLE_JOB_API_TOKEN')
@@ -52,7 +52,7 @@ def _require_durable_job_api_token(
 router = APIRouter(
     prefix='/internal/jobs',
     tags=['durable-jobs'],
-    dependencies=[Depends(_require_durable_job_api_token)],
+    dependencies=[Depends(require_durable_job_api_token)],
 )
 
 
