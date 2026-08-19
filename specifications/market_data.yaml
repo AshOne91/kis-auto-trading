@@ -1,0 +1,55 @@
+spec_version: "1"
+
+module:
+  name: market_data
+  display_name: Market Data
+  route_prefix: /api/market-data
+
+models:
+  - name: MarketPriceSnapshot
+    fields:
+      - name: snapshot_id
+        type:
+          kind: uuid
+      - name: stock_code
+        type:
+          kind: string
+      - name: current_price
+        type:
+          kind: string
+      - name: observed_at
+        type:
+          kind: datetime
+
+database:
+  provider: agnostic
+  tables:
+    - name: market_price_snapshots
+      columns:
+        - name: snapshot_id
+          type:
+            kind: uuid
+          primary_key: true
+        - name: stock_code
+          type:
+            kind: string
+          index: true
+        - name: current_price
+          type:
+            kind: string
+        - name: observed_at
+          type:
+            kind: datetime
+          index: true
+  repositories:
+    - name: MarketPriceSnapshotRepository
+      aggregate: MarketPriceSnapshot
+      table: market_price_snapshots
+      operations:
+        - find_by_id
+        - save
+  placements:
+    - table: market_price_snapshots
+      store: automation
+      mode: global
+      unresolved_policy: error

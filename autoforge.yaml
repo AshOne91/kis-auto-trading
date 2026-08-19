@@ -66,14 +66,19 @@ application:
     enabled: true
   runtime_environments:
     - name: KIS_API_URL
+      health_test_value: https://example.invalid
     - name: KIS_APP_KEY
+      health_test_value: test-app-key
     - name: KIS_APP_SECRET
+      health_test_value: test-app-secret
     - name: KIS_TOKEN_SCOPE
       required: false
+      health_test_value: test-scope
   modules:
     - identity
     - account
     - news
+    - market_data
   services:
     - name: session
       kind: redis_session
