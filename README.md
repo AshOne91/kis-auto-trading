@@ -63,6 +63,22 @@ python -m autoforge.main generate `
   --validation-python .venv\\Scripts\\python.exe
 ```
 
+## Local operator access bootstrap
+
+After applying the Identity migrations, a host operator can grant one existing
+account `operator` access through the user-owned local CLI:
+
+```powershell
+python scripts/provision_operator.py `
+  --email operator@example.com `
+  --actor local-bootstrap
+```
+
+It requires `IDENTITY_DATABASE_URL` and `REDIS_URL`, writes one audit record,
+and revokes the account's existing sessions so the user must log in again. It
+only permits `user` to `operator`; administrator grants and access downgrades
+are intentionally unsupported until session-version invalidation exists.
+
 ## 로컬 검증
 
 Python 3.12 환경에서:
