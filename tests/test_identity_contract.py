@@ -73,6 +73,9 @@ async def test_identity_routes_use_the_global_store_and_session_store() -> None:
     assert signup.email == "user@example.com"
     assert login.user_id == signup.user_id
     assert login.token_type == "bearer"
+    stored_session = await session_store.get(login.access_token)
+    assert stored_session is not None
+    assert stored_session.data["access_level"] == "user"
     assert session.user_id == signup.user_id
     assert session.shard_id in {"1", "2"}
     assert registry.targets == [

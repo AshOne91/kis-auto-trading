@@ -52,6 +52,7 @@ async def signup(
             email=email,
             password_hash=await asyncio.to_thread(hash_password, request.password),
             is_active=True,
+            access_level="user",
             shard_id=_shard_id_for(user_id),
             created_at=datetime.now(UTC),
         )
@@ -87,7 +88,10 @@ async def login(
         SessionData(
             session_id=access_token,
             user_id=str(account.user_id),
-            data={"shard_id": account.shard_id},
+            data={
+                "shard_id": account.shard_id,
+                "access_level": account.access_level,
+            },
         )
     )
     return LoginResponse(

@@ -21,6 +21,10 @@ models:
         type:
           kind: boolean
         default: true
+      - name: access_level
+        type:
+          kind: string
+        default: user
       - name: shard_id
         type:
           kind: string
@@ -120,6 +124,10 @@ database:
           type:
             kind: boolean
           default: true
+        - name: access_level
+          type:
+            kind: string
+          default: user
         - name: shard_id
           type:
             kind: string

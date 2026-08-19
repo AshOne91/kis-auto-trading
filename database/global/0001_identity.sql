@@ -7,6 +7,7 @@ CREATE TABLE login_accounts (
     email TEXT NOT NULL UNIQUE,
     password_hash TEXT NOT NULL,
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    access_level TEXT NOT NULL DEFAULT 'user',
     shard_id TEXT NOT NULL,
     created_at TIMESTAMPTZ NOT NULL
 );

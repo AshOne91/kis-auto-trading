@@ -39,6 +39,7 @@ endpoints:
     response:
       model: UserProfile
     handler: get_profile
+    access_level: user
     dependencies:
       - current_session
       - database_session_registry
@@ -62,6 +63,7 @@ endpoints:
     response:
       model: UserProfile
     handler: update_profile
+    access_level: user
     dependencies:
       - current_session
       - database_session_registry

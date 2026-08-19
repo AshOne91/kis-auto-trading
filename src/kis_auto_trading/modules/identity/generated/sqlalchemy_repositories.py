@@ -26,6 +26,7 @@ class SQLAlchemyLoginAccountRepository:
             email=record.email,
             password_hash=record.password_hash,
             is_active=record.is_active,
+            access_level=record.access_level,
             shard_id=record.shard_id,
             created_at=record.created_at
         )
@@ -38,6 +39,7 @@ class SQLAlchemyLoginAccountRepository:
             email=aggregate.email,
             password_hash=aggregate.password_hash,
             is_active=aggregate.is_active,
+            access_level=aggregate.access_level,
             shard_id=aggregate.shard_id,
             created_at=aggregate.created_at
         )
@@ -59,6 +61,7 @@ class SQLAlchemyLoginAccountRepository:
             email=record.email,
             password_hash=record.password_hash,
             is_active=record.is_active,
+            access_level=record.access_level,
             shard_id=record.shard_id,
             created_at=record.created_at
         )
