@@ -7,8 +7,9 @@ from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from redis.asyncio import Redis
 
-from .protocol import SessionData, SessionStore, SessionStoreError
+from .protocol import RequestReplayStore, SessionData, SessionStore, SessionStoreError
 from .redis import RedisSessionStore
+from .request_replay import RedisRequestReplayStore
 
 REDIS_URL_ENV = "REDIS_URL"
 
@@ -24,10 +25,12 @@ async def session_store_lifespan(
         )
     client = Redis.from_url(redis_url, decode_responses=True)
     app.state.session_store = RedisSessionStore(client)
+    app.state.request_replay_store = RedisRequestReplayStore(client, "kis_session")
     try:
         yield
     finally:
         del app.state.session_store
+        del app.state.request_replay_store
         await client.aclose()
 
 
@@ -37,6 +40,15 @@ def get_session_store(request: Request) -> SessionStore:
     except AttributeError as error:
         raise SessionStoreError(
             "SessionStore is not initialized"
+        ) from error
+
+
+def get_request_replay_store(request: Request) -> RequestReplayStore:
+    try:
+        return request.app.state.request_replay_store
+    except AttributeError as error:
+        raise SessionStoreError(
+            "RequestReplayStore is not initialized"
         ) from error
 
 

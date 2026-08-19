@@ -51,3 +51,37 @@ class SessionStore(Protocol):
     async def revoke(self, session_id: str) -> bool: ...
 
     async def revoke_user_sessions(self, user_id: str) -> int: ...
+
+
+@dataclass(frozen=True, slots=True)
+class ReplayClaim:
+    key: str
+    fingerprint: str
+    token: str
+    ttl_seconds: int
+
+
+@dataclass(frozen=True, slots=True)
+class ReplayRecord:
+    status_code: int
+    body: str
+
+
+class RequestReplayConflict(SessionStoreError):
+    pass
+
+
+class RequestReplayInProgress(SessionStoreError):
+    pass
+
+
+class RequestReplayStore(Protocol):
+    async def claim(
+        self, key: str, fingerprint: str, ttl_seconds: int
+    ) -> ReplayClaim | ReplayRecord: ...
+
+    async def complete(
+        self, claim: ReplayClaim, status_code: int, body: str
+    ) -> None: ...
+
+    async def abort(self, claim: ReplayClaim) -> None: ...

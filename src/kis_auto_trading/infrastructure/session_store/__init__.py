@@ -1,5 +1,10 @@
 from .fake import FakeSessionStore
 from .protocol import (
+    ReplayClaim,
+    ReplayRecord,
+    RequestReplayConflict,
+    RequestReplayInProgress,
+    RequestReplayStore,
     SessionData,
     SessionStore,
     SessionStoreError,
@@ -8,6 +13,11 @@ from .protocol import (
 
 __all__ = [
     "FakeSessionStore",
+    "ReplayClaim",
+    "ReplayRecord",
+    "RequestReplayConflict",
+    "RequestReplayInProgress",
+    "RequestReplayStore",
     "SessionData",
     "SessionStore",
     "SessionStoreError",

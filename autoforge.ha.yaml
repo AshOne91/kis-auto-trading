@@ -94,3 +94,8 @@ application:
       store: automation
       event_type: durable-job.history.index.requested
       routing_key: durable-job.history.index.requested
+  service_tokens:
+    - name: durable_jobs
+      token_env: DURABLE_JOB_API_TOKEN
+    - name: operator
+      token_env: OPERATOR_API_TOKEN

@@ -71,7 +71,8 @@
       "lifecycle": "one_shot",
       "name": "airflow-init",
       "published_ports": [],
-      "restart_policy": "no"
+      "restart_policy": "no",
+      "role": "scheduler"
     },
     {
       "configuration_env": [
@@ -92,7 +93,8 @@
       "lifecycle": "long_running",
       "name": "airflow-scheduler",
       "published_ports": [],
-      "restart_policy": "unless-stopped"
+      "restart_policy": "unless-stopped",
+      "role": "scheduler"
     },
     {
       "configuration_env": [
@@ -112,7 +114,8 @@
       "published_ports": [
         "${LOCAL_BIND_ADDRESS:-127.0.0.1}:${AIRFLOW_PORT:-49440}:8080"
       ],
-      "restart_policy": "unless-stopped"
+      "restart_policy": "unless-stopped",
+      "role": "scheduler"
     },
     {
       "configuration_env": [
@@ -137,7 +140,8 @@
       "published_ports": [
         "${LOCAL_BIND_ADDRESS:-127.0.0.1}:${APPLICATION_PORT:-49400}:8000"
       ],
-      "restart_policy": "unless-stopped"
+      "restart_policy": "unless-stopped",
+      "role": "api"
     },
     {
       "configuration_env": [
@@ -157,7 +161,8 @@
       "lifecycle": "long_running",
       "name": "durable-job-worker",
       "published_ports": [],
-      "restart_policy": "unless-stopped"
+      "restart_policy": "unless-stopped",
+      "role": "worker"
     },
     {
       "configuration_env": [
@@ -175,7 +180,8 @@
       "lifecycle": "long_running",
       "name": "message-worker",
       "published_ports": [],
-      "restart_policy": "unless-stopped"
+      "restart_policy": "unless-stopped",
+      "role": "worker"
     },
     {
       "configuration_env": [
@@ -191,7 +197,8 @@
       "lifecycle": "one_shot",
       "name": "migrate",
       "published_ports": [],
-      "restart_policy": "no"
+      "restart_policy": "no",
+      "role": "initializer"
     },
     {
       "configuration_env": [
@@ -209,7 +216,8 @@
       "lifecycle": "long_running",
       "name": "outbox-relay",
       "published_ports": [],
-      "restart_policy": "unless-stopped"
+      "restart_policy": "unless-stopped",
+      "role": "relay"
     },
     {
       "configuration_env": [
@@ -224,7 +232,8 @@
       "published_ports": [
         "${LOCAL_BIND_ADDRESS:-127.0.0.1}:${POSTGRES_PORT:-49410}:5432"
       ],
-      "restart_policy": "unless-stopped"
+      "restart_policy": "unless-stopped",
+      "role": "infrastructure"
     },
     {
       "configuration_env": [
@@ -239,7 +248,8 @@
         "${LOCAL_BIND_ADDRESS:-127.0.0.1}:${RABBITMQ_AMQP_PORT:-49430}:5672",
         "${LOCAL_BIND_ADDRESS:-127.0.0.1}:${RABBITMQ_MANAGEMENT_PORT:-49431}:15672"
       ],
-      "restart_policy": "unless-stopped"
+      "restart_policy": "unless-stopped",
+      "role": "infrastructure"
     },
     {
       "configuration_env": [],
@@ -248,7 +258,8 @@
       "lifecycle": "long_running",
       "name": "redis",
       "published_ports": [],
-      "restart_policy": "unless-stopped"
+      "restart_policy": "unless-stopped",
+      "role": "infrastructure"
     }
   ]
 }
