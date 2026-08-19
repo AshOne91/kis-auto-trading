@@ -49,6 +49,14 @@ class NewsSearchIndexer:
             search_backend=os.getenv("RAG_SEARCH_BACKEND", SearchBackend.ELASTICSEARCH),
         )
 
+    @classmethod
+    def is_configured_from_environment(cls) -> bool:
+        return bool(
+            (os.getenv("RAG_SEARCH_URL") or os.getenv("RAG_ELASTICSEARCH_URL"))
+            and os.getenv("RAG_OLLAMA_URL")
+            and os.getenv("RAG_EMBEDDING_MODEL")
+        )
+
     async def index(self, articles: Sequence[NewsArticle]) -> int:
         if not articles:
             return 0

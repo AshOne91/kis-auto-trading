@@ -74,7 +74,9 @@ async def test_news_handler_collects_and_uses_global_automation_store(
         FakeDurableJobRepository,
     )
     registry = FakeRegistry()
-    result = await ApplicationDurableJobHandler(registry, FakeProvider()).handle(
+    result = await ApplicationDurableJobHandler(
+        registry, FakeProvider(), indexer=object()
+    ).handle(
         DurableJobExecution(
             job_id="job-1",
             job_type="news_collection",
@@ -89,9 +91,100 @@ async def test_news_handler_collects_and_uses_global_automation_store(
         "articles_collected": 2,
         "articles_inserted": 2,
         "index_job_id": "index-job-1",
+        "indexing_status": "requested",
     }
     assert [article.source_key for article in inserted] == ["AAPL-key", "MSFT-key"]
     assert registry.targets[0].store == "automation"
+
+
+@pytest.mark.anyio
+async def test_news_handler_skips_index_request_without_rag_configuration(
+    monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+) -> None:
+    class FakeRepository:
+        def __init__(self, session) -> None:
+            del session
+
+        async def insert_many_returning_keys(self, articles, *, collected_at):
+            del articles, collected_at
+            return ["AAPL-key"]
+
+    class UnexpectedDurableJobRepository:
+        def __init__(self, session) -> None:
+            raise AssertionError("disabled RAG must not request news indexing")
+
+    for name in (
+        "RAG_SEARCH_URL",
+        "RAG_ELASTICSEARCH_URL",
+        "RAG_OLLAMA_URL",
+        "RAG_EMBEDDING_MODEL",
+    ):
+        monkeypatch.delenv(name, raising=False)
+    monkeypatch.setattr(
+        "kis_auto_trading.application.durable_job_handler.NewsArticleRepository",
+        FakeRepository,
+    )
+    monkeypatch.setattr(
+        "kis_auto_trading.application.durable_job_handler.DurableJobRepository",
+        UnexpectedDurableJobRepository,
+    )
+    caplog.set_level("INFO")
+
+    result = await ApplicationDurableJobHandler(FakeRegistry(), FakeProvider()).handle(
+        DurableJobExecution(
+            job_id="job-1",
+            job_type="news_collection",
+            run_key="news:yahoo:test",
+            payload={"symbols": ["AAPL"]},
+        )
+    )
+
+    assert result == {
+        "job_type": "news_collection",
+        "symbols": ["AAPL"],
+        "articles_collected": 1,
+        "articles_inserted": 1,
+        "index_job_id": None,
+        "indexing_status": "skipped",
+    }
+    assert caplog.records[-1].event_type == "news_index_skipped"
+
+
+@pytest.mark.anyio
+async def test_news_index_handler_skips_without_rag_configuration(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class UnexpectedRepository:
+        def __init__(self, session) -> None:
+            raise AssertionError("disabled RAG must not read canonical articles")
+
+    for name in (
+        "RAG_SEARCH_URL",
+        "RAG_ELASTICSEARCH_URL",
+        "RAG_OLLAMA_URL",
+        "RAG_EMBEDDING_MODEL",
+    ):
+        monkeypatch.delenv(name, raising=False)
+    monkeypatch.setattr(
+        "kis_auto_trading.application.durable_job_handler.NewsArticleRepository",
+        UnexpectedRepository,
+    )
+
+    result = await ApplicationDurableJobHandler(FakeRegistry(), FakeProvider()).handle(
+        DurableJobExecution(
+            job_id="job-2",
+            job_type="news_index",
+            run_key="news-index:job-1",
+            payload={"source_keys": ["AAPL-key"]},
+        )
+    )
+
+    assert result == {
+        "job_type": "news_index",
+        "source_keys_requested": 1,
+        "articles_indexed": 0,
+        "indexing_status": "skipped",
+    }
 
 
 @pytest.mark.anyio
@@ -258,6 +351,9 @@ async def test_news_index_handler_skips_indexer_when_no_canonical_article_exists
         "kis_auto_trading.application.durable_job_handler.NewsSearchIndexer.from_environment",
         unexpected_indexer,
     )
+    monkeypatch.setenv("RAG_SEARCH_URL", "http://search.test")
+    monkeypatch.setenv("RAG_OLLAMA_URL", "http://ollama.test")
+    monkeypatch.setenv("RAG_EMBEDDING_MODEL", "embedding-test")
     result = await ApplicationDurableJobHandler(FakeRegistry(), FakeProvider()).handle(
         DurableJobExecution(
             job_id="job-3",

@@ -56,17 +56,25 @@ class ApplicationDurableJobHandler:
             source_keys = await NewsArticleRepository(session).insert_many_returning_keys(
                 articles, collected_at=datetime.now(UTC)
             )
-            index_job = await DurableJobRepository(session).request(
-                job_type="news_index",
-                run_key=f"news-index:{execution.job_id}",
-                payload={"source_keys": source_keys},
-            )
+            index_job_id: str | None = None
+            indexing_status = "skipped"
+            if self._indexing_enabled():
+                index_job = await DurableJobRepository(session).request(
+                    job_type="news_index",
+                    run_key=f"news-index:{execution.job_id}",
+                    payload={"source_keys": source_keys},
+                )
+                index_job_id = index_job.job_id
+                indexing_status = "requested"
+            else:
+                self._log_indexing_skipped(execution)
         return {
             "job_type": execution.job_type,
             "symbols": symbols,
             "articles_collected": len(articles),
             "articles_inserted": len(source_keys),
-            "index_job_id": index_job.job_id,
+            "index_job_id": index_job_id,
+            "indexing_status": indexing_status,
         }
 
     async def _request_news_retry(
@@ -112,6 +120,14 @@ class ApplicationDurableJobHandler:
         self, execution: DurableJobExecution
     ) -> dict[str, object]:
         source_keys = _source_keys_from_payload(execution.payload)
+        if not self._indexing_enabled():
+            self._log_indexing_skipped(execution)
+            return {
+                "job_type": execution.job_type,
+                "source_keys_requested": len(source_keys),
+                "articles_indexed": 0,
+                "indexing_status": "skipped",
+            }
         async with self._session_registry.session(
             ShardTarget(store="automation")
         ) as session:
@@ -134,6 +150,20 @@ class ApplicationDurableJobHandler:
             "source_keys_requested": len(source_keys),
             "articles_indexed": indexed,
         }
+
+    def _indexing_enabled(self) -> bool:
+        return self._indexer is not None or NewsSearchIndexer.is_configured_from_environment()
+
+    @staticmethod
+    def _log_indexing_skipped(execution: DurableJobExecution) -> None:
+        logger.info(
+            "news indexing skipped because the RAG profile is not configured",
+            extra={
+                "event_type": "news_index_skipped",
+                "job_id": execution.job_id,
+                "run_key": execution.run_key,
+            },
+        )
 
 
 def _symbols_from_payload(payload: dict[str, object]) -> list[str]:
