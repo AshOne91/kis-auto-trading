@@ -25,3 +25,19 @@ class LoginAccountRecord(Base):
     shard_id: Mapped[str] = mapped_column(Text, nullable=False)
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class AccessLevelAuditRecord(Base):
+    __tablename__ = "access_level_audits"
+
+    audit_id: Mapped[UUID] = mapped_column(Uuid, primary_key=True)
+
+    subject_user_id: Mapped[UUID] = mapped_column(Uuid, nullable=False)
+
+    actor: Mapped[str] = mapped_column(Text, nullable=False)
+
+    previous_access_level: Mapped[str] = mapped_column(Text, nullable=False)
+
+    new_access_level: Mapped[str] = mapped_column(Text, nullable=False)
+
+    changed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)

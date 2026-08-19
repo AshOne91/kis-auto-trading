@@ -14,3 +14,12 @@ class LoginAccount(BaseModel):
     access_level: str = 'user'
     shard_id: str
     created_at: datetime
+
+
+class AccessLevelAudit(BaseModel):
+    audit_id: UUID
+    subject_user_id: UUID
+    actor: str
+    previous_access_level: str
+    new_access_level: str
+    changed_at: datetime

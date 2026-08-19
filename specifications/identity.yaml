@@ -31,6 +31,26 @@ models:
       - name: created_at
         type:
           kind: datetime
+  - name: AccessLevelAudit
+    fields:
+      - name: audit_id
+        type:
+          kind: uuid
+      - name: subject_user_id
+        type:
+          kind: uuid
+      - name: actor
+        type:
+          kind: string
+      - name: previous_access_level
+        type:
+          kind: string
+      - name: new_access_level
+        type:
+          kind: string
+      - name: changed_at
+        type:
+          kind: datetime
 
 endpoints:
   - name: signup
@@ -134,6 +154,27 @@ database:
         - name: created_at
           type:
             kind: datetime
+    - name: access_level_audits
+      columns:
+        - name: audit_id
+          type:
+            kind: uuid
+          primary_key: true
+        - name: subject_user_id
+          type:
+            kind: uuid
+        - name: actor
+          type:
+            kind: string
+        - name: previous_access_level
+          type:
+            kind: string
+        - name: new_access_level
+          type:
+            kind: string
+        - name: changed_at
+          type:
+            kind: datetime
   repositories:
     - name: LoginAccountRepository
       aggregate: LoginAccount
@@ -144,8 +185,18 @@ database:
       queries:
         - name: find_by_email
           column: email
+    - name: AccessLevelAuditRepository
+      aggregate: AccessLevelAudit
+      table: access_level_audits
+      operations:
+        - find_by_id
+        - save
   placements:
     - table: login_accounts
+      store: identity
+      mode: global
+      unresolved_policy: error
+    - table: access_level_audits
       store: identity
       mode: global
       unresolved_policy: error

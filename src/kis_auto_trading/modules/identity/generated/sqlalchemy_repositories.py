@@ -3,8 +3,12 @@ from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from kis_auto_trading.modules.identity.generated.models import LoginAccount
+from kis_auto_trading.modules.identity.generated.models import (
+    AccessLevelAudit,
+    LoginAccount,
+)
 from kis_auto_trading.modules.identity.generated.sqlalchemy_models import (
+    AccessLevelAuditRecord,
     LoginAccountRecord,
 )
 
@@ -65,3 +69,38 @@ class SQLAlchemyLoginAccountRepository:
             shard_id=record.shard_id,
             created_at=record.created_at
         )
+
+
+class SQLAlchemyAccessLevelAuditRepository:
+    def __init__(self, session: AsyncSession) -> None:
+        self._session = session
+
+    async def find_by_id(
+        self, audit_id: UUID,
+    ) -> AccessLevelAudit | None:
+        record = await self._session.get(
+            AccessLevelAuditRecord, audit_id
+        )
+        if record is None:
+            return None
+        return AccessLevelAudit(
+            audit_id=record.audit_id,
+            subject_user_id=record.subject_user_id,
+            actor=record.actor,
+            previous_access_level=record.previous_access_level,
+            new_access_level=record.new_access_level,
+            changed_at=record.changed_at
+        )
+
+    async def save(
+        self, aggregate: AccessLevelAudit,
+    ) -> None:
+        record = AccessLevelAuditRecord(
+            audit_id=aggregate.audit_id,
+            subject_user_id=aggregate.subject_user_id,
+            actor=aggregate.actor,
+            previous_access_level=aggregate.previous_access_level,
+            new_access_level=aggregate.new_access_level,
+            changed_at=aggregate.changed_at
+        )
+        await self._session.merge(record)

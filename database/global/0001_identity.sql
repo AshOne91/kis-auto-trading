@@ -11,3 +11,12 @@ CREATE TABLE login_accounts (
     shard_id TEXT NOT NULL,
     created_at TIMESTAMPTZ NOT NULL
 );
+
+CREATE TABLE access_level_audits (
+    audit_id UUID PRIMARY KEY,
+    subject_user_id UUID NOT NULL,
+    actor TEXT NOT NULL,
+    previous_access_level TEXT NOT NULL,
+    new_access_level TEXT NOT NULL,
+    changed_at TIMESTAMPTZ NOT NULL
+);
