@@ -344,3 +344,64 @@ async def test_news_index_handler_retries_only_transient_search_failures(
             "_news_retry_attempt": 1,
             "_news_retry_root_run_key": "news-index:job-1",
         }
+
+
+@pytest.mark.anyio
+async def test_news_index_handler_logs_terminal_transient_failure(
+    monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+) -> None:
+    article = await FakeProvider().collect("AAPL")
+
+    class FakeNewsRepository:
+        def __init__(self, session) -> None:
+            del session
+
+        async def find_by_source_keys(self, source_keys):
+            assert source_keys == ["AAPL-key"]
+            return article
+
+    class UnexpectedDurableJobRepository:
+        def __init__(self, session) -> None:
+            raise AssertionError("final attempt must not schedule another retry")
+
+    class FailingIndexer:
+        async def index(self, articles) -> int:
+            assert articles == article
+            request = httpx.Request("POST", "http://search.test/_bulk")
+            response = httpx.Response(503, request=request)
+            raise httpx.HTTPStatusError(
+                "search unavailable", request=request, response=response
+            )
+
+    monkeypatch.setattr(
+        "kis_auto_trading.application.durable_job_handler.NewsArticleRepository",
+        FakeNewsRepository,
+    )
+    monkeypatch.setattr(
+        "kis_auto_trading.application.durable_job_handler.DurableJobRepository",
+        UnexpectedDurableJobRepository,
+    )
+    caplog.set_level("ERROR")
+
+    with pytest.raises(httpx.HTTPStatusError):
+        await ApplicationDurableJobHandler(
+            FakeRegistry(), FakeProvider(), FailingIndexer()
+        ).handle(
+            DurableJobExecution(
+                job_id="job-5",
+                job_type="news_index",
+                run_key="news-index:job-4:retry:2",
+                payload={
+                    "source_keys": ["AAPL-key"],
+                    "_news_retry_attempt": 2,
+                    "_news_retry_root_run_key": "news-index:job-4",
+                },
+            )
+        )
+
+    record = caplog.records[-1]
+    assert record.event_type == "news_index_retries_exhausted"
+    assert record.job_id == "job-5"
+    assert record.run_key == "news-index:job-4:retry:2"
+    assert record.attempt == 3
+    assert record.max_attempts == 3
