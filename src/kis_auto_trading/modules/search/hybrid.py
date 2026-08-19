@@ -95,7 +95,11 @@ class HybridSearchIndex:
         scores: dict[str, float] = {}
         for response in (keyword_response, vector_response):
             for rank, hit in enumerate(response.json()["hits"]["hits"], start=1):
-                source = hit["_source"]
+                source = {
+                    key: value
+                    for key, value in hit["_source"].items()
+                    if key != "embedding"
+                }
                 source_id = str(source[self._source_id_field])
                 sources[source_id] = source
                 scores[source_id] = scores.get(source_id, 0.0) + 1.0 / (60 + rank)

@@ -84,8 +84,20 @@ async def test_search_ranks_operator_failure_for_hybrid_query() -> None:
                     json={
                         "hits": {
                             "hits": [
-                                {"_source": {"job_id": "job-1", "status": "failed"}},
-                                {"_source": {"job_id": "job-2", "status": "succeeded"}},
+                                {
+                                    "_source": {
+                                        "job_id": "job-1",
+                                        "status": "failed",
+                                        "embedding": [0.1, 0.2, 0.3],
+                                    }
+                                },
+                                {
+                                    "_source": {
+                                        "job_id": "job-2",
+                                        "status": "succeeded",
+                                        "embedding": [0.3, 0.2, 0.1],
+                                    }
+                                },
                             ]
                         }
                     },
@@ -94,7 +106,15 @@ async def test_search_ranks_operator_failure_for_hybrid_query() -> None:
                 200,
                 json={
                     "hits": {
-                        "hits": [{"_source": {"job_id": "job-1", "status": "failed"}}]
+                        "hits": [
+                            {
+                                "_source": {
+                                    "job_id": "job-1",
+                                    "status": "failed",
+                                    "embedding": [0.1, 0.2, 0.3],
+                                }
+                            }
+                        ]
                     }
                 },
             )
