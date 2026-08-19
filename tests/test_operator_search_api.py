@@ -7,6 +7,7 @@ from fastapi.testclient import TestClient
 from kis_auto_trading.application.extensions import USER_ROUTERS
 from kis_auto_trading.routers.operator_search import (
     get_durable_job_history_search_indexer,
+    get_news_search_indexer,
     router,
 )
 
@@ -31,10 +32,31 @@ class FakeIndexer:
         ]
 
 
-def _app(indexer: FakeIndexer) -> FastAPI:
+class FakeNewsIndexer:
+    async def search(self, query: str, *, limit: int) -> list[dict[str, object]]:
+        assert query == "AAPL earnings"
+        assert limit == 1
+        return [
+            {
+                "source_key": "article-1",
+                "source_url": "https://example.test/article-1",
+                "provider": "test",
+                "title": "AAPL earnings",
+                "content": "Apple revenue increased.",
+                "symbol": "AAPL",
+                "published_at": datetime(2026, 8, 19, tzinfo=UTC),
+                "publisher": "test",
+                "embedding": [0.1, 0.2, 0.3],
+            }
+        ]
+
+
+def _app(indexer: FakeIndexer, news_indexer: FakeNewsIndexer | None = None) -> FastAPI:
     app = FastAPI()
     app.include_router(router)
     app.dependency_overrides[get_durable_job_history_search_indexer] = lambda: indexer
+    if news_indexer is not None:
+        app.dependency_overrides[get_news_search_indexer] = lambda: news_indexer
     return app
 
 
@@ -77,3 +99,20 @@ def test_operator_search_returns_safe_projection(
         "requested_at",
         "updated_at",
     }
+
+
+def test_operator_news_search_returns_canonical_projection(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("DURABLE_JOB_API_TOKEN", "test-token")
+
+    with TestClient(_app(FakeIndexer(), FakeNewsIndexer())) as client:
+        response = client.get(
+            "/internal/operator/search/news?query=AAPL%20earnings&limit=1",
+            headers={"Authorization": "Bearer test-token"},
+        )
+
+    assert response.status_code == 200
+    document = response.json()[0]
+    assert document["source_key"] == "article-1"
+    assert "embedding" not in document

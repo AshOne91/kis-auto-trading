@@ -6,6 +6,7 @@ import httpx
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 
+from kis_auto_trading.modules.news.search import NewsSearchIndexer
 from kis_auto_trading.modules.operations.durable_job_history_search import (
     DurableJobHistorySearchIndexer,
 )
@@ -25,10 +26,27 @@ class DurableJobHistorySearchResponse(BaseModel):
     updated_at: datetime
 
 
+class NewsSearchResponse(BaseModel):
+    source_key: str
+    source_url: str
+    provider: str
+    title: str
+    content: str | None
+    symbol: str
+    published_at: datetime | None
+    publisher: str | None
+
+
 def get_durable_job_history_search_indexer() -> DurableJobHistorySearchIndexer:
     if not DurableJobHistorySearchIndexer.is_configured_from_environment():
         raise HTTPException(status_code=503, detail="operator search is not configured")
     return DurableJobHistorySearchIndexer.from_environment()
+
+
+def get_news_search_indexer() -> NewsSearchIndexer:
+    if not NewsSearchIndexer.is_configured_from_environment():
+        raise HTTPException(status_code=503, detail="operator search is not configured")
+    return NewsSearchIndexer.from_environment()
 
 
 router = APIRouter(
@@ -50,6 +68,21 @@ async def search_durable_job_history(
         return await indexer.search(query, limit=limit)
     except httpx.HTTPError as error:
         logger.warning("operator durable job search is unavailable: %s", error)
+        raise HTTPException(
+            status_code=503, detail="operator search is unavailable"
+        ) from error
+
+
+@router.get("/news", response_model=list[NewsSearchResponse])
+async def search_news(
+    query: Annotated[str, Query(min_length=1, max_length=200)],
+    indexer: Annotated[NewsSearchIndexer, Depends(get_news_search_indexer)],
+    limit: Annotated[int, Query(ge=1, le=50)] = 10,
+) -> list[dict[str, object]]:
+    try:
+        return await indexer.search(query, limit=limit)
+    except httpx.HTTPError as error:
+        logger.warning("operator news search is unavailable: %s", error)
         raise HTTPException(
             status_code=503, detail="operator search is unavailable"
         ) from error
