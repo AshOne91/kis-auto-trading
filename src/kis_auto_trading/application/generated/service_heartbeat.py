@@ -21,14 +21,8 @@ _INTERVAL_SECONDS = 30
 
 @asynccontextmanager
 async def service_heartbeat_lifespan(_app: FastAPI) -> AsyncIterator[None]:
-    endpoint = os.getenv(_ENDPOINT_ENV)
-    token = os.getenv(_TOKEN_ENV)
-    if not endpoint or not token:
-        LOGGER.info('service heartbeat reporter disabled')
-        yield
-        return
     task = asyncio.create_task(
-        _report_forever(endpoint=endpoint, token=token),
+        run_service_heartbeat_reporter(),
         name='service-heartbeat-reporter',
     )
     try:
@@ -39,10 +33,21 @@ async def service_heartbeat_lifespan(_app: FastAPI) -> AsyncIterator[None]:
             await task
 
 
-async def _report_forever(*, endpoint: str, token: str) -> None:
+async def run_service_heartbeat_reporter(
+    *,
+    service_name: str = _SERVICE_NAME,
+    dependencies: dict[str, str] = _DEPENDENCIES,
+) -> None:
+    endpoint = os.getenv(_ENDPOINT_ENV)
+    token = os.getenv(_TOKEN_ENV)
+    if not endpoint or not token:
+        LOGGER.info('service heartbeat reporter disabled')
+        return
     while True:
         try:
-            await asyncio.to_thread(_post_heartbeat, endpoint, token)
+            await asyncio.to_thread(
+                _post_heartbeat, endpoint, token, service_name, dependencies
+            )
         except (OSError, ValueError) as error:
             LOGGER.warning(
                 'service heartbeat report failed: %s', type(error).__name__
@@ -50,12 +55,14 @@ async def _report_forever(*, endpoint: str, token: str) -> None:
         await asyncio.sleep(_INTERVAL_SECONDS)
 
 
-def _post_heartbeat(endpoint: str, token: str) -> None:
+def _post_heartbeat(
+    endpoint: str, token: str, service_name: str, dependencies: dict[str, str]
+) -> None:
     payload = {
         'instance_id': _instance_id(),
-        'service_name': _SERVICE_NAME,
+        'service_name': service_name,
         'deployed_version': _DEPLOYED_VERSION,
-        'dependencies': _DEPENDENCIES,
+        'dependencies': dependencies,
     }
     request = Request(
         endpoint,

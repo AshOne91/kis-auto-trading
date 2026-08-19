@@ -1,11 +1,15 @@
 import asyncio
 import os
+from contextlib import suppress
 
 import aio_pika
 from sqlalchemy.ext.asyncio import create_async_engine
 
 from kis_auto_trading.application.durable_job_handler import (
     create_durable_job_handler,
+)
+from kis_auto_trading.application.generated.service_heartbeat import (
+    run_service_heartbeat_reporter,
 )
 from kis_auto_trading.application.observability import LOGGER, configure_logging
 from kis_auto_trading.infrastructure.database.session import AsyncSessionRegistry
@@ -31,6 +35,13 @@ async def main() -> None:
     handler = DurableJobMessageHandler(
         registry, create_durable_job_handler(registry)
     )
+    heartbeat_task = asyncio.create_task(
+        run_service_heartbeat_reporter(
+            service_name='kis_auto_trading' + '-durable-job-worker',
+            dependencies={'database': 'ok', 'rabbitmq': 'ok'},
+        ),
+        name='durable-job-worker-heartbeat',
+    )
     try:
         await consumer.consume(
             handler,
@@ -39,6 +50,9 @@ async def main() -> None:
         )
         await asyncio.Future()
     finally:
+        heartbeat_task.cancel()
+        with suppress(asyncio.CancelledError):
+            await heartbeat_task
         await connection.close()
         for engine in engines.values():
             await engine.dispose()

@@ -150,6 +150,8 @@ services:
       ACCOUNT_SHARD_1_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-autoforge}:${POSTGRES_PASSWORD:-change-me}@postgres:5432/account_shard_1
       ACCOUNT_SHARD_2_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-autoforge}:${POSTGRES_PASSWORD:-change-me}@postgres:5432/account_shard_2
       RABBITMQ_URL: ${RABBITMQ_URL:?set RABBITMQ_URL}
+      CONTROL_PLANE_HEARTBEAT_URL: ${CONTROL_PLANE_HEARTBEAT_URL:-}
+      CONTROL_PLANE_API_TOKEN: ${CONTROL_PLANE_API_TOKEN:-}
     depends_on:
       migrate:
         condition: service_completed_successfully
