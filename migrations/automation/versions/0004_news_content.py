@@ -6,7 +6,7 @@ from alembic import op
 revision = "kis_automation_news_content_0001"
 down_revision = "af_automation_durable_jobs_0001"
 branch_labels = None
-depends_on = None
+depends_on = "af_automation_news_0001"
 
 
 def upgrade() -> None:
