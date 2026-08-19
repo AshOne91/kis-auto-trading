@@ -34,3 +34,8 @@ class ValidateSessionRequest(BaseModel):
 class ValidateSessionResponse(BaseModel):
     user_id: UUID
     shard_id: str
+
+
+class GetOperatorSessionResponse(BaseModel):
+    user_id: UUID
+    access_level: str

@@ -123,6 +123,21 @@ endpoints:
     handler: validate_session
     dependencies:
       - session_store
+  - name: get_operator_session
+    method: GET
+    path: /operator/session
+    response:
+      fields:
+        - name: user_id
+          type:
+            kind: uuid
+        - name: access_level
+          type:
+            kind: string
+    handler: get_operator_session
+    dependencies:
+      - current_session
+    access_level: operator
 
 database:
   provider: agnostic

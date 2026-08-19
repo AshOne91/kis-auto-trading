@@ -15,6 +15,7 @@ from kis_auto_trading.infrastructure.session_store.protocol import (
 )
 from kis_auto_trading.modules.identity.generated.models import LoginAccount
 from kis_auto_trading.modules.identity.generated.schemas import (
+    GetOperatorSessionResponse,
     LoginRequest,
     LoginResponse,
     SignupRequest,
@@ -120,6 +121,15 @@ async def validate_session(
     return ValidateSessionResponse(
         user_id=UUID(session.user_id),
         shard_id=shard_id,
+    )
+
+
+async def get_operator_session(
+    current_session: SessionData,
+) -> GetOperatorSessionResponse:
+    return GetOperatorSessionResponse(
+        user_id=UUID(current_session.user_id),
+        access_level="operator",
     )
 
 
