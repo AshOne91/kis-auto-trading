@@ -91,9 +91,11 @@ account summary.
 
 ## Read-only domestic balance client
 
-`KisDomesticAccountClient` is a user-owned library boundary for the official
-domestic stock balance GET. It is not registered at application startup and has
-no HTTP route, persistence, or order behavior. It requires
+`KisDomesticAccountClient` is a user-owned boundary for the official domestic
+stock balance GET. The application owns its lifecycle and exposes its typed
+holding list only through the internal operator-token-protected
+`GET /internal/operator/portfolio/domestic-stock-holdings` route. It has no
+persistence or order behavior. It requires
 `KIS_ACCOUNT_NUMBER`, `KIS_ACCOUNT_PRODUCT_CODE`, and
 `KIS_ACCOUNT_ENVIRONMENT` (`real` or `demo`) in addition to the existing KIS
 application credentials. Generated local Compose and Kubernetes inject those

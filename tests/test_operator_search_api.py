@@ -8,6 +8,9 @@ from kis_auto_trading.application.extensions import USER_ROUTERS
 from kis_auto_trading.routers.operator_market_data import (
     router as market_data_router,
 )
+from kis_auto_trading.routers.operator_portfolio import (
+    router as portfolio_router,
+)
 from kis_auto_trading.routers.operator_search import (
     get_durable_job_history_search_indexer,
     get_news_search_indexer,
@@ -64,7 +67,7 @@ def _app(indexer: FakeIndexer, news_indexer: FakeNewsIndexer | None = None) -> F
 
 
 def test_user_owned_extension_registers_operator_routers() -> None:
-    assert USER_ROUTERS == (market_data_router, router)
+    assert USER_ROUTERS == (market_data_router, portfolio_router, router)
 
 
 def test_operator_search_requires_operator_token(

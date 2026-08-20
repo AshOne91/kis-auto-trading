@@ -78,6 +78,9 @@ def _configure_environment(monkeypatch) -> None:
         "KIS_API_URL": "https://example.invalid",
         "KIS_APP_KEY": "test-app-key",
         "KIS_APP_SECRET": "test-app-secret",
+        "KIS_ACCOUNT_NUMBER": "12345678",
+        "KIS_ACCOUNT_PRODUCT_CODE": "01",
+        "KIS_ACCOUNT_ENVIRONMENT": "demo",
         "OPERATOR_API_TOKEN": "operator-token",
     }
     for name, value in values.items():
