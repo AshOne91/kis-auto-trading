@@ -191,6 +191,24 @@ def _notifications(public_url: str, session_id: str, timeout_seconds: float) -> 
     return notifications
 
 
+def _mark_notification_read(
+    public_url: str,
+    session_id: str,
+    notification_id: str,
+    timeout_seconds: float,
+) -> dict[str, object]:
+    request = Request(
+        f"{public_url}/api/notifications/{notification_id}/read",
+        headers={"Authorization": f"Bearer {session_id}"},
+        method="PATCH",
+    )
+    with urlopen(request, timeout=timeout_seconds) as response:
+        notification = json.load(response)
+    if not isinstance(notification, dict):
+        raise TypeError("Read notification response did not contain an object")
+    return notification
+
+
 async def _verify(configuration: SmokeConfiguration) -> str:
     application = _container(configuration.project_name, "application")
     worker = _container(configuration.project_name, "message-worker")
@@ -219,6 +237,32 @@ async def _verify(configuration: SmokeConfiguration) -> str:
         )
         if not any(item.get("notification_id") == notification_id for item in notifications):
             raise RuntimeError("Realtime hint did not have a durable notification record")
+        marked = _mark_notification_read(
+            configuration.public_url,
+            session_id,
+            notification_id,
+            configuration.timeout_seconds,
+        )
+        if marked.get("notification_id") != notification_id or not isinstance(
+            marked.get("read_at"), str
+        ):
+            raise RuntimeError("Notification read API did not return a read record")
+        persisted = next(
+            (
+                item
+                for item in _notifications(
+                    configuration.public_url,
+                    session_id,
+                    configuration.timeout_seconds,
+                )
+                if item.get("notification_id") == notification_id
+            ),
+            None,
+        )
+        if not isinstance(persisted, dict) or not isinstance(
+            persisted.get("read_at"), str
+        ):
+            raise TypeError("Notification read state was not durable")
         return notification_id
     finally:
         _revoke_session(application, session_id)
