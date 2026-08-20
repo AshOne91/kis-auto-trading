@@ -98,6 +98,44 @@ services:
       timeout: 3s
       retries: 20
 
+  application-signal-api:
+    image: ${APPLICATION_IMAGE:-kis-auto-trading:local}
+    pull_policy: never
+    restart: unless-stopped
+    command: ["python", "-m", "uvicorn", "kis_auto_trading.application.compositions.signal_api:app", "--host", "0.0.0.0", "--port", "8000"]
+    environment:
+      IDENTITY_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-autoforge}:${POSTGRES_PASSWORD:-change-me}@postgres:5432/identity
+      AUTOMATION_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-autoforge}:${POSTGRES_PASSWORD:-change-me}@postgres:5432/automation
+      ACCOUNT_SHARD_1_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-autoforge}:${POSTGRES_PASSWORD:-change-me}@postgres:5432/account_shard_1
+      ACCOUNT_SHARD_2_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-autoforge}:${POSTGRES_PASSWORD:-change-me}@postgres:5432/account_shard_2
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379}
+      DURABLE_JOB_API_TOKEN: ${DURABLE_JOB_API_TOKEN:?set DURABLE_JOB_API_TOKEN}
+      OPERATOR_API_TOKEN: ${OPERATOR_API_TOKEN:?set OPERATOR_API_TOKEN}
+      KIS_API_URL: ${KIS_API_URL:?set KIS_API_URL}
+      KIS_APP_KEY: ${KIS_APP_KEY:?set KIS_APP_KEY}
+      KIS_APP_SECRET: ${KIS_APP_SECRET:?set KIS_APP_SECRET}
+      KIS_TOKEN_SCOPE: ${KIS_TOKEN_SCOPE:-}
+      KIS_ACCOUNT_NUMBER: ${KIS_ACCOUNT_NUMBER:?set KIS_ACCOUNT_NUMBER}
+      KIS_ACCOUNT_PRODUCT_CODE: ${KIS_ACCOUNT_PRODUCT_CODE:?set KIS_ACCOUNT_PRODUCT_CODE}
+      KIS_ACCOUNT_ENVIRONMENT: ${KIS_ACCOUNT_ENVIRONMENT:?set KIS_ACCOUNT_ENVIRONMENT}
+      CONTROL_PLANE_HEARTBEAT_URL: ${CONTROL_PLANE_HEARTBEAT_URL:-}
+      CONTROL_PLANE_API_TOKEN: ${CONTROL_PLANE_API_TOKEN:-}
+      LOG_DIRECTORY: /app/logs/application-signal-api
+    ports:
+      - "${LOCAL_BIND_ADDRESS:-127.0.0.1}:${SIGNAL_API_PORT:-49401}:8000"
+    volumes:
+      - ../logs:/app/logs
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "from urllib.request import urlopen; urlopen('http://127.0.0.1:8000/readiness').read()"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
   outbox-relay:
     image: ${APPLICATION_IMAGE:-kis-auto-trading:local}
     pull_policy: never

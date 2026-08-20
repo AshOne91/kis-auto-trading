@@ -41,6 +41,7 @@ spec:
       - name: application
         image: kis-auto-trading:latest
         imagePullPolicy: IfNotPresent
+        command: ["python", "-m", "uvicorn", "kis_auto_trading.application.compositions.signal_api:app", "--host", "0.0.0.0", "--port", "8000"]
         ports:
         - name: http
           containerPort: 8000

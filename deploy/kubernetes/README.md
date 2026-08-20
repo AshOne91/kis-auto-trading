@@ -37,6 +37,13 @@ Database topology is provider-owned. Database URL keys are bound from this
 Secret.
 
 
+## Application composition
+
+The application Deployment runs the selected `signal_api` ASGI
+entrypoint: `kis_auto_trading.application.compositions.signal_api:app`.
+It keeps the generated application environment, readiness/liveness probes, and
+replica count; it does not select a separate database, broker, worker, or relay.
+
 This profile does not create database clusters, Routers, or StatefulSets.
 
 ```powershell
