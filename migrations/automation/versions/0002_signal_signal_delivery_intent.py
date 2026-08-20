@@ -2,7 +2,7 @@
 
 from alembic import op
 
-revision = 'af_automation_signal_0002_signal_delivery_intent'
+revision = 'af_f53c218e509cd494e0f4754f'
 down_revision = 'af_automation_signal_0001'
 branch_labels = None
 depends_on = None
