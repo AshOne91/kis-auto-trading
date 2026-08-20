@@ -78,6 +78,17 @@ pytest -p no:cacheprovider tests/integration/test_kis_market_data_integration.py
 The check has no account, order, hash-key, WebSocket, polling, or background
 behavior. It closes its HTTP and Redis clients after the one read-only request.
 
+To run the separately opt-in domestic balance check, also export the three
+`KIS_ACCOUNT_*` values below and enable it explicitly:
+
+```powershell
+$env:KIS_READ_ONLY_BALANCE_INTEGRATION = "1"
+pytest -p no:cacheprovider tests/integration/test_kis_domestic_account_integration.py -q
+```
+
+It makes one read-only balance request and never prints the account number or
+account summary.
+
 ## Read-only domestic balance client
 
 `KisDomesticAccountClient` is a user-owned library boundary for the official
