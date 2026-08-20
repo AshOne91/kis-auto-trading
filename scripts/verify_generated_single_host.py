@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import os
+import socket
 import subprocess
 import time
 from pathlib import Path
@@ -16,20 +17,33 @@ COMPOSE_FILES = (
     "deploy/single-host/compose.override.yml",
 )
 APPLICATION_REPLICAS = 3
-APPLICATION_PORT = 59600
-PUBLIC_HTTP_PORT = 59601
-POSTGRES_PORT = 59610
-RABBITMQ_AMQP_PORT = 59630
-RABBITMQ_MANAGEMENT_PORT = 59631
-AIRFLOW_PORT = 59640
 MAX_ATTEMPTS = 120
 RETRY_SECONDS = 1.0
+
+
+def _available_local_ports(count: int) -> tuple[int, ...]:
+    sockets = [socket.socket() for _ in range(count)]
+    try:
+        for local_socket in sockets:
+            local_socket.bind(("127.0.0.1", 0))
+        return tuple(local_socket.getsockname()[1] for local_socket in sockets)
+    finally:
+        for local_socket in sockets:
+            local_socket.close()
 
 
 class SingleHostEnvironment:
     def __init__(self) -> None:
         self.project_name = f"generated-single-host-test-{uuid4().hex[:8]}"
         self._temporary_directory = TemporaryDirectory(prefix="kis-single-host-")
+        (
+            self.application_port,
+            self.public_http_port,
+            self.postgres_port,
+            self.rabbitmq_amqp_port,
+            self.rabbitmq_management_port,
+            self.airflow_port,
+        ) = _available_local_ports(6)
         self.command = (
             "docker",
             "compose",
@@ -46,15 +60,15 @@ class SingleHostEnvironment:
             {
                 "LOCAL_BIND_ADDRESS": "127.0.0.1",
                 "PUBLIC_BIND_ADDRESS": "127.0.0.1",
-                "PUBLIC_HTTP_PORT": str(PUBLIC_HTTP_PORT),
+                "PUBLIC_HTTP_PORT": str(self.public_http_port),
                 "LOG_ROOT": Path(self._temporary_directory.name).as_posix(),
                 "POSTGRES_USER": "autoforge",
                 "POSTGRES_PASSWORD": "change-me",
                 "POSTGRES_REPLICATION_PASSWORD": "change-me-replication",
-                "POSTGRES_PORT": str(POSTGRES_PORT),
-                "APPLICATION_PORT": str(APPLICATION_PORT),
-                "RABBITMQ_AMQP_PORT": str(RABBITMQ_AMQP_PORT),
-                "RABBITMQ_MANAGEMENT_PORT": str(RABBITMQ_MANAGEMENT_PORT),
+                "POSTGRES_PORT": str(self.postgres_port),
+                "APPLICATION_PORT": str(self.application_port),
+                "RABBITMQ_AMQP_PORT": str(self.rabbitmq_amqp_port),
+                "RABBITMQ_MANAGEMENT_PORT": str(self.rabbitmq_management_port),
                 "RABBITMQ_URL": "amqp://autoforge:change-me@rabbitmq:5672/",
                 "DURABLE_JOB_API_TOKEN": "generated-single-host-test-token",
                 "OPERATOR_API_TOKEN": "generated-single-host-operator-token",
@@ -64,7 +78,7 @@ class SingleHostEnvironment:
                 "KIS_ACCOUNT_NUMBER": "00000000",
                 "KIS_ACCOUNT_PRODUCT_CODE": "01",
                 "KIS_ACCOUNT_ENVIRONMENT": "demo",
-                "AIRFLOW_PORT": str(AIRFLOW_PORT),
+                "AIRFLOW_PORT": str(self.airflow_port),
             }
         )
 
@@ -142,7 +156,7 @@ def _wait_for_proxy_and_applications(environment: SingleHostEnvironment) -> list
             if unhealthy:
                 raise RuntimeError(f"Application containers are unhealthy: {unhealthy!r}")
             with urlopen(
-                f"http://127.0.0.1:{PUBLIC_HTTP_PORT}/health", timeout=3
+                f"http://127.0.0.1:{environment.public_http_port}/health", timeout=3
             ) as response:
                 if response.status != 200:
                     raise RuntimeError(f"Nginx health returned {response.status}")
@@ -199,7 +213,7 @@ def main() -> None:
         original_containers = _wait_for_proxy_and_applications(environment)
         smoke_configuration = SmokeConfiguration(
             project_name=environment.project_name,
-            public_url=f"http://127.0.0.1:{PUBLIC_HTTP_PORT}",
+            public_url=f"http://127.0.0.1:{environment.public_http_port}",
             shard_id="1",
             timeout_seconds=30.0,
             expected_application_replicas=APPLICATION_REPLICAS,
@@ -240,6 +254,16 @@ def main() -> None:
             verify(smoke_configuration, via_outbox=True)
         )
 
+        restarted_rabbitmq = _service_container(environment, "rabbitmq")
+        _restart_container(restarted_rabbitmq)
+        if _wait_for_service(environment, "rabbitmq") != restarted_rabbitmq:
+            raise RuntimeError("Restarted RabbitMQ was unexpectedly replaced")
+        _wait_for_service(environment, "outbox-relay")
+        _wait_for_service(environment, "message-worker")
+        recovered_rabbitmq_notification_id = asyncio.run(
+            verify(smoke_configuration, via_outbox=True)
+        )
+
         restarted_container = original_containers[0]
         _restart_container(restarted_container)
         recovered_containers = _wait_for_proxy_and_applications(environment)
@@ -254,6 +278,7 @@ def main() -> None:
             f"message worker recovered realtime notification {recovered_notification_id}; "
             f"PostgreSQL recovered realtime notification {recovered_postgres_notification_id}; "
             f"Redis recovered realtime notification {recovered_redis_notification_id}; "
+            f"RabbitMQ recovered realtime notification {recovered_rabbitmq_notification_id}; "
             "one application container restarted and recovered through the proxy"
         )
     finally:
