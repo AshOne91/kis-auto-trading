@@ -1,22 +1,32 @@
 import asyncio
 import os
+from datetime import UTC, datetime
+from uuid import NAMESPACE_URL, uuid5
 
 import aio_pika
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 
 from kis_auto_trading.application.observability import LOGGER, configure_logging
+from kis_auto_trading.application.signal_subscriptions import (
+    list_enabled_signal_subscriptions,
+)
 from kis_auto_trading.infrastructure.database.routing import ShardTarget
 from kis_auto_trading.infrastructure.database.session import AsyncSessionRegistry
 from kis_auto_trading.infrastructure.messaging.protocol import EventMessage
 from kis_auto_trading.infrastructure.messaging.rabbitmq import RabbitMQConsumer
 from kis_auto_trading.infrastructure.outbox.inbox import ProcessedMessageInbox
 from kis_auto_trading.modules.signal.generated.models import (
+    SignalDeliveryIntent,
+    SignalEvent,
     SignalSubscriptionProjection,
 )
 from kis_auto_trading.modules.signal.generated.sqlalchemy_repositories import (
+    SQLAlchemySignalDeliveryIntentRepository,
     SQLAlchemySignalSubscriptionProjectionRepository,
 )
 from kis_auto_trading.modules.signal.messaging import (
+    DELIVERY_INTENT_QUEUE,
+    DELIVERY_INTENT_ROUTING_KEY,
     SUBSCRIPTION_PROJECTION_QUEUE,
     SUBSCRIPTION_PROJECTION_ROUTING_KEY,
 )
@@ -43,6 +53,9 @@ class ApplicationMessageHandler:
             return
         if message.event_type == "signal.subscription.updated":
             await self._handle_signal_subscription_update(message)
+            return
+        if message.event_type == "signal.created":
+            await self._handle_signal_created(message)
             return
         raise ValueError(f"Unsupported event type: {message.event_type}")
 
@@ -103,6 +116,41 @@ class ApplicationMessageHandler:
                 },
             )
 
+    async def _handle_signal_created(self, message: EventMessage) -> None:
+        signal = _signal_from_payload(message.payload)
+        target = ShardTarget(store="automation")
+        async with self._session_registry.session(target) as session:
+            claimed = await ProcessedMessageInbox(session).claim(message.event_id)
+            if not claimed:
+                logger.info("duplicate signal event skipped", extra={"event_id": message.event_id})
+                return
+            if signal.expires_at is None or signal.expires_at <= datetime.now(UTC):
+                logger.info("expired signal event skipped", extra={"event_id": message.event_id})
+                return
+            projections = await list_enabled_signal_subscriptions(
+                self._session_registry, signal.stock_code, limit=1000
+            )
+            repository = SQLAlchemySignalDeliveryIntentRepository(session)
+            for projection in projections:
+                intent = SignalDeliveryIntent(
+                    intent_id=uuid5(
+                        NAMESPACE_URL,
+                        f"{signal.signal_id}:{projection.subscription_id}",
+                    ),
+                    signal_id=signal.signal_id,
+                    subscription_id=projection.subscription_id,
+                    user_id=projection.user_id,
+                    shard_id=projection.shard_id,
+                    stock_code=signal.stock_code,
+                    expires_at=signal.expires_at,
+                )
+                if await repository.find_by_id(intent.intent_id) is None:
+                    await repository.save(intent)
+            logger.info(
+                "signal delivery intents materialized",
+                extra={"event_id": message.event_id, "signal_id": str(signal.signal_id)},
+            )
+
 
 def build_account_engines() -> dict[tuple[str, str], AsyncEngine]:
     return {
@@ -135,6 +183,11 @@ async def main() -> None:
             queue_name=SUBSCRIPTION_PROJECTION_QUEUE,
             routing_keys=(SUBSCRIPTION_PROJECTION_ROUTING_KEY,),
         )
+        await consumer.consume(
+            handler,
+            queue_name=DELIVERY_INTENT_QUEUE,
+            routing_keys=(DELIVERY_INTENT_ROUTING_KEY,),
+        )
         await asyncio.Future()
     finally:
         await connection.close()
@@ -153,6 +206,15 @@ def _subscription_projection_from_payload(
     except (ValueError, TypeError) as error:
         raise ValueError("Invalid signal subscription event payload") from error
     return projection.model_copy(update={"stock_code": stock_code})
+
+
+def _signal_from_payload(payload: dict[str, object]) -> SignalEvent:
+    try:
+        signal = SignalEvent.model_validate(payload)
+        stock_code = normalize_domestic_stock_code(signal.stock_code)
+    except (ValueError, TypeError) as error:
+        raise ValueError("Invalid signal event payload") from error
+    return signal.model_copy(update={"stock_code": stock_code})
 
 
 if __name__ == '__main__':

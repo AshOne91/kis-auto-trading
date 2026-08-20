@@ -121,6 +121,29 @@ async def test_record_signal_is_idempotent_for_existing_signal() -> None:
 
 
 @pytest.mark.anyio
+async def test_record_signal_with_expiry_enqueues_delivery_materialization() -> None:
+    signal = SignalEvent(
+        signal_id=uuid4(),
+        stock_code="005930",
+        direction="BUY",
+        price="70000",
+        confidence=0.91,
+        observed_at="2026-08-20T00:00:00Z",
+        expires_at="2099-08-20T00:05:00Z",
+    )
+    registry = RecordingSessionRegistry()
+
+    await handlers.record_signal(signal, cast(AsyncSessionRegistry, registry))
+
+    assert len(registry.recording_session.added) == 1
+    event = registry.recording_session.added[0]
+    assert isinstance(event, OutboxEventRecord)
+    assert event.event_type == "signal.created"
+    assert event.routing_key == "signal.created"
+    assert event.payload["signal_id"] == str(signal.signal_id)
+
+
+@pytest.mark.anyio
 async def test_subscription_state_changes_are_sharded_and_enqueued() -> None:
     user_id = uuid4()
     current_session = SessionData(

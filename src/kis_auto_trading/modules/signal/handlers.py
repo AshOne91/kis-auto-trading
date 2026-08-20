@@ -32,7 +32,7 @@ async def record_signal(
     signal: SignalEvent,
     session_registry: AsyncSessionRegistry,
 ) -> SignalEvent:
-    """Persist a signal until a delivery consumer is configured."""
+    """Persist a signal and enqueue eligible delivery materialization."""
     async with session_registry.session(ShardTarget(store="automation")) as session:
         repository = SQLAlchemySignalEventRepository(session)
         existing = await repository.find_by_id(signal.signal_id)
@@ -40,6 +40,15 @@ async def record_signal(
             return existing
 
         await repository.save(signal)
+        if signal.expires_at is not None:
+            OutboxWriter(session).add(
+                EventMessage(
+                    event_type="signal.created",
+                    aggregate_id=str(signal.signal_id),
+                    routing_key="signal.created",
+                    payload=signal.model_dump(mode="json"),
+                )
+            )
     return signal
 
 

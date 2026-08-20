@@ -4,7 +4,7 @@ from kis_auto_trading.application import message_topology
 
 
 @pytest.mark.anyio
-async def test_user_message_topology_declares_signal_subscription_projection(
+async def test_user_message_topology_declares_signal_consumers(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     calls: list[object] = []
@@ -17,8 +17,13 @@ async def test_user_message_topology_declares_signal_subscription_projection(
         "ensure_subscription_projection_topology",
         fake_declare,
     )
+    monkeypatch.setattr(
+        message_topology,
+        "ensure_delivery_intent_topology",
+        fake_declare,
+    )
     connection = object()
 
     await message_topology.declare_user_message_topology(connection)  # type: ignore[arg-type]
 
-    assert calls == [connection]
+    assert calls == [connection, connection]
