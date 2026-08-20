@@ -9,7 +9,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from kis_auto_trading.infrastructure.messaging.protocol import EventMessage
 from kis_auto_trading.infrastructure.outbox.repository import OutboxWriter
 
-from .contracts import JOB_DEFINITIONS, DurableJobStatus
+from .contracts import (
+    JOB_DEFINITIONS,
+    JOB_STATUS_EVENT_TYPE,
+    JOB_STATUS_ROUTING_KEY,
+    DurableJobStatus,
+)
 from .models import DurableJobRecord
 
 
@@ -118,4 +123,19 @@ class DurableJobRepository:
             )
             .returning(DurableJobRecord.job_id)
         )
-        return updated.scalar_one_or_none() is not None
+        transitioned = updated.scalar_one_or_none() is not None
+        if transitioned:
+            OutboxWriter(self._session).add(
+                EventMessage(
+                    event_type=JOB_STATUS_EVENT_TYPE,
+                    aggregate_id=job_id,
+                    payload={
+                        'job_id': job_id,
+                        'status': status.value,
+                        'result': result,
+                        'error': error,
+                    },
+                    routing_key=JOB_STATUS_ROUTING_KEY,
+                )
+            )
+        return transitioned

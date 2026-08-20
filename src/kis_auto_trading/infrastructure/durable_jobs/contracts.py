@@ -1,6 +1,9 @@
 from dataclasses import dataclass
 from enum import StrEnum
 
+JOB_STATUS_EVENT_TYPE = 'durable-job.status.changed'
+JOB_STATUS_ROUTING_KEY = 'durable-job.status.changed'
+
 
 class DurableJobStatus(StrEnum):
     REQUESTED = 'requested'
