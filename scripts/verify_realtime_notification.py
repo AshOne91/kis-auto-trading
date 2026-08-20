@@ -23,6 +23,7 @@ class SmokeConfiguration:
     public_url: str
     shard_id: str
     timeout_seconds: float
+    expected_application_replicas: int = 1
 
 
 def _arguments() -> SmokeConfiguration:
@@ -33,14 +34,19 @@ def _arguments() -> SmokeConfiguration:
     parser.add_argument("--public-url", default=DEFAULT_PUBLIC_URL)
     parser.add_argument("--shard-id", default="1")
     parser.add_argument("--timeout-seconds", type=float, default=30.0)
+    parser.add_argument("--expected-application-replicas", type=int, default=1)
     arguments = parser.parse_args()
-    if arguments.timeout_seconds <= 0:
-        raise ValueError("--timeout-seconds must be positive")
+    if (
+        arguments.timeout_seconds <= 0
+        or arguments.expected_application_replicas <= 0
+    ):
+        raise ValueError("smoke timeout and expected replica count must be positive")
     return SmokeConfiguration(
         project_name=arguments.project_name,
         public_url=arguments.public_url.rstrip("/"),
         shard_id=arguments.shard_id,
         timeout_seconds=arguments.timeout_seconds,
+        expected_application_replicas=arguments.expected_application_replicas,
     )
 
 
@@ -62,7 +68,7 @@ def _docker(*arguments: str, input_text: str | None = None) -> str:
     return result.stdout
 
 
-def _container(project_name: str, service: str) -> str:
+def _containers(project_name: str, service: str, expected_count: int = 1) -> list[str]:
     containers = [
         value
         for value in _docker(
@@ -76,16 +82,19 @@ def _container(project_name: str, service: str) -> str:
         ).splitlines()
         if value
     ]
-    if len(containers) != 1:
+    if len(containers) != expected_count:
         raise RuntimeError(
-            f"Expected one running {service!r} container for {project_name!r}, "
+            f"Expected {expected_count} running {service!r} containers for "
+            f"{project_name!r}, "
             f"got {containers!r}"
         )
-    container = containers[0]
-    health = _docker("inspect", "--format", "{{.State.Health.Status}}", container)
-    if health.strip() != "healthy":
-        raise RuntimeError(f"{service!r} container is not healthy: {health.strip()!r}")
-    return container
+    for container in containers:
+        health = _docker("inspect", "--format", "{{.State.Health.Status}}", container)
+        if health.strip() != "healthy":
+            raise RuntimeError(
+                f"{service!r} container is not healthy: {health.strip()!r}"
+            )
+    return containers
 
 
 def _session_id(user_id: str) -> str:
@@ -209,9 +218,13 @@ def _mark_notification_read(
     return notification
 
 
-async def _verify(configuration: SmokeConfiguration) -> str:
-    application = _container(configuration.project_name, "application")
-    worker = _container(configuration.project_name, "message-worker")
+async def verify(configuration: SmokeConfiguration) -> str:
+    application = _containers(
+        configuration.project_name,
+        "application",
+        configuration.expected_application_replicas,
+    )[0]
+    worker = _containers(configuration.project_name, "message-worker")[0]
     user_id = str(uuid4())
     session_id = _session_id(user_id)
     _create_session(application, session_id, user_id, configuration.shard_id)
@@ -269,7 +282,7 @@ async def _verify(configuration: SmokeConfiguration) -> str:
 
 
 def main() -> None:
-    notification_id = asyncio.run(_verify(_arguments()))
+    notification_id = asyncio.run(verify(_arguments()))
     print(f"Realtime notification smoke verified: {notification_id}")
 
 

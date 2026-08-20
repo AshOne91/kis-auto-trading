@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import os
 import subprocess
 import time
@@ -7,6 +8,8 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from urllib.request import urlopen
 from uuid import uuid4
+
+from verify_realtime_notification import SmokeConfiguration, verify
 
 COMPOSE_FILES = (
     "environment/compose.integration.yml",
@@ -54,6 +57,13 @@ class SingleHostEnvironment:
                 "RABBITMQ_MANAGEMENT_PORT": str(RABBITMQ_MANAGEMENT_PORT),
                 "RABBITMQ_URL": "amqp://autoforge:change-me@rabbitmq:5672/",
                 "DURABLE_JOB_API_TOKEN": "generated-single-host-test-token",
+                "OPERATOR_API_TOKEN": "generated-single-host-operator-token",
+                "KIS_API_URL": "https://example.invalid",
+                "KIS_APP_KEY": "generated-single-host-test-key",
+                "KIS_APP_SECRET": "generated-single-host-test-secret",
+                "KIS_ACCOUNT_NUMBER": "00000000",
+                "KIS_ACCOUNT_PRODUCT_CODE": "01",
+                "KIS_ACCOUNT_ENVIRONMENT": "demo",
                 "AIRFLOW_PORT": str(AIRFLOW_PORT),
             }
         )
@@ -153,8 +163,28 @@ def main() -> None:
     environment = SingleHostEnvironment()
     try:
         print(f"starting isolated single-host environment: {environment.project_name}")
-        environment.run("up", "--build", "--detach", "--wait", "nginx")
+        environment.run(
+            "up",
+            "--build",
+            "--detach",
+            "--wait",
+            "--scale",
+            f"application={APPLICATION_REPLICAS}",
+            "nginx",
+            "message-worker",
+        )
         original_containers = _wait_for_proxy_and_applications(environment)
+        notification_id = asyncio.run(
+            verify(
+                SmokeConfiguration(
+                    project_name=environment.project_name,
+                    public_url=f"http://127.0.0.1:{PUBLIC_HTTP_PORT}",
+                    shard_id="1",
+                    timeout_seconds=30.0,
+                    expected_application_replicas=APPLICATION_REPLICAS,
+                )
+            )
+        )
 
         restarted_container = original_containers[0]
         _restart_one_application(restarted_container)
@@ -165,6 +195,7 @@ def main() -> None:
         print(
             "Generated single-host profile verified: "
             f"Nginx proxy healthy with {APPLICATION_REPLICAS} application replicas; "
+            f"realtime notification {notification_id} was durable through the proxy; "
             "one application container restarted and recovered through the proxy"
         )
     finally:
