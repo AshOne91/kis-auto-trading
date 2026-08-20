@@ -45,6 +45,12 @@ SKN12 `base_server`는 AutoForge를 이용해 만든 프로젝트라고 가정�
 - Order와 체결 상태
 - AutoTrade Strategy
 - Risk Policy
+- SignalEvent delivery intent and expiry policy: the first delivery target is a
+  durable, per-subscription intent in the global automation store, not a direct
+  order, SMS, email, WebSocket, or webhook. The producing KIS policy will supply
+  an immutable expiry; a later worker must suppress intent creation after that
+  expiry. Channel-specific delivery and retry policy remain separate KIS-owned
+  decisions.
 - 실제 Secret reference
 - 통합 테스트와 운영 설정
 
