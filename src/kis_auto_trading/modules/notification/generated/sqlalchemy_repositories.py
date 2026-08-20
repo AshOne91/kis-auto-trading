@@ -1,5 +1,6 @@
 from uuid import UUID
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from kis_auto_trading.modules.notification.generated.models import InAppNotification
@@ -43,3 +44,27 @@ class SQLAlchemyInAppNotificationRepository:
             read_at=aggregate.read_at
         )
         await self._session.merge(record)
+
+    async def list_by_user_id(
+        self, user_id: UUID,
+    ) -> list[InAppNotification]:
+        result = await self._session.execute(
+            select(InAppNotificationRecord).where(
+                InAppNotificationRecord.user_id == user_id
+            ).order_by(
+                InAppNotificationRecord.created_at.desc()
+            ).limit(100)
+        )
+        records = result.scalars().all()
+        return [
+            InAppNotification(
+            notification_id=record.notification_id,
+            delivery_intent_id=record.delivery_intent_id,
+            user_id=record.user_id,
+            signal_id=record.signal_id,
+            stock_code=record.stock_code,
+            created_at=record.created_at,
+            read_at=record.read_at
+            )
+            for record in records
+        ]

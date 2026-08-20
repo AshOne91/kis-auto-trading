@@ -11,3 +11,6 @@ class InAppNotificationRepository(Protocol):
     async def save(
         self, aggregate: InAppNotification,
     ) -> None: ...
+    async def list_by_user_id(
+        self, user_id: UUID,
+    ) -> list[InAppNotification]: ...

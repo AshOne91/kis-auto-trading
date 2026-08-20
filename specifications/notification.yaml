@@ -75,6 +75,13 @@ database:
       operations:
         - find_by_id
         - save
+      queries:
+        - name: list_by_user_id
+          column: user_id
+          cardinality: many
+          order_by: created_at
+          descending: true
+          limit: 100
   placements:
     - table: in_app_notifications
       store: account
