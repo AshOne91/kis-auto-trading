@@ -119,6 +119,16 @@ def _container_health(container: str) -> str:
     return result.stdout.strip()
 
 
+def _message_worker_container(environment: SingleHostEnvironment) -> str:
+    result = environment.run("ps", "-q", "message-worker")
+    containers = [line.strip() for line in result.stdout.splitlines() if line.strip()]
+    if len(containers) != 1:
+        raise RuntimeError(
+            f"Expected one message worker container, got {containers!r}"
+        )
+    return containers[0]
+
+
 def _wait_for_proxy_and_applications(environment: SingleHostEnvironment) -> list[str]:
     last_error: RuntimeError | None = None
     for _ in range(MAX_ATTEMPTS):
@@ -143,7 +153,21 @@ def _wait_for_proxy_and_applications(environment: SingleHostEnvironment) -> list
     raise RuntimeError("Nginx and application replicas did not become healthy") from last_error
 
 
-def _restart_one_application(container: str) -> None:
+def _wait_for_message_worker(environment: SingleHostEnvironment) -> str:
+    last_error: RuntimeError | None = None
+    for _ in range(MAX_ATTEMPTS):
+        try:
+            container = _message_worker_container(environment)
+            if _container_health(container) != "healthy":
+                raise RuntimeError("Message worker is unhealthy")
+            return container
+        except RuntimeError as error:
+            last_error = error
+        time.sleep(RETRY_SECONDS)
+    raise RuntimeError("Message worker did not become healthy") from last_error
+
+
+def _restart_container(container: str) -> None:
     result = subprocess.run(
         ("docker", "restart", container),
         check=False,
@@ -154,9 +178,7 @@ def _restart_one_application(container: str) -> None:
         timeout=30,
     )
     if result.returncode:
-        raise RuntimeError(
-            f"Could not restart application container {container}: {result.stderr}"
-        )
+        raise RuntimeError(f"Could not restart container {container}: {result.stderr}")
 
 
 def main() -> None:
@@ -174,20 +196,23 @@ def main() -> None:
             "message-worker",
         )
         original_containers = _wait_for_proxy_and_applications(environment)
-        notification_id = asyncio.run(
-            verify(
-                SmokeConfiguration(
-                    project_name=environment.project_name,
-                    public_url=f"http://127.0.0.1:{PUBLIC_HTTP_PORT}",
-                    shard_id="1",
-                    timeout_seconds=30.0,
-                    expected_application_replicas=APPLICATION_REPLICAS,
-                )
-            )
+        smoke_configuration = SmokeConfiguration(
+            project_name=environment.project_name,
+            public_url=f"http://127.0.0.1:{PUBLIC_HTTP_PORT}",
+            shard_id="1",
+            timeout_seconds=30.0,
+            expected_application_replicas=APPLICATION_REPLICAS,
         )
+        notification_id = asyncio.run(verify(smoke_configuration))
+
+        restarted_worker = _message_worker_container(environment)
+        _restart_container(restarted_worker)
+        if _wait_for_message_worker(environment) != restarted_worker:
+            raise RuntimeError("Restarted message worker was unexpectedly replaced")
+        recovered_notification_id = asyncio.run(verify(smoke_configuration))
 
         restarted_container = original_containers[0]
-        _restart_one_application(restarted_container)
+        _restart_container(restarted_container)
         recovered_containers = _wait_for_proxy_and_applications(environment)
         if restarted_container not in recovered_containers:
             raise RuntimeError("Restarted application container was unexpectedly replaced")
@@ -196,6 +221,7 @@ def main() -> None:
             "Generated single-host profile verified: "
             f"Nginx proxy healthy with {APPLICATION_REPLICAS} application replicas; "
             f"realtime notification {notification_id} was durable through the proxy; "
+            f"message worker recovered realtime notification {recovered_notification_id}; "
             "one application container restarted and recovered through the proxy"
         )
     finally:
