@@ -4,6 +4,9 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
 
+from kis_auto_trading.application.durable_job_handler import (
+    validate_durable_job_payload,
+)
 from kis_auto_trading.infrastructure.database.provider import get_session_registry
 from kis_auto_trading.infrastructure.database.routing import ShardTarget
 from kis_auto_trading.infrastructure.database.session import AsyncSessionRegistry
@@ -78,6 +81,10 @@ async def trigger_durable_job(
     ],
 ) -> DurableJobTriggerResponse:
     definition = _definition(job_type)
+    try:
+        validate_durable_job_payload(job_type, request.payload)
+    except (TypeError, ValueError) as error:
+        raise HTTPException(status_code=422, detail=str(error)) from error
     async with session_registry.session(ShardTarget(store=definition.store)) as session:
         result = await DurableJobRepository(session).request(
             job_type=job_type, run_key=request.run_key, payload=request.payload

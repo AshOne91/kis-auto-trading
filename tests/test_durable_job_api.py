@@ -75,6 +75,10 @@ def test_durable_job_api_authenticates_and_reuses_run_key(
         "run_key": "news_collection:2026-08-12T00:00:00+00:00",
         "payload": {"symbols": ["AAPL"]},
     }
+    market_price_body = {
+        "run_key": "market-price:005930",
+        "payload": {"stock_code": "005930"},
+    }
     with TestClient(app) as client:
         assert client.post("/internal/jobs/news_collection", json=body).status_code == 401
         assert (
@@ -95,6 +99,19 @@ def test_durable_job_api_authenticates_and_reuses_run_key(
             "/internal/jobs/news_collection",
             headers={"Authorization": "Bearer test-token"},
             json=body,
+        )
+        market_price_created = client.post(
+            "/internal/jobs/market_price_snapshot",
+            headers={"Authorization": "Bearer test-token"},
+            json=market_price_body,
+        )
+        invalid_market_price = client.post(
+            "/internal/jobs/market_price_snapshot",
+            headers={"Authorization": "Bearer test-token"},
+            json={
+                "run_key": "market-price:invalid",
+                "payload": {"stock_code": "invalid"},
+            },
         )
         history = client.get(
             "/internal/jobs/news_collection?limit=5",
@@ -133,12 +150,19 @@ def test_durable_job_api_authenticates_and_reuses_run_key(
     assert created.json() == {"job_id": "job-1", "created": True}
     assert repeated.status_code == 202
     assert repeated.json() == {"job_id": "job-1", "created": False}
+    assert market_price_created.status_code == 202
+    assert market_price_created.json() == {"job_id": "job-1", "created": False}
+    assert invalid_market_price.status_code == 422
+    assert invalid_market_price.json() == {
+        "detail": "market_price_snapshot stock_code must be a six-digit domestic stock code"
+    }
     assert history.status_code == 200
     assert history.json()[0]["job_id"] == "job-1"
     assert history.json()[0]["status"] == "requested"
     assert requests == [
         {"job_type": "news_collection", **body},
         {"job_type": "news_collection", **body},
+        {"job_type": "market_price_snapshot", **market_price_body},
     ]
     assert status.status_code == 200
     assert status.json()["status"] == "requested"
@@ -152,6 +176,7 @@ def test_durable_job_api_authenticates_and_reuses_run_key(
     assert raced_cancel.json()["status"] == "cancelled"
     assert running_cancel.status_code == 409
     assert [target.store for target in registry.targets] == [
+        "automation",
         "automation",
         "automation",
         "automation",

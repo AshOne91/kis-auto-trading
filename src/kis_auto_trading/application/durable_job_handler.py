@@ -248,6 +248,11 @@ class ApplicationDurableJobHandler:
         )
 
 
+def validate_durable_job_payload(job_type: str, payload: dict[str, object]) -> None:
+    if job_type == "market_price_snapshot":
+        _market_price_stock_code_from_payload(payload)
+
+
 def _symbols_from_payload(payload: dict[str, object]) -> list[str]:
     symbols = payload.get("symbols")
     if not isinstance(symbols, list):
