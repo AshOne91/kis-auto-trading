@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from kis_auto_trading.application.extensions import USER_ROUTERS
+from kis_auto_trading.routers.notifications import router as notifications_router
 from kis_auto_trading.routers.operator_market_data import (
     router as market_data_router,
 )
@@ -75,6 +76,7 @@ def test_user_owned_extension_registers_operator_routers() -> None:
         portfolio_router,
         router,
         signal_router,
+        notifications_router,
     )
 
 

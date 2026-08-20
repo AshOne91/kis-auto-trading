@@ -46,6 +46,9 @@ tooling:
     cluster_url_environment: REDIS_CLUSTER_URL
     key_prefix: kis-cache
     ttl_seconds: 86400
+  realtime:
+    enabled: true
+    backplane: redis_pubsub
   ruff_exclude:
     - base_server
     - test.py
@@ -96,6 +99,8 @@ application:
     - account
     - news
     - market_data
+    - signal
+    - notification
   services:
     - name: session
       kind: redis_session

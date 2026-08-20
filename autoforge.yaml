@@ -52,6 +52,9 @@ tooling:
     url_environment: REDIS_URL
     key_prefix: kis-cache
     ttl_seconds: 86400
+  realtime:
+    enabled: true
+    backplane: redis_pubsub
   ruff_exclude:
     - base_server
     - test.py
