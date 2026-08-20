@@ -231,6 +231,15 @@ def main() -> None:
             verify(smoke_configuration, via_outbox=True)
         )
 
+        restarted_redis = _service_container(environment, "redis")
+        _restart_container(restarted_redis)
+        if _wait_for_service(environment, "redis") != restarted_redis:
+            raise RuntimeError("Restarted Redis was unexpectedly replaced")
+        _wait_for_proxy_and_applications(environment)
+        recovered_redis_notification_id = asyncio.run(
+            verify(smoke_configuration, via_outbox=True)
+        )
+
         restarted_container = original_containers[0]
         _restart_container(restarted_container)
         recovered_containers = _wait_for_proxy_and_applications(environment)
@@ -244,6 +253,7 @@ def main() -> None:
             f"outbox relay recovered realtime notification {recovered_relay_notification_id}; "
             f"message worker recovered realtime notification {recovered_notification_id}; "
             f"PostgreSQL recovered realtime notification {recovered_postgres_notification_id}; "
+            f"Redis recovered realtime notification {recovered_redis_notification_id}; "
             "one application container restarted and recovered through the proxy"
         )
     finally:
