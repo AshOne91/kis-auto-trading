@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from .config import KeyValueStoreConfig
+from .config import KeyValueStoreBackend, KeyValueStoreConfig
 from .protocol import KeyValueStoreClient
 
 
@@ -13,9 +13,13 @@ class KeyValueStore:
 
     @classmethod
     def from_environment(cls) -> KeyValueStore:
+        config = KeyValueStoreConfig.from_environment()
+        if config.backend is KeyValueStoreBackend.MEMCACHED:
+            from .memcached import MemcachedKeyValueStoreClient
+
+            return cls(MemcachedKeyValueStoreClient(config), config.ttl_seconds)
         from .redis import RedisKeyValueStoreClient
 
-        config = KeyValueStoreConfig.from_environment()
         return cls(RedisKeyValueStoreClient(config), config.ttl_seconds)
 
     async def health_check(self) -> None:
