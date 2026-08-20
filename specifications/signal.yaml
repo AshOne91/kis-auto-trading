@@ -5,6 +5,40 @@ module:
   display_name: Trading Signal
   route_prefix: /api/signal
 
+endpoints:
+  - name: subscribe
+    method: PUT
+    path: /subscription
+    request:
+      fields:
+        - name: stock_code
+          type:
+            kind: string
+    response:
+      model: SignalSubscription
+    handler: subscribe
+    idempotency: true
+    access_level: user
+    dependencies:
+      - current_session
+      - database_session_registry
+  - name: unsubscribe
+    method: DELETE
+    path: /subscription
+    request:
+      fields:
+        - name: stock_code
+          type:
+            kind: string
+    response:
+      model: SignalSubscription
+    handler: unsubscribe
+    idempotency: true
+    access_level: user
+    dependencies:
+      - current_session
+      - database_session_registry
+
 models:
   - name: SignalEvent
     fields:
