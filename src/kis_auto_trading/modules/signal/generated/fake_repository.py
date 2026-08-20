@@ -1,6 +1,7 @@
 from uuid import UUID
 
 from kis_auto_trading.modules.signal.generated.models import (
+    SignalDeliveryIntent,
     SignalEvent,
     SignalSubscription,
     SignalSubscriptionProjection,
@@ -50,3 +51,18 @@ class FakeSignalSubscriptionProjectionRepository:
         self, aggregate: SignalSubscriptionProjection,
     ) -> None:
         self._items[aggregate.subscription_id] = aggregate
+
+
+class FakeSignalDeliveryIntentRepository:
+    def __init__(self) -> None:
+        self._items: dict[UUID, SignalDeliveryIntent] = {}
+
+    async def find_by_id(
+        self, intent_id: UUID,
+    ) -> SignalDeliveryIntent | None:
+        return self._items.get(intent_id)
+
+    async def save(
+        self, aggregate: SignalDeliveryIntent,
+    ) -> None:
+        self._items[aggregate.intent_id] = aggregate

@@ -13,6 +13,18 @@ class SignalEvent(BaseModel):
     price: str
     confidence: float
     observed_at: datetime
+    expires_at: datetime | None = None
+
+
+class SignalDeliveryIntent(BaseModel):
+    intent_id: UUID
+    signal_id: UUID
+    subscription_id: UUID
+    user_id: UUID
+    shard_id: str
+    stock_code: str
+    expires_at: datetime
+    status: str = 'pending'
 
 
 class SignalSubscription(BaseModel):

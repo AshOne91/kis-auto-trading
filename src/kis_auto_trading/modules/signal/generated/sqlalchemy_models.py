@@ -24,6 +24,28 @@ class SignalEventRecord(Base):
 
     observed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, index=True)
 
+    expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True, index=True)
+
+
+class SignalDeliveryIntentRecord(Base):
+    __tablename__ = "signal_delivery_intents"
+
+    intent_id: Mapped[UUID] = mapped_column(Uuid, primary_key=True)
+
+    signal_id: Mapped[UUID] = mapped_column(Uuid, nullable=False, index=True)
+
+    subscription_id: Mapped[UUID] = mapped_column(Uuid, nullable=False, index=True)
+
+    user_id: Mapped[UUID] = mapped_column(Uuid, nullable=False, index=True)
+
+    shard_id: Mapped[str] = mapped_column(Text, nullable=False)
+
+    stock_code: Mapped[str] = mapped_column(Text, nullable=False, index=True)
+
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, index=True)
+
+    status: Mapped[str] = mapped_column(Text, nullable=False, server_default=text("'pending'"))
+
 
 class SignalSubscriptionRecord(Base):
     __tablename__ = "signal_subscriptions"

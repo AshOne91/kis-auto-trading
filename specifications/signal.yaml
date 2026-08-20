@@ -60,6 +60,38 @@ models:
       - name: observed_at
         type:
           kind: datetime
+      - name: expires_at
+        type:
+          kind: optional
+          item:
+            kind: datetime
+  - name: SignalDeliveryIntent
+    fields:
+      - name: intent_id
+        type:
+          kind: uuid
+      - name: signal_id
+        type:
+          kind: uuid
+      - name: subscription_id
+        type:
+          kind: uuid
+      - name: user_id
+        type:
+          kind: uuid
+      - name: shard_id
+        type:
+          kind: string
+      - name: stock_code
+        type:
+          kind: string
+      - name: expires_at
+        type:
+          kind: datetime
+      - name: status
+        type:
+          kind: string
+        default: pending
   - name: SignalSubscription
     fields:
       - name: subscription_id
@@ -126,6 +158,44 @@ database:
           type:
             kind: datetime
           index: true
+        - name: expires_at
+          type:
+            kind: datetime
+          nullable: true
+          index: true
+    - name: signal_delivery_intents
+      columns:
+        - name: intent_id
+          type:
+            kind: uuid
+          primary_key: true
+        - name: signal_id
+          type:
+            kind: uuid
+          index: true
+        - name: subscription_id
+          type:
+            kind: uuid
+          index: true
+        - name: user_id
+          type:
+            kind: uuid
+          index: true
+        - name: shard_id
+          type:
+            kind: string
+        - name: stock_code
+          type:
+            kind: string
+          index: true
+        - name: expires_at
+          type:
+            kind: datetime
+          index: true
+        - name: status
+          type:
+            kind: string
+          default: pending
     - name: signal_subscriptions
       columns:
         - name: subscription_id
@@ -190,6 +260,26 @@ database:
       operations:
         - find_by_id
         - save
+    - name: SignalDeliveryIntentRepository
+      aggregate: SignalDeliveryIntent
+      table: signal_delivery_intents
+      operations:
+        - find_by_id
+        - save
+  migrations:
+    - revision: 2
+      name: signal_delivery_intent
+      store: automation
+      create_tables:
+        - signal_delivery_intents
+      add_columns:
+        - table: signal_events
+          column:
+            name: expires_at
+            type:
+              kind: datetime
+            nullable: true
+            index: true
   placements:
     - table: signal_events
       store: automation
@@ -201,6 +291,10 @@ database:
       partition_key: user_id
       unresolved_policy: error
     - table: signal_subscription_projections
+      store: automation
+      mode: global
+      unresolved_policy: error
+    - table: signal_delivery_intents
       store: automation
       mode: global
       unresolved_policy: error

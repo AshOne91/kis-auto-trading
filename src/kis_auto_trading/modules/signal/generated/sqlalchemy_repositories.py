@@ -3,11 +3,13 @@ from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from kis_auto_trading.modules.signal.generated.models import (
+    SignalDeliveryIntent,
     SignalEvent,
     SignalSubscription,
     SignalSubscriptionProjection,
 )
 from kis_auto_trading.modules.signal.generated.sqlalchemy_models import (
+    SignalDeliveryIntentRecord,
     SignalEventRecord,
     SignalSubscriptionProjectionRecord,
     SignalSubscriptionRecord,
@@ -32,7 +34,8 @@ class SQLAlchemySignalEventRepository:
             direction=record.direction,
             price=record.price,
             confidence=record.confidence,
-            observed_at=record.observed_at
+            observed_at=record.observed_at,
+            expires_at=record.expires_at
         )
 
     async def save(
@@ -44,7 +47,8 @@ class SQLAlchemySignalEventRepository:
             direction=aggregate.direction,
             price=aggregate.price,
             confidence=aggregate.confidence,
-            observed_at=aggregate.observed_at
+            observed_at=aggregate.observed_at,
+            expires_at=aggregate.expires_at
         )
         await self._session.merge(record)
 
@@ -113,5 +117,44 @@ class SQLAlchemySignalSubscriptionProjectionRepository:
             stock_code=aggregate.stock_code,
             enabled=aggregate.enabled,
             revision=aggregate.revision
+        )
+        await self._session.merge(record)
+
+
+class SQLAlchemySignalDeliveryIntentRepository:
+    def __init__(self, session: AsyncSession) -> None:
+        self._session = session
+
+    async def find_by_id(
+        self, intent_id: UUID,
+    ) -> SignalDeliveryIntent | None:
+        record = await self._session.get(
+            SignalDeliveryIntentRecord, intent_id
+        )
+        if record is None:
+            return None
+        return SignalDeliveryIntent(
+            intent_id=record.intent_id,
+            signal_id=record.signal_id,
+            subscription_id=record.subscription_id,
+            user_id=record.user_id,
+            shard_id=record.shard_id,
+            stock_code=record.stock_code,
+            expires_at=record.expires_at,
+            status=record.status
+        )
+
+    async def save(
+        self, aggregate: SignalDeliveryIntent,
+    ) -> None:
+        record = SignalDeliveryIntentRecord(
+            intent_id=aggregate.intent_id,
+            signal_id=aggregate.signal_id,
+            subscription_id=aggregate.subscription_id,
+            user_id=aggregate.user_id,
+            shard_id=aggregate.shard_id,
+            stock_code=aggregate.stock_code,
+            expires_at=aggregate.expires_at,
+            status=aggregate.status
         )
         await self._session.merge(record)

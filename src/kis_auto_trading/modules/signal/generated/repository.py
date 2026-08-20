@@ -2,6 +2,7 @@ from typing import Protocol
 from uuid import UUID
 
 from kis_auto_trading.modules.signal.generated.models import (
+    SignalDeliveryIntent,
     SignalEvent,
     SignalSubscription,
     SignalSubscriptionProjection,
@@ -32,4 +33,13 @@ class SignalSubscriptionProjectionRepository(Protocol):
     ) -> SignalSubscriptionProjection | None: ...
     async def save(
         self, aggregate: SignalSubscriptionProjection,
+    ) -> None: ...
+
+
+class SignalDeliveryIntentRepository(Protocol):
+    async def find_by_id(
+        self, intent_id: UUID,
+    ) -> SignalDeliveryIntent | None: ...
+    async def save(
+        self, aggregate: SignalDeliveryIntent,
     ) -> None: ...
