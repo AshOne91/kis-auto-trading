@@ -119,12 +119,12 @@ def _container_health(container: str) -> str:
     return result.stdout.strip()
 
 
-def _message_worker_container(environment: SingleHostEnvironment) -> str:
-    result = environment.run("ps", "-q", "message-worker")
+def _service_container(environment: SingleHostEnvironment, service: str) -> str:
+    result = environment.run("ps", "-q", service)
     containers = [line.strip() for line in result.stdout.splitlines() if line.strip()]
     if len(containers) != 1:
         raise RuntimeError(
-            f"Expected one message worker container, got {containers!r}"
+            f"Expected one {service!r} container, got {containers!r}"
         )
     return containers[0]
 
@@ -153,18 +153,18 @@ def _wait_for_proxy_and_applications(environment: SingleHostEnvironment) -> list
     raise RuntimeError("Nginx and application replicas did not become healthy") from last_error
 
 
-def _wait_for_message_worker(environment: SingleHostEnvironment) -> str:
+def _wait_for_service(environment: SingleHostEnvironment, service: str) -> str:
     last_error: RuntimeError | None = None
     for _ in range(MAX_ATTEMPTS):
         try:
-            container = _message_worker_container(environment)
+            container = _service_container(environment, service)
             if _container_health(container) != "healthy":
-                raise RuntimeError("Message worker is unhealthy")
+                raise RuntimeError(f"{service!r} is unhealthy")
             return container
         except RuntimeError as error:
             last_error = error
         time.sleep(RETRY_SECONDS)
-    raise RuntimeError("Message worker did not become healthy") from last_error
+    raise RuntimeError(f"{service!r} did not become healthy") from last_error
 
 
 def _restart_container(container: str) -> None:
@@ -194,6 +194,7 @@ def main() -> None:
             f"application={APPLICATION_REPLICAS}",
             "nginx",
             "message-worker",
+            "outbox-relay",
         )
         original_containers = _wait_for_proxy_and_applications(environment)
         smoke_configuration = SmokeConfiguration(
@@ -203,13 +204,23 @@ def main() -> None:
             timeout_seconds=30.0,
             expected_application_replicas=APPLICATION_REPLICAS,
         )
-        notification_id = asyncio.run(verify(smoke_configuration))
+        notification_id = asyncio.run(verify(smoke_configuration, via_outbox=True))
 
-        restarted_worker = _message_worker_container(environment)
+        restarted_relay = _service_container(environment, "outbox-relay")
+        _restart_container(restarted_relay)
+        if _wait_for_service(environment, "outbox-relay") != restarted_relay:
+            raise RuntimeError("Restarted outbox relay was unexpectedly replaced")
+        recovered_relay_notification_id = asyncio.run(
+            verify(smoke_configuration, via_outbox=True)
+        )
+
+        restarted_worker = _service_container(environment, "message-worker")
         _restart_container(restarted_worker)
-        if _wait_for_message_worker(environment) != restarted_worker:
+        if _wait_for_service(environment, "message-worker") != restarted_worker:
             raise RuntimeError("Restarted message worker was unexpectedly replaced")
-        recovered_notification_id = asyncio.run(verify(smoke_configuration))
+        recovered_notification_id = asyncio.run(
+            verify(smoke_configuration, via_outbox=True)
+        )
 
         restarted_container = original_containers[0]
         _restart_container(restarted_container)
@@ -221,6 +232,7 @@ def main() -> None:
             "Generated single-host profile verified: "
             f"Nginx proxy healthy with {APPLICATION_REPLICAS} application replicas; "
             f"realtime notification {notification_id} was durable through the proxy; "
+            f"outbox relay recovered realtime notification {recovered_relay_notification_id}; "
             f"message worker recovered realtime notification {recovered_notification_id}; "
             "one application container restarted and recovered through the proxy"
         )

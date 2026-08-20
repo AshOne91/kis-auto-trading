@@ -180,6 +180,52 @@ asyncio.run(main())
     _docker("exec", "-i", container, "python", "-", input_text=source)
 
 
+def _write_delivery_intent_to_outbox(
+    container: str, user_id: str, shard_id: str
+) -> None:
+    source = f"""\
+import asyncio
+import os
+from datetime import UTC, datetime, timedelta
+from uuid import uuid4
+
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+
+from kis_auto_trading.infrastructure.messaging.protocol import EventMessage
+from kis_auto_trading.infrastructure.outbox.repository import OutboxWriter
+from kis_auto_trading.modules.signal.messaging import IN_APP_NOTIFICATION_ROUTING_KEY
+
+async def main() -> None:
+    intent_id = uuid4()
+    engine = create_async_engine(os.environ[\"AUTOMATION_DATABASE_URL\"], pool_pre_ping=True)
+    factory = async_sessionmaker(engine, expire_on_commit=False)
+    try:
+        async with factory() as session, session.begin():
+            OutboxWriter(session).add(
+                EventMessage(
+                    event_type=\"signal.delivery-intent.created\",
+                    aggregate_id=str(intent_id),
+                    routing_key=IN_APP_NOTIFICATION_ROUTING_KEY,
+                    payload={{
+                        \"intent_id\": str(intent_id),
+                        \"signal_id\": str(uuid4()),
+                        \"subscription_id\": str(uuid4()),
+                        \"user_id\": {user_id!r},
+                        \"shard_id\": {shard_id!r},
+                        \"stock_code\": \"005930\",
+                        \"expires_at\": (datetime.now(UTC) + timedelta(minutes=5)).isoformat(),
+                        \"status\": \"pending\",
+                    }},
+                )
+            )
+    finally:
+        await engine.dispose()
+
+asyncio.run(main())
+"""
+    _docker("exec", "-i", container, "python", "-", input_text=source)
+
+
 def _websocket_url(public_url: str) -> str:
     parsed = urlsplit(public_url)
     scheme = {"http": "ws", "https": "wss"}.get(parsed.scheme)
@@ -218,7 +264,9 @@ def _mark_notification_read(
     return notification
 
 
-async def verify(configuration: SmokeConfiguration) -> str:
+async def verify(
+    configuration: SmokeConfiguration, *, via_outbox: bool = False
+) -> str:
     application = _containers(
         configuration.project_name,
         "application",
@@ -234,7 +282,12 @@ async def verify(configuration: SmokeConfiguration) -> str:
             additional_headers={"Authorization": f"Bearer {session_id}"},
         ) as websocket:
             await websocket.send("smoke")
-            _publish_delivery_intent(worker, user_id, configuration.shard_id)
+            if via_outbox:
+                _write_delivery_intent_to_outbox(
+                    application, user_id, configuration.shard_id
+                )
+            else:
+                _publish_delivery_intent(worker, user_id, configuration.shard_id)
             hint = json.loads(
                 await asyncio.wait_for(
                     websocket.recv(), timeout=configuration.timeout_seconds
