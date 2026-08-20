@@ -86,6 +86,21 @@ spec:
             secretKeyRef:
               name: my-kis-gold-bar
               key: IDENTITY_DATABASE_URL
+        - name: KIS_ACCOUNT_ENVIRONMENT
+          valueFrom:
+            secretKeyRef:
+              name: my-kis-gold-bar
+              key: KIS_ACCOUNT_ENVIRONMENT
+        - name: KIS_ACCOUNT_NUMBER
+          valueFrom:
+            secretKeyRef:
+              name: my-kis-gold-bar
+              key: KIS_ACCOUNT_NUMBER
+        - name: KIS_ACCOUNT_PRODUCT_CODE
+          valueFrom:
+            secretKeyRef:
+              name: my-kis-gold-bar
+              key: KIS_ACCOUNT_PRODUCT_CODE
         - name: KIS_API_URL
           valueFrom:
             secretKeyRef:

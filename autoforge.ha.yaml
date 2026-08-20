@@ -85,6 +85,12 @@ application:
       targets:
         - application
         - durable_job_worker
+    - name: KIS_ACCOUNT_NUMBER
+      health_test_value: "12345678"
+    - name: KIS_ACCOUNT_PRODUCT_CODE
+      health_test_value: "01"
+    - name: KIS_ACCOUNT_ENVIRONMENT
+      health_test_value: demo
   modules:
     - identity
     - account

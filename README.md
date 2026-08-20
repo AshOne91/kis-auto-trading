@@ -78,6 +78,17 @@ pytest -p no:cacheprovider tests/integration/test_kis_market_data_integration.py
 The check has no account, order, hash-key, WebSocket, polling, or background
 behavior. It closes its HTTP and Redis clients after the one read-only request.
 
+## Read-only domestic balance client
+
+`KisDomesticAccountClient` is a user-owned library boundary for the official
+domestic stock balance GET. It is not registered at application startup and has
+no HTTP route, persistence, or order behavior. It requires
+`KIS_ACCOUNT_NUMBER`, `KIS_ACCOUNT_PRODUCT_CODE`, and
+`KIS_ACCOUNT_ENVIRONMENT` (`real` or `demo`) in addition to the existing KIS
+application credentials. Generated local Compose and Kubernetes inject those
+values into the application process only. The client returns typed holding
+fields, not an account summary, and its default tests use fake transport only.
+
 ## Local operator access bootstrap
 
 After applying the Identity migrations, a host operator can grant one existing
