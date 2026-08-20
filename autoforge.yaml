@@ -103,6 +103,7 @@ application:
     - news
     - market_data
     - signal
+    - notification
   compositions:
     - name: signal_api
       modules:

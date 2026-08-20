@@ -8,6 +8,7 @@ import pytest
 from kis_auto_trading.infrastructure.database.routing import ShardTarget
 from kis_auto_trading.infrastructure.database.session import AsyncSessionRegistry
 from kis_auto_trading.infrastructure.messaging.protocol import EventMessage
+from kis_auto_trading.modules.notification.generated.models import InAppNotification
 from kis_auto_trading.modules.signal.generated.models import (
     SignalDeliveryIntent,
     SignalSubscriptionProjection,
@@ -66,11 +67,38 @@ class FakeSignalDeliveryIntentRepository:
         type(self).intents[intent.intent_id] = intent
 
 
+class FakeInAppNotificationRepository:
+    notifications: ClassVar[dict[object, InAppNotification]] = {}
+
+    def __init__(self, session: object) -> None:
+        del session
+
+    async def find_by_id(
+        self, notification_id: object
+    ) -> InAppNotification | None:
+        return type(self).notifications.get(notification_id)
+
+    async def save(self, notification: InAppNotification) -> None:
+        type(self).notifications[notification.notification_id] = notification
+
+
+class FakeOutboxWriter:
+    messages: ClassVar[list[EventMessage]] = []
+
+    def __init__(self, session: object) -> None:
+        del session
+
+    def add(self, message: EventMessage) -> None:
+        type(self).messages.append(message)
+
+
 @pytest.fixture(autouse=True)
 def use_fake_inbox(monkeypatch: pytest.MonkeyPatch) -> None:
     FakeInbox.claimed_event_ids.clear()
     FakeSignalSubscriptionProjectionRepository.projections.clear()
     FakeSignalDeliveryIntentRepository.intents.clear()
+    FakeInAppNotificationRepository.notifications.clear()
+    FakeOutboxWriter.messages.clear()
     monkeypatch.setattr(run_message_worker, "ProcessedMessageInbox", FakeInbox)
     monkeypatch.setattr(
         run_message_worker,
@@ -82,6 +110,12 @@ def use_fake_inbox(monkeypatch: pytest.MonkeyPatch) -> None:
         "SQLAlchemySignalDeliveryIntentRepository",
         FakeSignalDeliveryIntentRepository,
     )
+    monkeypatch.setattr(
+        run_message_worker,
+        "SQLAlchemyInAppNotificationRepository",
+        FakeInAppNotificationRepository,
+    )
+    monkeypatch.setattr(run_message_worker, "OutboxWriter", FakeOutboxWriter)
 
 
 @pytest.mark.anyio
@@ -271,3 +305,39 @@ async def test_signal_event_materializes_one_pending_intent_per_subscription(
     assert intent.signal_id == signal_id
     assert intent.subscription_id == subscription.subscription_id
     assert intent.status == "pending"
+    assert len(FakeOutboxWriter.messages) == 1
+    assert FakeOutboxWriter.messages[0].event_type == "signal.delivery-intent.created"
+
+
+@pytest.mark.anyio
+async def test_delivery_intent_event_materializes_one_notification_on_payload_shard() -> None:
+    registry = RecordingSessionRegistry()
+    handler = run_message_worker.ApplicationMessageHandler(
+        cast(AsyncSessionRegistry, registry)
+    )
+    intent_id = uuid4()
+    message = EventMessage(
+        event_id="4a1fb8bc-c45f-42cc-8a49-30ec6f436f57",
+        event_type="signal.delivery-intent.created",
+        aggregate_id=str(intent_id),
+        routing_key="signal.delivery-intent.created",
+        payload={
+            "intent_id": str(intent_id),
+            "signal_id": str(uuid4()),
+            "subscription_id": str(uuid4()),
+            "user_id": str(uuid4()),
+            "shard_id": "2",
+            "stock_code": "005930",
+            "expires_at": "2099-08-20T00:05:00Z",
+            "status": "pending",
+        },
+    )
+
+    await handler.handle(message)
+    await handler.handle(message)
+
+    assert len(FakeInAppNotificationRepository.notifications) == 1
+    notification = next(iter(FakeInAppNotificationRepository.notifications.values()))
+    assert notification.delivery_intent_id == intent_id
+    assert notification.stock_code == "005930"
+    assert registry.targets == [ShardTarget(store="account", shard_id="2")] * 2

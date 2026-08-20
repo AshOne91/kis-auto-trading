@@ -1,0 +1,83 @@
+spec_version: "1"
+
+module:
+  name: notification
+  display_name: In-App Notification
+  route_prefix: /api/notifications
+
+endpoints: []
+
+models:
+  - name: InAppNotification
+    fields:
+      - name: notification_id
+        type:
+          kind: uuid
+      - name: delivery_intent_id
+        type:
+          kind: uuid
+      - name: user_id
+        type:
+          kind: uuid
+      - name: signal_id
+        type:
+          kind: uuid
+      - name: stock_code
+        type:
+          kind: string
+      - name: created_at
+        type:
+          kind: datetime
+      - name: read_at
+        type:
+          kind: optional
+          item:
+            kind: datetime
+
+database:
+  provider: agnostic
+  tables:
+    - name: in_app_notifications
+      columns:
+        - name: notification_id
+          type:
+            kind: uuid
+          primary_key: true
+        - name: delivery_intent_id
+          type:
+            kind: uuid
+          index: true
+        - name: user_id
+          type:
+            kind: uuid
+          index: true
+        - name: signal_id
+          type:
+            kind: uuid
+          index: true
+        - name: stock_code
+          type:
+            kind: string
+          index: true
+        - name: created_at
+          type:
+            kind: datetime
+          index: true
+        - name: read_at
+          type:
+            kind: datetime
+          nullable: true
+          index: true
+  repositories:
+    - name: InAppNotificationRepository
+      aggregate: InAppNotification
+      table: in_app_notifications
+      operations:
+        - find_by_id
+        - save
+  placements:
+    - table: in_app_notifications
+      store: account
+      mode: sharded
+      partition_key: user_id
+      unresolved_policy: error

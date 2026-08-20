@@ -15,6 +15,11 @@ from kis_auto_trading.infrastructure.database.session import AsyncSessionRegistr
 from kis_auto_trading.infrastructure.messaging.protocol import EventMessage
 from kis_auto_trading.infrastructure.messaging.rabbitmq import RabbitMQConsumer
 from kis_auto_trading.infrastructure.outbox.inbox import ProcessedMessageInbox
+from kis_auto_trading.infrastructure.outbox.repository import OutboxWriter
+from kis_auto_trading.modules.notification.generated.models import InAppNotification
+from kis_auto_trading.modules.notification.generated.sqlalchemy_repositories import (
+    SQLAlchemyInAppNotificationRepository,
+)
 from kis_auto_trading.modules.signal.generated.models import (
     SignalDeliveryIntent,
     SignalEvent,
@@ -27,6 +32,8 @@ from kis_auto_trading.modules.signal.generated.sqlalchemy_repositories import (
 from kis_auto_trading.modules.signal.messaging import (
     DELIVERY_INTENT_QUEUE,
     DELIVERY_INTENT_ROUTING_KEY,
+    IN_APP_NOTIFICATION_QUEUE,
+    IN_APP_NOTIFICATION_ROUTING_KEY,
     SUBSCRIPTION_PROJECTION_QUEUE,
     SUBSCRIPTION_PROJECTION_ROUTING_KEY,
 )
@@ -56,6 +63,9 @@ class ApplicationMessageHandler:
             return
         if message.event_type == "signal.created":
             await self._handle_signal_created(message)
+            return
+        if message.event_type == "signal.delivery-intent.created":
+            await self._handle_signal_delivery_intent_created(message)
             return
         raise ValueError(f"Unsupported event type: {message.event_type}")
 
@@ -146,9 +156,55 @@ class ApplicationMessageHandler:
                 )
                 if await repository.find_by_id(intent.intent_id) is None:
                     await repository.save(intent)
+                    OutboxWriter(session).add(
+                        EventMessage(
+                            event_type="signal.delivery-intent.created",
+                            aggregate_id=str(intent.intent_id),
+                            routing_key=IN_APP_NOTIFICATION_ROUTING_KEY,
+                            payload=intent.model_dump(mode="json"),
+                        )
+                    )
             logger.info(
                 "signal delivery intents materialized",
                 extra={"event_id": message.event_id, "signal_id": str(signal.signal_id)},
+            )
+
+    async def _handle_signal_delivery_intent_created(
+        self, message: EventMessage
+    ) -> None:
+        intent = _delivery_intent_from_payload(message.payload)
+        if intent.shard_id not in ACCOUNT_SHARD_URL_ENVS:
+            raise ValueError(f"Invalid account shard: {intent.shard_id!r}")
+
+        target = ShardTarget(store="account", shard_id=intent.shard_id)
+        async with self._session_registry.session(target) as session:
+            claimed = await ProcessedMessageInbox(session).claim(message.event_id)
+            if not claimed:
+                logger.info(
+                    "duplicate in-app notification event skipped",
+                    extra={"event_id": message.event_id},
+                )
+                return
+            notification = InAppNotification(
+                notification_id=uuid5(
+                    NAMESPACE_URL, f"in-app-notification:{intent.intent_id}"
+                ),
+                delivery_intent_id=intent.intent_id,
+                user_id=intent.user_id,
+                signal_id=intent.signal_id,
+                stock_code=intent.stock_code,
+                created_at=datetime.now(UTC),
+            )
+            repository = SQLAlchemyInAppNotificationRepository(session)
+            if await repository.find_by_id(notification.notification_id) is None:
+                await repository.save(notification)
+            logger.info(
+                "in-app notification materialized",
+                extra={
+                    "event_id": message.event_id,
+                    "notification_id": str(notification.notification_id),
+                    "shard_id": intent.shard_id,
+                },
             )
 
 
@@ -188,6 +244,11 @@ async def main() -> None:
             queue_name=DELIVERY_INTENT_QUEUE,
             routing_keys=(DELIVERY_INTENT_ROUTING_KEY,),
         )
+        await consumer.consume(
+            handler,
+            queue_name=IN_APP_NOTIFICATION_QUEUE,
+            routing_keys=(IN_APP_NOTIFICATION_ROUTING_KEY,),
+        )
         await asyncio.Future()
     finally:
         await connection.close()
@@ -215,6 +276,17 @@ def _signal_from_payload(payload: dict[str, object]) -> SignalEvent:
     except (ValueError, TypeError) as error:
         raise ValueError("Invalid signal event payload") from error
     return signal.model_copy(update={"stock_code": stock_code})
+
+
+def _delivery_intent_from_payload(
+    payload: dict[str, object],
+) -> SignalDeliveryIntent:
+    try:
+        intent = SignalDeliveryIntent.model_validate(payload)
+        stock_code = normalize_domestic_stock_code(intent.stock_code)
+    except (ValueError, TypeError) as error:
+        raise ValueError("Invalid signal delivery intent event payload") from error
+    return intent.model_copy(update={"stock_code": stock_code})
 
 
 if __name__ == '__main__':
