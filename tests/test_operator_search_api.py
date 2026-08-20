@@ -16,6 +16,9 @@ from kis_auto_trading.routers.operator_search import (
     get_news_search_indexer,
     router,
 )
+from kis_auto_trading.routers.operator_signal import (
+    router as signal_router,
+)
 
 
 class FakeIndexer:
@@ -67,7 +70,12 @@ def _app(indexer: FakeIndexer, news_indexer: FakeNewsIndexer | None = None) -> F
 
 
 def test_user_owned_extension_registers_operator_routers() -> None:
-    assert USER_ROUTERS == (market_data_router, portfolio_router, router)
+    assert USER_ROUTERS == (
+        market_data_router,
+        portfolio_router,
+        router,
+        signal_router,
+    )
 
 
 def test_operator_search_requires_operator_token(

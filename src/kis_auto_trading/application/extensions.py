@@ -14,6 +14,7 @@ from kis_auto_trading.routers.operator_portfolio import (
     router as operator_portfolio_router,
 )
 from kis_auto_trading.routers.operator_search import router as operator_search_router
+from kis_auto_trading.routers.operator_signal import router as operator_signal_router
 
 
 @asynccontextmanager
@@ -42,5 +43,6 @@ USER_ROUTERS: tuple[APIRouter, ...] = (
     operator_market_data_router,
     operator_portfolio_router,
     operator_search_router,
+    operator_signal_router,
 )
 USER_LIFESPANS = (kis_market_data_lifespan, kis_domestic_account_lifespan)
