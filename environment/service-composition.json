@@ -223,11 +223,13 @@
         "ACCOUNT_SHARD_2_DATABASE_URL",
         "AUTOMATION_DATABASE_URL",
         "IDENTITY_DATABASE_URL",
-        "RABBITMQ_URL"
+        "RABBITMQ_URL",
+        "REDIS_URL"
       ],
       "dependencies": {
         "migrate": "service_completed_successfully",
-        "rabbitmq": "service_healthy"
+        "rabbitmq": "service_healthy",
+        "redis": "service_healthy"
       },
       "healthcheck": true,
       "lifecycle": "long_running",

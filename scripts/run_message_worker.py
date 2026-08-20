@@ -7,6 +7,10 @@ import aio_pika
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 
 from kis_auto_trading.application.observability import LOGGER, configure_logging
+from kis_auto_trading.application.realtime_notifications import (
+    notification_channel,
+    notification_hint,
+)
 from kis_auto_trading.application.signal_subscriptions import (
     list_enabled_signal_subscriptions,
 )
@@ -16,6 +20,11 @@ from kis_auto_trading.infrastructure.messaging.protocol import EventMessage
 from kis_auto_trading.infrastructure.messaging.rabbitmq import RabbitMQConsumer
 from kis_auto_trading.infrastructure.outbox.inbox import ProcessedMessageInbox
 from kis_auto_trading.infrastructure.outbox.repository import OutboxWriter
+from kis_auto_trading.infrastructure.realtime import (
+    RealtimeBackplane,
+    RealtimeBackplaneError,
+    RedisPubSubRealtimeBackplane,
+)
 from kis_auto_trading.modules.notification.generated.models import InAppNotification
 from kis_auto_trading.modules.notification.generated.sqlalchemy_repositories import (
     SQLAlchemyInAppNotificationRepository,
@@ -51,8 +60,14 @@ logger = LOGGER
 
 
 class ApplicationMessageHandler:
-    def __init__(self, session_registry: AsyncSessionRegistry) -> None:
+    def __init__(
+        self,
+        session_registry: AsyncSessionRegistry,
+        *,
+        realtime_backplane: RealtimeBackplane | None = None,
+    ) -> None:
         self._session_registry = session_registry
+        self._realtime_backplane = realtime_backplane
 
     async def handle(self, message: EventMessage) -> None:
         if message.event_type == "account.profile.updated":
@@ -177,6 +192,7 @@ class ApplicationMessageHandler:
             raise ValueError(f"Invalid account shard: {intent.shard_id!r}")
 
         target = ShardTarget(store="account", shard_id=intent.shard_id)
+        notification_created = False
         async with self._session_registry.session(target) as session:
             claimed = await ProcessedMessageInbox(session).claim(message.event_id)
             if not claimed:
@@ -198,6 +214,7 @@ class ApplicationMessageHandler:
             repository = SQLAlchemyInAppNotificationRepository(session)
             if await repository.find_by_id(notification.notification_id) is None:
                 await repository.save(notification)
+                notification_created = True
             logger.info(
                 "in-app notification materialized",
                 extra={
@@ -206,6 +223,20 @@ class ApplicationMessageHandler:
                     "shard_id": intent.shard_id,
                 },
             )
+        if notification_created and self._realtime_backplane is not None:
+            try:
+                await self._realtime_backplane.publish(
+                    notification_channel(str(notification.user_id)),
+                    notification_hint(notification.notification_id),
+                )
+            except RealtimeBackplaneError:
+                logger.warning(
+                    "realtime notification hint skipped",
+                    extra={
+                        "event_id": message.event_id,
+                        "notification_id": str(notification.notification_id),
+                    },
+                )
 
 
 def build_account_engines() -> dict[tuple[str, str], AsyncEngine]:
@@ -227,11 +258,15 @@ async def main() -> None:
     session_registry = AsyncSessionRegistry(
         {"automation": automation_engine}, shard_engines
     )
+    realtime_backplane = RedisPubSubRealtimeBackplane.from_environment()
     connection = await aio_pika.connect_robust(
         os.environ[RABBITMQ_URL_ENV]
     )
     consumer = RabbitMQConsumer(connection)
-    handler = ApplicationMessageHandler(session_registry)
+    handler = ApplicationMessageHandler(
+        session_registry,
+        realtime_backplane=realtime_backplane,
+    )
     try:
         await consumer.consume(handler)
         await consumer.consume(
@@ -251,6 +286,7 @@ async def main() -> None:
         )
         await asyncio.Future()
     finally:
+        await realtime_backplane.aclose()
         await connection.close()
         await automation_engine.dispose()
         for engine in shard_engines.values():

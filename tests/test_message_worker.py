@@ -5,9 +5,17 @@ from uuid import uuid4
 
 import pytest
 
+from kis_auto_trading.application.realtime_notifications import (
+    notification_channel,
+    notification_hint,
+)
 from kis_auto_trading.infrastructure.database.routing import ShardTarget
 from kis_auto_trading.infrastructure.database.session import AsyncSessionRegistry
 from kis_auto_trading.infrastructure.messaging.protocol import EventMessage
+from kis_auto_trading.infrastructure.realtime import (
+    RealtimeBackplane,
+    RealtimeBackplaneError,
+)
 from kis_auto_trading.modules.notification.generated.models import InAppNotification
 from kis_auto_trading.modules.signal.generated.models import (
     SignalDeliveryIntent,
@@ -19,11 +27,28 @@ from scripts import run_message_worker
 class RecordingSessionRegistry:
     def __init__(self) -> None:
         self.targets: list[ShardTarget] = []
+        self.completed_targets: list[ShardTarget] = []
 
     @asynccontextmanager
     async def session(self, target: ShardTarget) -> AsyncIterator[object]:
         self.targets.append(target)
-        yield object()
+        try:
+            yield object()
+        finally:
+            self.completed_targets.append(target)
+
+
+class AfterCommitRealtimeBackplane:
+    def __init__(self, registry: RecordingSessionRegistry, *, fail: bool) -> None:
+        self._registry = registry
+        self._fail = fail
+        self.published: list[tuple[str, str]] = []
+
+    async def publish(self, channel: str, message: str) -> None:
+        assert self._registry.completed_targets
+        self.published.append((channel, message))
+        if self._fail:
+            raise RealtimeBackplaneError("Redis unavailable")
 
 
 class FakeInbox:
@@ -310,12 +335,18 @@ async def test_signal_event_materializes_one_pending_intent_per_subscription(
 
 
 @pytest.mark.anyio
-async def test_delivery_intent_event_materializes_one_notification_on_payload_shard() -> None:
+@pytest.mark.parametrize("realtime_fails", [False, True])
+async def test_delivery_intent_event_materializes_one_notification_on_payload_shard(
+    realtime_fails: bool,
+) -> None:
     registry = RecordingSessionRegistry()
+    backplane = AfterCommitRealtimeBackplane(registry, fail=realtime_fails)
     handler = run_message_worker.ApplicationMessageHandler(
-        cast(AsyncSessionRegistry, registry)
+        cast(AsyncSessionRegistry, registry),
+        realtime_backplane=cast(RealtimeBackplane, backplane),
     )
     intent_id = uuid4()
+    user_id = uuid4()
     message = EventMessage(
         event_id="4a1fb8bc-c45f-42cc-8a49-30ec6f436f57",
         event_type="signal.delivery-intent.created",
@@ -325,7 +356,7 @@ async def test_delivery_intent_event_materializes_one_notification_on_payload_sh
             "intent_id": str(intent_id),
             "signal_id": str(uuid4()),
             "subscription_id": str(uuid4()),
-            "user_id": str(uuid4()),
+            "user_id": str(user_id),
             "shard_id": "2",
             "stock_code": "005930",
             "expires_at": "2099-08-20T00:05:00Z",
@@ -341,3 +372,9 @@ async def test_delivery_intent_event_materializes_one_notification_on_payload_sh
     assert notification.delivery_intent_id == intent_id
     assert notification.stock_code == "005930"
     assert registry.targets == [ShardTarget(store="account", shard_id="2")] * 2
+    assert backplane.published == [
+        (
+            notification_channel(str(user_id)),
+            notification_hint(notification.notification_id),
+        )
+    ]

@@ -20,6 +20,9 @@ from kis_auto_trading.routers.operator_search import (
 from kis_auto_trading.routers.operator_signal import (
     router as signal_router,
 )
+from kis_auto_trading.routers.realtime_notifications import (
+    router as realtime_notifications_router,
+)
 
 
 class FakeIndexer:
@@ -77,6 +80,7 @@ def test_user_owned_extension_registers_operator_routers() -> None:
         router,
         signal_router,
         notifications_router,
+        realtime_notifications_router,
     )
 
 

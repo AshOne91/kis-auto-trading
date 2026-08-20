@@ -3,6 +3,9 @@ from contextlib import asynccontextmanager
 
 from fastapi import APIRouter, FastAPI
 
+from kis_auto_trading.application.realtime_notifications import (
+    realtime_notifications_lifespan,
+)
 from kis_auto_trading.infrastructure.kis_domestic_account import (
     KisDomesticAccountClient,
 )
@@ -16,6 +19,9 @@ from kis_auto_trading.routers.operator_portfolio import (
 )
 from kis_auto_trading.routers.operator_search import router as operator_search_router
 from kis_auto_trading.routers.operator_signal import router as operator_signal_router
+from kis_auto_trading.routers.realtime_notifications import (
+    router as realtime_notifications_router,
+)
 
 
 @asynccontextmanager
@@ -46,5 +52,10 @@ USER_ROUTERS: tuple[APIRouter, ...] = (
     operator_search_router,
     operator_signal_router,
     notifications_router,
+    realtime_notifications_router,
 )
-USER_LIFESPANS = (kis_market_data_lifespan, kis_domestic_account_lifespan)
+USER_LIFESPANS = (
+    kis_market_data_lifespan,
+    kis_domestic_account_lifespan,
+    realtime_notifications_lifespan,
+)
