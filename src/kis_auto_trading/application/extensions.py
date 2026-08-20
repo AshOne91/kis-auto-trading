@@ -7,6 +7,7 @@ from kis_auto_trading.infrastructure.kis_domestic_account import (
     KisDomesticAccountClient,
 )
 from kis_auto_trading.infrastructure.kis_market_data import KisMarketDataClient
+from kis_auto_trading.routers.notifications import router as notifications_router
 from kis_auto_trading.routers.operator_market_data import (
     router as operator_market_data_router,
 )
@@ -44,5 +45,6 @@ USER_ROUTERS: tuple[APIRouter, ...] = (
     operator_portfolio_router,
     operator_search_router,
     operator_signal_router,
+    notifications_router,
 )
 USER_LIFESPANS = (kis_market_data_lifespan, kis_domestic_account_lifespan)
