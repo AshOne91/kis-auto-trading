@@ -1,0 +1,111 @@
+spec_version: "1"
+
+module:
+  name: signal
+  display_name: Trading Signal
+  route_prefix: /api/signal
+
+models:
+  - name: SignalEvent
+    fields:
+      - name: signal_id
+        type:
+          kind: uuid
+      - name: stock_code
+        type:
+          kind: string
+      - name: direction
+        type:
+          kind: string
+      - name: price
+        type:
+          kind: string
+      - name: confidence
+        type:
+          kind: number
+      - name: observed_at
+        type:
+          kind: datetime
+  - name: SignalSubscription
+    fields:
+      - name: subscription_id
+        type:
+          kind: uuid
+      - name: user_id
+        type:
+          kind: uuid
+      - name: stock_code
+        type:
+          kind: string
+      - name: enabled
+        type:
+          kind: boolean
+        default: true
+
+database:
+  provider: agnostic
+  tables:
+    - name: signal_events
+      columns:
+        - name: signal_id
+          type:
+            kind: uuid
+          primary_key: true
+        - name: stock_code
+          type:
+            kind: string
+          index: true
+        - name: direction
+          type:
+            kind: string
+        - name: price
+          type:
+            kind: string
+        - name: confidence
+          type:
+            kind: number
+        - name: observed_at
+          type:
+            kind: datetime
+          index: true
+    - name: signal_subscriptions
+      columns:
+        - name: subscription_id
+          type:
+            kind: uuid
+          primary_key: true
+        - name: user_id
+          type:
+            kind: uuid
+          index: true
+        - name: stock_code
+          type:
+            kind: string
+          index: true
+        - name: enabled
+          type:
+            kind: boolean
+          default: true
+  repositories:
+    - name: SignalEventRepository
+      aggregate: SignalEvent
+      table: signal_events
+      operations:
+        - find_by_id
+        - save
+    - name: SignalSubscriptionRepository
+      aggregate: SignalSubscription
+      table: signal_subscriptions
+      operations:
+        - find_by_id
+        - save
+  placements:
+    - table: signal_events
+      store: automation
+      mode: global
+      unresolved_policy: error
+    - table: signal_subscriptions
+      store: account
+      mode: sharded
+      partition_key: user_id
+      unresolved_policy: error

@@ -98,6 +98,7 @@ application:
     - account
     - news
     - market_data
+    - signal
   services:
     - name: session
       kind: redis_session
