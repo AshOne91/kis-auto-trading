@@ -11,6 +11,7 @@ tooling:
     log_host_path: /run/desktop/mnt/host/c/kis-auto-trading/logs
     application_replicas: 1
     proxy_replicas: 1
+    durable_job_worker_replicas: 1
   local_environment:
     enabled: true
     application_enabled: true

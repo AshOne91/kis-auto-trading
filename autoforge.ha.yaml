@@ -8,6 +8,7 @@ tooling:
     image: kis-auto-trading:latest
     secret_name: my-kis-gold-bar
     log_host_path: /run/desktop/mnt/host/c/kis-auto-trading/logs
+    durable_job_worker_replicas: 2
   local_environment:
     enabled: true
     application_enabled: true

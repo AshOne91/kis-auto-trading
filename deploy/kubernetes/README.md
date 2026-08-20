@@ -16,6 +16,8 @@ The Secret must provide these keys before the Deployment starts:
 - `ACCOUNT_SHARD_1_DATABASE_URL`
 - `ACCOUNT_SHARD_2_DATABASE_URL`
 - `AUTOMATION_DATABASE_URL`
+- `CONTROL_PLANE_API_TOKEN`
+- `CONTROL_PLANE_HEARTBEAT_URL`
 - `DURABLE_JOB_API_TOKEN`
 - `IDENTITY_DATABASE_URL`
 - `KIS_API_URL`
@@ -50,6 +52,7 @@ Apply and verify only after the image and Secret are ready:
 kubectl apply --namespace default -f base-server.yaml
 kubectl rollout status --namespace default deployment/kis-auto-trading
 kubectl rollout status --namespace default deployment/kis-auto-trading-nginx
+kubectl rollout status --namespace default deployment/kis-auto-trading-durable-job-worker
 ```
 
 `base-server.yaml` uses a local hostPath for `/app/logs` only when the
@@ -58,3 +61,10 @@ development (such as Docker Desktop): a hostPath is node-local and cannot
 preserve one replica's files when another node runs it. Production deployments
 must centralize stdout through a log collector. If a file-retention policy is
 also required, use a PVC/PV with an access mode appropriate for the replicas.
+
+## Durable Job worker
+
+`base-server.yaml` also creates a 1-replica internal
+Durable Job worker Deployment. It has no Service or public port; it consumes
+RabbitMQ events and uses the declared database and worker-targeted environment
+keys. Its readiness and liveness probes verify the RabbitMQ connection.
