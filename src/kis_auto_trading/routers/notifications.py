@@ -1,5 +1,6 @@
 import logging
 from typing import Annotated
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.exc import SQLAlchemyError
@@ -14,7 +15,10 @@ from kis_auto_trading.infrastructure.database.session import AsyncSessionRegistr
 from kis_auto_trading.infrastructure.session_store.protocol import SessionData
 from kis_auto_trading.infrastructure.session_store.provider import get_current_session
 from kis_auto_trading.modules.notification.generated.models import InAppNotification
-from kis_auto_trading.modules.notification.handlers import list_user_notifications
+from kis_auto_trading.modules.notification.handlers import (
+    list_user_notifications,
+    mark_user_notification_read,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -36,6 +40,26 @@ async def list_notifications(
         return await list_user_notifications(current_session, session_registry)
     except (ShardRoutingError, SQLAlchemyError) as error:
         logger.warning("user notification lookup failed: %s", type(error).__name__)
+        raise HTTPException(
+            status_code=503,
+            detail="notifications are unavailable",
+        ) from error
+
+
+@router.patch("/{notification_id}/read", response_model=InAppNotification)
+async def mark_notification_read(
+    notification_id: UUID,
+    current_session: Annotated[SessionData, Depends(get_current_session)],
+    session_registry: Annotated[
+        AsyncSessionRegistry, Depends(get_session_registry)
+    ],
+) -> InAppNotification:
+    try:
+        return await mark_user_notification_read(
+            notification_id, current_session, session_registry
+        )
+    except (ShardRoutingError, SQLAlchemyError) as error:
+        logger.warning("user notification update failed: %s", type(error).__name__)
         raise HTTPException(
             status_code=503,
             detail="notifications are unavailable",

@@ -6,7 +6,7 @@ from typing import ClassVar
 from uuid import UUID, uuid4
 
 import pytest
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.testclient import TestClient
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -84,6 +84,8 @@ def test_notification_route_hides_storage_failure(monkeypatch) -> None:
 
 class _FakeRepository:
     user_ids: ClassVar[list[object]] = []
+    notifications: ClassVar[dict[UUID, InAppNotification]] = {}
+    saved: ClassVar[list[InAppNotification]] = []
 
     def __init__(self, session: object) -> None:
         del session
@@ -91,6 +93,13 @@ class _FakeRepository:
     async def list_by_user_id(self, user_id: object) -> list[InAppNotification]:
         type(self).user_ids.append(user_id)
         return []
+
+    async def find_by_id(self, notification_id: UUID) -> InAppNotification | None:
+        return type(self).notifications.get(notification_id)
+
+    async def save(self, notification: InAppNotification) -> None:
+        type(self).saved.append(notification)
+        type(self).notifications[notification.notification_id] = notification
 
 
 class _FakeRegistry:
@@ -125,3 +134,104 @@ async def test_notification_handler_uses_current_session_account_shard(
     assert notifications == []
     assert _FakeRepository.user_ids == [UUID(current_session.user_id)]
     assert registry.targets == [ShardTarget(store="account", shard_id="2")]
+
+
+@pytest.mark.anyio
+async def test_notification_handler_marks_only_current_user_record_read(
+    monkeypatch,
+) -> None:
+    _FakeRepository.notifications.clear()
+    _FakeRepository.saved.clear()
+    notification = InAppNotification(
+        notification_id=uuid4(),
+        delivery_intent_id=uuid4(),
+        user_id=UUID("00000000-0000-0000-0000-000000000001"),
+        signal_id=uuid4(),
+        stock_code="005930",
+        created_at=datetime.now(UTC),
+    )
+    _FakeRepository.notifications[notification.notification_id] = notification
+    monkeypatch.setattr(
+        handlers,
+        "SQLAlchemyInAppNotificationRepository",
+        _FakeRepository,
+    )
+    registry = _FakeRegistry()
+    current_session = SessionData(
+        session_id="session",
+        user_id=str(notification.user_id),
+        data={"shard_id": "2"},
+    )
+
+    updated = await handlers.mark_user_notification_read(
+        notification.notification_id,
+        current_session,
+        registry,  # type: ignore[arg-type]
+    )
+
+    assert updated.read_at is not None
+    assert _FakeRepository.saved == [updated]
+    assert registry.targets == [ShardTarget(store="account", shard_id="2")]
+
+
+@pytest.mark.anyio
+async def test_notification_handler_hides_other_user_record(monkeypatch) -> None:
+    _FakeRepository.notifications.clear()
+    _FakeRepository.saved.clear()
+    notification = InAppNotification(
+        notification_id=uuid4(),
+        delivery_intent_id=uuid4(),
+        user_id=uuid4(),
+        signal_id=uuid4(),
+        stock_code="005930",
+        created_at=datetime.now(UTC),
+    )
+    _FakeRepository.notifications[notification.notification_id] = notification
+    monkeypatch.setattr(
+        handlers,
+        "SQLAlchemyInAppNotificationRepository",
+        _FakeRepository,
+    )
+    current_session = SessionData(
+        session_id="session",
+        user_id="00000000-0000-0000-0000-000000000001",
+        data={"shard_id": "2"},
+    )
+
+    with pytest.raises(HTTPException) as error:
+        await handlers.mark_user_notification_read(
+            notification.notification_id,
+            current_session,
+            _FakeRegistry(),  # type: ignore[arg-type]
+        )
+
+    assert error.value.status_code == 404
+    assert _FakeRepository.saved == []
+
+
+def test_notification_read_route_returns_updated_record(monkeypatch) -> None:
+    notification = InAppNotification(
+        notification_id=uuid4(),
+        delivery_intent_id=uuid4(),
+        user_id=uuid4(),
+        signal_id=uuid4(),
+        stock_code="005930",
+        created_at=datetime.now(UTC),
+        read_at=datetime.now(UTC),
+    )
+
+    async def fake_mark(notification_id, current_session, session_registry):
+        assert notification_id == notification.notification_id
+        assert current_session.user_id == "00000000-0000-0000-0000-000000000001"
+        assert session_registry is not None
+        return notification
+
+    monkeypatch.setattr(
+        "kis_auto_trading.routers.notifications.mark_user_notification_read",
+        fake_mark,
+    )
+    with TestClient(_app("user")) as client:
+        response = client.patch(f"/api/notifications/{notification.notification_id}/read")
+
+    assert response.status_code == 200
+    assert response.json() == notification.model_dump(mode="json")
