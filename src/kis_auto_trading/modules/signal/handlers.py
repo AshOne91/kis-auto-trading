@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from uuid import NAMESPACE_URL, UUID, uuid5
+from uuid import UUID
 
 from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -22,13 +22,17 @@ from kis_auto_trading.modules.signal.generated.sqlalchemy_repositories import (
     SQLAlchemySignalEventRepository,
     SQLAlchemySignalSubscriptionRepository,
 )
+from kis_auto_trading.modules.signal.subscription_policy import (
+    normalize_domestic_stock_code,
+    subscription_id,
+)
 
 
 async def record_signal(
     signal: SignalEvent,
     session_registry: AsyncSessionRegistry,
 ) -> SignalEvent:
-    """Persist a signal and enqueue its domain event in one transaction."""
+    """Persist a signal until a delivery consumer is configured."""
     async with session_registry.session(ShardTarget(store="automation")) as session:
         repository = SQLAlchemySignalEventRepository(session)
         existing = await repository.find_by_id(signal.signal_id)
@@ -36,14 +40,6 @@ async def record_signal(
             return existing
 
         await repository.save(signal)
-        OutboxWriter(session).add(
-            EventMessage(
-                event_type="signal.created",
-                aggregate_id=str(signal.signal_id),
-                routing_key="signal.created",
-                payload=signal.model_dump(mode="json"),
-            )
-        )
     return signal
 
 
@@ -53,18 +49,19 @@ async def subscribe(
     session_registry: AsyncSessionRegistry,
 ) -> SignalSubscription:
     user_id, target = _subscription_location(current_session)
-    stock_code = _domestic_stock_code(request.stock_code)
-    subscription_id = _subscription_id(user_id, stock_code)
+    stock_code = _stock_code_or_422(request.stock_code)
+    deterministic_id = subscription_id(user_id, stock_code)
     async with session_registry.session(target) as session:
         repository = SQLAlchemySignalSubscriptionRepository(session)
-        existing = await repository.find_by_id(subscription_id)
+        existing = await repository.find_by_id(deterministic_id)
         if existing is not None and existing.enabled:
             return existing
         subscription = SignalSubscription(
-            subscription_id=subscription_id,
+            subscription_id=deterministic_id,
             user_id=user_id,
             stock_code=stock_code,
             enabled=True,
+            revision=(existing.revision if existing is not None else 0) + 1,
         )
         await repository.save(subscription)
         _record_subscription_update(session, subscription, target)
@@ -77,19 +74,21 @@ async def unsubscribe(
     session_registry: AsyncSessionRegistry,
 ) -> SignalSubscription:
     user_id, target = _subscription_location(current_session)
-    stock_code = _domestic_stock_code(request.stock_code)
-    subscription_id = _subscription_id(user_id, stock_code)
+    stock_code = _stock_code_or_422(request.stock_code)
+    deterministic_id = subscription_id(user_id, stock_code)
     async with session_registry.session(target) as session:
         repository = SQLAlchemySignalSubscriptionRepository(session)
-        existing = await repository.find_by_id(subscription_id)
+        existing = await repository.find_by_id(deterministic_id)
         if existing is None or not existing.enabled:
             return existing or SignalSubscription(
-                subscription_id=subscription_id,
+                subscription_id=deterministic_id,
                 user_id=user_id,
                 stock_code=stock_code,
                 enabled=False,
             )
-        subscription = existing.model_copy(update={"enabled": False})
+        subscription = existing.model_copy(
+            update={"enabled": False, "revision": existing.revision + 1}
+        )
         await repository.save(subscription)
         _record_subscription_update(session, subscription, target)
     return subscription
@@ -112,18 +111,14 @@ def _subscription_location(session: SessionData) -> tuple[UUID, ShardTarget]:
     return user_id, ShardTarget(store="account", shard_id=shard_id)
 
 
-def _domestic_stock_code(stock_code: str) -> str:
-    normalized = stock_code.strip()
-    if len(normalized) != 6 or not normalized.isascii() or not normalized.isdecimal():
+def _stock_code_or_422(stock_code: str) -> str:
+    try:
+        return normalize_domestic_stock_code(stock_code)
+    except ValueError as error:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
-            detail="stock_code must be a six-digit domestic stock code",
-        )
-    return normalized
-
-
-def _subscription_id(user_id: UUID, stock_code: str) -> UUID:
-    return uuid5(NAMESPACE_URL, f"kis-auto-trading:signal-subscription:{user_id}:{stock_code}")
+            detail=str(error),
+        ) from error
 
 
 def _record_subscription_update(
@@ -142,6 +137,7 @@ def _record_subscription_update(
                 "shard_id": target.shard_id or "",
                 "stock_code": subscription.stock_code,
                 "enabled": subscription.enabled,
+                "revision": subscription.revision,
             },
         )
     )

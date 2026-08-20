@@ -20,3 +20,13 @@ class SignalSubscription(BaseModel):
     user_id: UUID
     stock_code: str
     enabled: bool = True
+    revision: int = 1
+
+
+class SignalSubscriptionProjection(BaseModel):
+    subscription_id: UUID
+    user_id: UUID
+    shard_id: str
+    stock_code: str
+    enabled: bool
+    revision: int

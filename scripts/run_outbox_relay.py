@@ -4,6 +4,9 @@ import os
 import aio_pika
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
+from kis_auto_trading.application.message_topology import (
+    declare_user_message_topology,
+)
 from kis_auto_trading.application.observability import (
     LOGGER,
     configure_logging,
@@ -22,6 +25,7 @@ async def main() -> None:
     connection = await aio_pika.connect_robust(rabbitmq_url)
     publisher = RabbitMQPublisher(connection)
     await publisher.start()
+    await declare_user_message_topology(connection)
     engines = [
         create_async_engine(os.environ[name], pool_pre_ping=True)
         for name in DATABASE_URL_ENVS

@@ -75,6 +75,30 @@ models:
         type:
           kind: boolean
         default: true
+      - name: revision
+        type:
+          kind: integer
+        default: 1
+  - name: SignalSubscriptionProjection
+    fields:
+      - name: subscription_id
+        type:
+          kind: uuid
+      - name: user_id
+        type:
+          kind: uuid
+      - name: shard_id
+        type:
+          kind: string
+      - name: stock_code
+        type:
+          kind: string
+      - name: enabled
+        type:
+          kind: boolean
+      - name: revision
+        type:
+          kind: integer
 
 database:
   provider: agnostic
@@ -120,6 +144,33 @@ database:
           type:
             kind: boolean
           default: true
+        - name: revision
+          type:
+            kind: integer
+          default: 1
+    - name: signal_subscription_projections
+      columns:
+        - name: subscription_id
+          type:
+            kind: uuid
+          primary_key: true
+        - name: user_id
+          type:
+            kind: uuid
+          index: true
+        - name: shard_id
+          type:
+            kind: string
+        - name: stock_code
+          type:
+            kind: string
+          index: true
+        - name: enabled
+          type:
+            kind: boolean
+        - name: revision
+          type:
+            kind: integer
   repositories:
     - name: SignalEventRepository
       aggregate: SignalEvent
@@ -133,6 +184,12 @@ database:
       operations:
         - find_by_id
         - save
+    - name: SignalSubscriptionProjectionRepository
+      aggregate: SignalSubscriptionProjection
+      table: signal_subscription_projections
+      operations:
+        - find_by_id
+        - save
   placements:
     - table: signal_events
       store: automation
@@ -142,4 +199,8 @@ database:
       store: account
       mode: sharded
       partition_key: user_id
+      unresolved_policy: error
+    - table: signal_subscription_projections
+      store: automation
+      mode: global
       unresolved_policy: error

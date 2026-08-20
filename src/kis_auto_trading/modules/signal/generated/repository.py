@@ -4,6 +4,7 @@ from uuid import UUID
 from kis_auto_trading.modules.signal.generated.models import (
     SignalEvent,
     SignalSubscription,
+    SignalSubscriptionProjection,
 )
 
 
@@ -22,4 +23,13 @@ class SignalSubscriptionRepository(Protocol):
     ) -> SignalSubscription | None: ...
     async def save(
         self, aggregate: SignalSubscription,
+    ) -> None: ...
+
+
+class SignalSubscriptionProjectionRepository(Protocol):
+    async def find_by_id(
+        self, subscription_id: UUID,
+    ) -> SignalSubscriptionProjection | None: ...
+    async def save(
+        self, aggregate: SignalSubscriptionProjection,
     ) -> None: ...

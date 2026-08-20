@@ -19,6 +19,7 @@ from kis_auto_trading.modules.signal.generated.schemas import (
     SubscribeRequest,
     UnsubscribeRequest,
 )
+from kis_auto_trading.modules.signal.subscription_policy import subscription_id
 
 
 class RecordingSession:
@@ -94,7 +95,7 @@ def _signal() -> SignalEvent:
 
 
 @pytest.mark.anyio
-async def test_record_signal_persists_and_enqueues_outbox_event() -> None:
+async def test_record_signal_persists_without_unroutable_outbox_event() -> None:
     signal = _signal()
     registry = RecordingSessionRegistry()
 
@@ -104,14 +105,7 @@ async def test_record_signal_persists_and_enqueues_outbox_event() -> None:
 
     assert recorded == signal
     assert registry.targets == [ShardTarget(store="automation")]
-    assert len(registry.recording_session.added) == 1
-    outbox = registry.recording_session.added[0]
-    assert isinstance(outbox, OutboxEventRecord)
-    assert outbox.event_type == "signal.created"
-    assert outbox.routing_key == "signal.created"
-    assert outbox.aggregate_id == str(signal.signal_id)
-    assert outbox.payload["stock_code"] == "005930"
-    assert outbox.status == "pending"
+    assert registry.recording_session.added == []
 
 
 @pytest.mark.anyio
@@ -123,7 +117,7 @@ async def test_record_signal_is_idempotent_for_existing_signal() -> None:
     second = await handlers.record_signal(signal, cast(AsyncSessionRegistry, registry))
 
     assert first == second
-    assert len(registry.recording_session.added) == 1
+    assert registry.recording_session.added == []
 
 
 @pytest.mark.anyio
@@ -150,10 +144,12 @@ async def test_subscription_state_changes_are_sharded_and_enqueued() -> None:
         UnsubscribeRequest(stock_code="005930"), current_session, typed_registry
     )
 
-    assert subscribed.subscription_id == handlers._subscription_id(user_id, "005930")
+    assert subscribed.subscription_id == subscription_id(user_id, "005930")
     assert subscribed.enabled is True
+    assert subscribed.revision == 1
     assert repeated == subscribed
     assert unsubscribed.enabled is False
+    assert unsubscribed.revision == 2
     assert repeated_unsubscribe == unsubscribed
     assert registry.targets == [ShardTarget(store="account", shard_id="2")] * 4
     assert len(registry.recording_session.added) == 2
@@ -163,7 +159,9 @@ async def test_subscription_state_changes_are_sharded_and_enqueued() -> None:
         for record in registry.recording_session.added
     )
     assert registry.recording_session.added[0].payload["enabled"] is True
+    assert registry.recording_session.added[0].payload["revision"] == 1
     assert registry.recording_session.added[1].payload["enabled"] is False
+    assert registry.recording_session.added[1].payload["revision"] == 2
 
 
 @pytest.mark.anyio

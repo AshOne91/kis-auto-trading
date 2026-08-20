@@ -6,7 +6,8 @@ CREATE TABLE signal_subscriptions (
     subscription_id UUID PRIMARY KEY,
     user_id UUID NOT NULL,
     stock_code TEXT NOT NULL,
-    enabled BOOLEAN NOT NULL DEFAULT TRUE
+    enabled BOOLEAN NOT NULL DEFAULT TRUE,
+    revision BIGINT NOT NULL DEFAULT 1
 );
 
 CREATE INDEX ix_signal_subscriptions_user_id ON signal_subscriptions (user_id);

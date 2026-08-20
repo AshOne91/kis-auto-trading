@@ -14,3 +14,16 @@ CREATE TABLE signal_events (
 CREATE INDEX ix_signal_events_stock_code ON signal_events (stock_code);
 
 CREATE INDEX ix_signal_events_observed_at ON signal_events (observed_at);
+
+CREATE TABLE signal_subscription_projections (
+    subscription_id UUID PRIMARY KEY,
+    user_id UUID NOT NULL,
+    shard_id TEXT NOT NULL,
+    stock_code TEXT NOT NULL,
+    enabled BOOLEAN NOT NULL,
+    revision BIGINT NOT NULL
+);
+
+CREATE INDEX ix_signal_subscription_projections_user_id ON signal_subscription_projections (user_id);
+
+CREATE INDEX ix_signal_subscription_projections_stock_code ON signal_subscription_projections (stock_code);

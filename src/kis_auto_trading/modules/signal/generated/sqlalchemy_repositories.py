@@ -5,9 +5,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from kis_auto_trading.modules.signal.generated.models import (
     SignalEvent,
     SignalSubscription,
+    SignalSubscriptionProjection,
 )
 from kis_auto_trading.modules.signal.generated.sqlalchemy_models import (
     SignalEventRecord,
+    SignalSubscriptionProjectionRecord,
     SignalSubscriptionRecord,
 )
 
@@ -63,7 +65,8 @@ class SQLAlchemySignalSubscriptionRepository:
             subscription_id=record.subscription_id,
             user_id=record.user_id,
             stock_code=record.stock_code,
-            enabled=record.enabled
+            enabled=record.enabled,
+            revision=record.revision
         )
 
     async def save(
@@ -73,6 +76,42 @@ class SQLAlchemySignalSubscriptionRepository:
             subscription_id=aggregate.subscription_id,
             user_id=aggregate.user_id,
             stock_code=aggregate.stock_code,
-            enabled=aggregate.enabled
+            enabled=aggregate.enabled,
+            revision=aggregate.revision
+        )
+        await self._session.merge(record)
+
+
+class SQLAlchemySignalSubscriptionProjectionRepository:
+    def __init__(self, session: AsyncSession) -> None:
+        self._session = session
+
+    async def find_by_id(
+        self, subscription_id: UUID,
+    ) -> SignalSubscriptionProjection | None:
+        record = await self._session.get(
+            SignalSubscriptionProjectionRecord, subscription_id
+        )
+        if record is None:
+            return None
+        return SignalSubscriptionProjection(
+            subscription_id=record.subscription_id,
+            user_id=record.user_id,
+            shard_id=record.shard_id,
+            stock_code=record.stock_code,
+            enabled=record.enabled,
+            revision=record.revision
+        )
+
+    async def save(
+        self, aggregate: SignalSubscriptionProjection,
+    ) -> None:
+        record = SignalSubscriptionProjectionRecord(
+            subscription_id=aggregate.subscription_id,
+            user_id=aggregate.user_id,
+            shard_id=aggregate.shard_id,
+            stock_code=aggregate.stock_code,
+            enabled=aggregate.enabled,
+            revision=aggregate.revision
         )
         await self._session.merge(record)
