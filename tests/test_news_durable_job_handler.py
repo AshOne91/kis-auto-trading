@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace
+from uuid import UUID
 
 import httpx
 import pytest
@@ -9,6 +10,7 @@ from kis_auto_trading.application.durable_job_handler import (
     ApplicationDurableJobHandler,
 )
 from kis_auto_trading.infrastructure.durable_jobs.worker import DurableJobExecution
+from kis_auto_trading.infrastructure.kis_market_data import KisDomesticStockPrice
 from kis_auto_trading.modules.news.models import NewsArticle
 from kis_auto_trading.modules.news.yahoo import (
     YahooFinanceNewsProviderError,
@@ -31,6 +33,23 @@ class FakeProvider:
         ]
 
 
+class FakeMarketDataClient:
+    def __init__(self) -> None:
+        self.requested_stock_codes: list[str] = []
+        self.closed = False
+
+    async def get_domestic_stock_price(self, stock_code: str) -> KisDomesticStockPrice:
+        self.requested_stock_codes.append(stock_code)
+        return KisDomesticStockPrice(
+            stock_code=stock_code,
+            current_price="70000",
+            output={"stck_prpr": "70000"},
+        )
+
+    async def aclose(self) -> None:
+        self.closed = True
+
+
 class FakeRegistry:
     def __init__(self) -> None:
         self.targets = []
@@ -39,6 +58,71 @@ class FakeRegistry:
     async def session(self, target):
         self.targets.append(target)
         yield object()
+
+
+@pytest.mark.anyio
+async def test_market_price_snapshot_handler_collects_and_persists(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    saved: list[KisDomesticStockPrice] = []
+
+    async def fake_save_market_price_snapshot(
+        session_registry: FakeRegistry, price: KisDomesticStockPrice
+    ) -> SimpleNamespace:
+        assert isinstance(session_registry, FakeRegistry)
+        saved.append(price)
+        return SimpleNamespace(snapshot_id=UUID("12345678-1234-5678-1234-567812345678"))
+
+    monkeypatch.setattr(
+        "kis_auto_trading.application.durable_job_handler.save_market_price_snapshot",
+        fake_save_market_price_snapshot,
+    )
+    market_data_client = FakeMarketDataClient()
+    monkeypatch.setattr(
+        "kis_auto_trading.application.durable_job_handler.KisMarketDataClient.from_environment",
+        lambda: market_data_client,
+    )
+    result = await ApplicationDurableJobHandler(
+        FakeRegistry(),
+        FakeProvider(),
+    ).handle(
+        DurableJobExecution(
+            job_id="market-price-job-1",
+            job_type="market_price_snapshot",
+            run_key="market-price:005930",
+            payload={"stock_code": " 005930 "},
+        )
+    )
+
+    assert result == {
+        "job_type": "market_price_snapshot",
+        "stock_code": "005930",
+        "snapshot_id": "12345678-1234-5678-1234-567812345678",
+    }
+    assert market_data_client.requested_stock_codes == ["005930"]
+    assert market_data_client.closed is True
+    assert [price.current_price for price in saved] == ["70000"]
+
+
+@pytest.mark.anyio
+async def test_market_price_snapshot_handler_rejects_invalid_stock_code() -> None:
+    market_data_client = FakeMarketDataClient()
+
+    with pytest.raises(ValueError, match="six-digit domestic stock code"):
+        await ApplicationDurableJobHandler(
+            FakeRegistry(),
+            FakeProvider(),
+            market_data_client=market_data_client,
+        ).handle(
+            DurableJobExecution(
+                job_id="market-price-job-1",
+                job_type="market_price_snapshot",
+                run_key="market-price:invalid",
+                payload={"stock_code": "invalid"},
+            )
+        )
+
+    assert market_data_client.requested_stock_codes == []
 
 
 @pytest.mark.anyio

@@ -155,6 +155,10 @@ services:
       ACCOUNT_SHARD_1_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-autoforge}:${POSTGRES_PASSWORD:-change-me}@postgres:5432/account_shard_1
       ACCOUNT_SHARD_2_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-autoforge}:${POSTGRES_PASSWORD:-change-me}@postgres:5432/account_shard_2
       RABBITMQ_URL: ${RABBITMQ_URL:?set RABBITMQ_URL}
+      KIS_API_URL: ${KIS_API_URL:?set KIS_API_URL}
+      KIS_APP_KEY: ${KIS_APP_KEY:?set KIS_APP_KEY}
+      KIS_APP_SECRET: ${KIS_APP_SECRET:?set KIS_APP_SECRET}
+      KIS_TOKEN_SCOPE: ${KIS_TOKEN_SCOPE:-}
       CONTROL_PLANE_HEARTBEAT_URL: ${CONTROL_PLANE_HEARTBEAT_URL:-}
       CONTROL_PLANE_API_TOKEN: ${CONTROL_PLANE_API_TOKEN:-}
     depends_on:

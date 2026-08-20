@@ -3,11 +3,15 @@ from datetime import UTC, datetime, timedelta
 
 import httpx
 
+from kis_auto_trading.application.market_price_snapshots import (
+    save_market_price_snapshot,
+)
 from kis_auto_trading.infrastructure.database.routing import ShardTarget
 from kis_auto_trading.infrastructure.database.session import AsyncSessionRegistry
 from kis_auto_trading.infrastructure.durable_jobs.contracts import JOB_DEFINITIONS
 from kis_auto_trading.infrastructure.durable_jobs.repository import DurableJobRepository
 from kis_auto_trading.infrastructure.durable_jobs.worker import DurableJobExecution
+from kis_auto_trading.infrastructure.kis_market_data import KisMarketDataClient
 from kis_auto_trading.modules.news.persistence import NewsArticleRepository
 from kis_auto_trading.modules.news.search import NewsSearchIndexer
 from kis_auto_trading.modules.news.yahoo import (
@@ -29,11 +33,13 @@ class ApplicationDurableJobHandler:
         provider: YahooFinanceNewsProvider | None = None,
         indexer: NewsSearchIndexer | None = None,
         durable_job_history_indexer: DurableJobHistorySearchIndexer | None = None,
+        market_data_client: KisMarketDataClient | None = None,
     ) -> None:
         self._session_registry = session_registry
         self._provider = provider or YahooFinanceNewsProvider()
         self._indexer = indexer
         self._durable_job_history_indexer = durable_job_history_indexer
+        self._market_data_client = market_data_client
 
     async def handle(
         self, execution: DurableJobExecution
@@ -44,7 +50,26 @@ class ApplicationDurableJobHandler:
             return await self._index_news(execution)
         if execution.job_type == "durable_job_history_index":
             return await self._index_durable_job_history(execution)
+        if execution.job_type == "market_price_snapshot":
+            return await self._collect_market_price_snapshot(execution)
         raise ValueError(f"unsupported durable job type: {execution.job_type}")
+
+    async def _collect_market_price_snapshot(
+        self, execution: DurableJobExecution
+    ) -> dict[str, object]:
+        stock_code = _market_price_stock_code_from_payload(execution.payload)
+        client = self._market_data_client or KisMarketDataClient.from_environment()
+        try:
+            price = await client.get_domestic_stock_price(stock_code)
+            snapshot = await save_market_price_snapshot(self._session_registry, price)
+        finally:
+            if self._market_data_client is None:
+                await client.aclose()
+        return {
+            "job_type": execution.job_type,
+            "stock_code": price.stock_code,
+            "snapshot_id": str(snapshot.snapshot_id),
+        }
 
     async def _collect_news(
         self, execution: DurableJobExecution
@@ -236,6 +261,22 @@ def _symbols_from_payload(payload: dict[str, object]) -> list[str]:
     )
     if not normalized:
         raise ValueError("news_collection payload requires at least one symbol")
+    return normalized
+
+
+def _market_price_stock_code_from_payload(payload: dict[str, object]) -> str:
+    stock_code = payload.get("stock_code")
+    if not isinstance(stock_code, str):
+        raise TypeError("market_price_snapshot payload requires a stock_code string")
+    normalized = stock_code.strip()
+    if (
+        len(normalized) != 6
+        or not normalized.isascii()
+        or not normalized.isdecimal()
+    ):
+        raise ValueError(
+            "market_price_snapshot stock_code must be a six-digit domestic stock code"
+        )
     return normalized
 
 
