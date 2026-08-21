@@ -1,5 +1,6 @@
 from uuid import UUID
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from kis_auto_trading.modules.market_history.generated.models import DomesticDailyCandle
@@ -45,3 +46,28 @@ class SQLAlchemyDomesticDailyCandleRepository:
             volume=aggregate.volume
         )
         await self._session.merge(record)
+
+    async def list_by_stock_code(
+        self, stock_code: str,
+    ) -> list[DomesticDailyCandle]:
+        result = await self._session.execute(
+            select(DomesticDailyCandleRecord).where(
+                DomesticDailyCandleRecord.stock_code == stock_code
+            ).order_by(
+                DomesticDailyCandleRecord.trading_date.desc()
+            ).limit(100)
+        )
+        records = result.scalars().all()
+        return [
+            DomesticDailyCandle(
+            candle_id=record.candle_id,
+            stock_code=record.stock_code,
+            trading_date=record.trading_date,
+            open_price=record.open_price,
+            high_price=record.high_price,
+            low_price=record.low_price,
+            close_price=record.close_price,
+            volume=record.volume
+            )
+            for record in records
+        ]

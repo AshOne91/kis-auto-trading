@@ -83,12 +83,24 @@ class _RecordingSnapshotRepository:
 
 class _RecordingCandleRepository:
     saved: ClassVar[list[object]] = []
+    error: ClassVar[Exception | None] = None
 
     def __init__(self, session: object) -> None:
         del session
 
     async def save(self, candle) -> None:
+        if self.error is not None:
+            raise self.error
         self.saved.append(candle)
+
+    async def list_by_stock_code(self, stock_code: str):
+        if self.error is not None:
+            raise self.error
+        return sorted(
+            (candle for candle in self.saved if candle.stock_code == stock_code),
+            key=lambda candle: candle.trading_date,
+            reverse=True,
+        )[:100]
 
 
 def _configure_environment(monkeypatch) -> None:
@@ -214,6 +226,7 @@ def test_operator_market_data_persists_a_snapshot_only_through_post(monkeypatch)
 def test_operator_market_data_persists_daily_candles_idempotently(monkeypatch) -> None:
     _configure_environment(monkeypatch)
     _RecordingCandleRepository.saved = []
+    _RecordingCandleRepository.error = None
     monkeypatch.setattr(
         market_history_handlers,
         "SQLAlchemyDomesticDailyCandleRepository",
@@ -246,20 +259,51 @@ def test_operator_market_data_persists_daily_candles_idempotently(monkeypatch) -
             "/internal/operator/market-data/domestic-daily-candles?stock_code=005930",
             headers={"Authorization": "Bearer operator-token"},
         )
+        listed = client.get(
+            "/internal/operator/market-data/domestic-daily-candles?stock_code=005930",
+            headers={"Authorization": "Bearer operator-token"},
+        )
 
     assert first.status_code == 200
     assert second.status_code == 200
     assert first.json() == second.json()
     assert first.json()[0]["trading_date"] == "20260821"
     assert first.json()[0]["volume"] == 123456
+    assert listed.status_code == 200
+    assert listed.json()[0]["candle_id"] == first.json()[0]["candle_id"]
     assert market_data.requested_daily_stock_codes == ["005930", "005930"]
     assert [target.store for target in session_registry.targets] == [
+        "automation",
         "automation",
         "automation",
     ]
     assert _RecordingCandleRepository.saved[0].candle_id == (
         _RecordingCandleRepository.saved[1].candle_id
     )
+
+
+def test_operator_market_data_hides_daily_candle_lookup_failures(monkeypatch) -> None:
+    _configure_environment(monkeypatch)
+    _RecordingCandleRepository.error = SQLAlchemyError("database details")
+    monkeypatch.setattr(
+        market_history_handlers,
+        "SQLAlchemyDomesticDailyCandleRepository",
+        _RecordingCandleRepository,
+    )
+    app = create_app()
+
+    with TestClient(app) as client:
+        app.state.session_registry = _RecordingSessionRegistry()
+        response = client.get(
+            "/internal/operator/market-data/domestic-daily-candles?stock_code=005930",
+            headers={"Authorization": "Bearer operator-token"},
+        )
+
+    _RecordingCandleRepository.error = None
+    assert response.status_code == 503
+    assert response.json() == {
+        "detail": "KIS market data persistence is unavailable"
+    }
 
 
 def test_operator_market_data_reads_a_snapshot_by_id(monkeypatch) -> None:

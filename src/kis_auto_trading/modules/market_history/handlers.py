@@ -34,3 +34,13 @@ async def save_domestic_daily_candles(
         for model in models:
             await repository.save(model)
     return models
+
+
+async def list_domestic_daily_candles(
+    session_registry: AsyncSessionRegistry,
+    stock_code: str,
+) -> list[DomesticDailyCandle]:
+    async with session_registry.session(ShardTarget(store="automation")) as session:
+        return await SQLAlchemyDomesticDailyCandleRepository(
+            session
+        ).list_by_stock_code(stock_code)

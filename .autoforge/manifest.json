@@ -1,7 +1,7 @@
 {
   "document_kind": "generation_job",
   "format_version": "1",
-  "job_id": "b1a3687d-53b4-4576-8682-9456cb6c75d3",
+  "job_id": "e053e7d0-a6f4-4fa5-a3d3-2a6abdd3d636",
   "units": [
     {
       "kind": "project",
@@ -49,11 +49,11 @@
             "generator_id": "autoforge.generator.service.durable_jobs",
             "generator_version": "0.1.1",
             "ownership": "generated",
-            "previous_content_hash": null,
+            "previous_content_hash": "eb14a5c48781142be761b35b1051d7e0f9da53b1c33bb0ce2c194f97e6411ae0",
             "relative_path": "airflow/dags/domestic_daily_candle_collection.py",
             "source": "project:durable-jobs",
             "specification_hash": "d0c064cd253ac7d4a8bff3ded14fd509de9d326e71f1edba639fef4d77522aab",
-            "status": "created"
+            "status": "unchanged"
           },
           {
             "content_hash": "1df592079ca0f967604344162df9733c4d45b2b1fad97c8211c51bd1b7183e27",
@@ -301,11 +301,11 @@
             "generator_id": "autoforge.generator.local-environment",
             "generator_version": "0.1.1",
             "ownership": "generated",
-            "previous_content_hash": "fc44d268e6c166a9b9809624e018bc6d8f3d15315fd378a8c50303a9b6e7903e",
+            "previous_content_hash": "9292511f09e6670f20bb2f28cb83111aefb021eba471ff3087eeed38ce0b6735",
             "relative_path": "environment/.env.example",
             "source": "project:local-environment",
             "specification_hash": "d0c064cd253ac7d4a8bff3ded14fd509de9d326e71f1edba639fef4d77522aab",
-            "status": "changed"
+            "status": "unchanged"
           },
           {
             "content_hash": "a6f43c6a30b869c5a29491090b9d2aec407abbf49f2905b635fb389a609d933a",
@@ -313,11 +313,11 @@
             "generator_id": "autoforge.generator.local-environment",
             "generator_version": "0.1.1",
             "ownership": "generated",
-            "previous_content_hash": "bb01dde031fad00bbe97078b35f648807a96d39c7a867f5840fa015fcf80ab87",
+            "previous_content_hash": "a6f43c6a30b869c5a29491090b9d2aec407abbf49f2905b635fb389a609d933a",
             "relative_path": "environment/README.md",
             "source": "project:local-environment",
             "specification_hash": "d0c064cd253ac7d4a8bff3ded14fd509de9d326e71f1edba639fef4d77522aab",
-            "status": "changed"
+            "status": "unchanged"
           },
           {
             "content_hash": "4b5eff838e2a74423ad535d48f1b41178d02433cf6047367c97dfc0430cf87b6",
@@ -325,11 +325,11 @@
             "generator_id": "autoforge.generator.local-environment",
             "generator_version": "0.1.1",
             "ownership": "generated",
-            "previous_content_hash": "a0cc95b9980875bdcfb7dcc7076234e43f7d15d3213bdece8cebf718505fef56",
+            "previous_content_hash": "4b5eff838e2a74423ad535d48f1b41178d02433cf6047367c97dfc0430cf87b6",
             "relative_path": "environment/compose.integration.yml",
             "source": "project:local-environment",
             "specification_hash": "d0c064cd253ac7d4a8bff3ded14fd509de9d326e71f1edba639fef4d77522aab",
-            "status": "changed"
+            "status": "unchanged"
           },
           {
             "content_hash": "d964e37b84a914ec5f079dc923fd244f349a38c0127acbfb0e23bfb7191d6681",
@@ -409,11 +409,11 @@
             "generator_id": "autoforge.generator.local-environment",
             "generator_version": "0.1.1",
             "ownership": "generated",
-            "previous_content_hash": "7757193695306b9d1f7c2a6eef3d8a66ca6f9a3233c27426c17970a296ca6186",
+            "previous_content_hash": "91f35020f0cd389d29a2ca15eb6ab6a7d321d47be8be0a9858649dd9903f575f",
             "relative_path": "environment/service-composition.json",
             "source": "project:local-environment",
             "specification_hash": "d0c064cd253ac7d4a8bff3ded14fd509de9d326e71f1edba639fef4d77522aab",
-            "status": "changed"
+            "status": "unchanged"
           },
           {
             "content_hash": "0e7ad7d27109d4fa563ea2fc8cc49561d87129455de5bafe658304ef7931906d",
@@ -1424,7 +1424,7 @@
             "status": "unchanged"
           }
         ],
-        "job_id": "b1a3687d-53b4-4576-8682-9456cb6c75d3",
+        "job_id": "e053e7d0-a6f4-4fa5-a3d3-2a6abdd3d636",
         "specification_hash": "d0c064cd253ac7d4a8bff3ded14fd509de9d326e71f1edba639fef4d77522aab",
         "specification_version": "1"
       },
@@ -1579,7 +1579,7 @@
             "status": "preserved"
           }
         ],
-        "job_id": "b1a3687d-53b4-4576-8682-9456cb6c75d3",
+        "job_id": "e053e7d0-a6f4-4fa5-a3d3-2a6abdd3d636",
         "specification_hash": "612b6b1ec0b4fdec5681e140eae6fad629c2fd4cd6e117a7a4c5c289f092acb7",
         "specification_version": "1"
       },
@@ -1734,7 +1734,7 @@
             "status": "preserved"
           }
         ],
-        "job_id": "b1a3687d-53b4-4576-8682-9456cb6c75d3",
+        "job_id": "e053e7d0-a6f4-4fa5-a3d3-2a6abdd3d636",
         "specification_hash": "7339a65d41417d4b4696df3d066f7b765f4d33517b9ea9a6ffedb6cdcc36b5b8",
         "specification_version": "1"
       },
@@ -1889,7 +1889,7 @@
             "status": "preserved"
           }
         ],
-        "job_id": "b1a3687d-53b4-4576-8682-9456cb6c75d3",
+        "job_id": "e053e7d0-a6f4-4fa5-a3d3-2a6abdd3d636",
         "specification_hash": "12ee39e0a879548bfd6e737980025c341dad9173ff5004fc63f6679facd1cb8d",
         "specification_version": "1"
       },
@@ -1908,7 +1908,7 @@
             "previous_content_hash": "7d01074214ee2953ed7924e9f559b671382f406195dc65748049556a78ee1629",
             "relative_path": "database/global/0001_market_history.sql",
             "source": "module:market_history:postgresql-ddl",
-            "specification_hash": "6afb6a5e2f9427d6952046cfdb00a0c56ad41229e5612f9641cfabf317bea82b",
+            "specification_hash": "9c7eb017ceb01f2c772754dd59d1da3f14a7c38091835a04ecfc90b742709245",
             "status": "unchanged"
           },
           {
@@ -1920,7 +1920,7 @@
             "previous_content_hash": "aa51dd1116006e847d276b079b0219227329836368638cf987955a07605a8339",
             "relative_path": "migrations/automation/versions/0001_market_history.py",
             "source": "module:market_history:alembic-baseline",
-            "specification_hash": "6afb6a5e2f9427d6952046cfdb00a0c56ad41229e5612f9641cfabf317bea82b",
+            "specification_hash": "9c7eb017ceb01f2c772754dd59d1da3f14a7c38091835a04ecfc90b742709245",
             "status": "preserved"
           },
           {
@@ -1932,7 +1932,7 @@
             "previous_content_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "relative_path": "src/kis_auto_trading/modules/market_history/__init__.py",
             "source": "module:market_history",
-            "specification_hash": "6afb6a5e2f9427d6952046cfdb00a0c56ad41229e5612f9641cfabf317bea82b",
+            "specification_hash": "9c7eb017ceb01f2c772754dd59d1da3f14a7c38091835a04ecfc90b742709245",
             "status": "unchanged"
           },
           {
@@ -1944,11 +1944,11 @@
             "previous_content_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "relative_path": "src/kis_auto_trading/modules/market_history/generated/__init__.py",
             "source": "module:market_history",
-            "specification_hash": "6afb6a5e2f9427d6952046cfdb00a0c56ad41229e5612f9641cfabf317bea82b",
+            "specification_hash": "9c7eb017ceb01f2c772754dd59d1da3f14a7c38091835a04ecfc90b742709245",
             "status": "unchanged"
           },
           {
-            "content_hash": "d9d813aaa09afab0dddb40037ffa1bedb6595bb62df5b95db8fbab599465c541",
+            "content_hash": "665442138d172fa3fd343342f116cdfc40bd8a24c349accb690c780636078ee5",
             "error": null,
             "generator_id": "autoforge.generator.repository",
             "generator_version": "0.1.0",
@@ -1956,8 +1956,8 @@
             "previous_content_hash": "d9d813aaa09afab0dddb40037ffa1bedb6595bb62df5b95db8fbab599465c541",
             "relative_path": "src/kis_auto_trading/modules/market_history/generated/fake_repository.py",
             "source": "module:market_history:repository",
-            "specification_hash": "6afb6a5e2f9427d6952046cfdb00a0c56ad41229e5612f9641cfabf317bea82b",
-            "status": "unchanged"
+            "specification_hash": "9c7eb017ceb01f2c772754dd59d1da3f14a7c38091835a04ecfc90b742709245",
+            "status": "changed"
           },
           {
             "content_hash": "0fed7b42e6458a330313e7c7e571a63fd3aa18b750ab2fc294b85855ddbc5e15",
@@ -1968,11 +1968,11 @@
             "previous_content_hash": "0fed7b42e6458a330313e7c7e571a63fd3aa18b750ab2fc294b85855ddbc5e15",
             "relative_path": "src/kis_auto_trading/modules/market_history/generated/models.py",
             "source": "module:market_history",
-            "specification_hash": "6afb6a5e2f9427d6952046cfdb00a0c56ad41229e5612f9641cfabf317bea82b",
+            "specification_hash": "9c7eb017ceb01f2c772754dd59d1da3f14a7c38091835a04ecfc90b742709245",
             "status": "unchanged"
           },
           {
-            "content_hash": "f2686489254eda56bd9499531e44070d0011230179a3ef71638b050949a2f04a",
+            "content_hash": "eba5ca277361f21182acdf55f82ef4f6d97fa17f4ae766d162145b829b8c2e39",
             "error": null,
             "generator_id": "autoforge.generator.repository",
             "generator_version": "0.1.0",
@@ -1980,8 +1980,8 @@
             "previous_content_hash": "f2686489254eda56bd9499531e44070d0011230179a3ef71638b050949a2f04a",
             "relative_path": "src/kis_auto_trading/modules/market_history/generated/repository.py",
             "source": "module:market_history:repository",
-            "specification_hash": "6afb6a5e2f9427d6952046cfdb00a0c56ad41229e5612f9641cfabf317bea82b",
-            "status": "unchanged"
+            "specification_hash": "9c7eb017ceb01f2c772754dd59d1da3f14a7c38091835a04ecfc90b742709245",
+            "status": "changed"
           },
           {
             "content_hash": "90351c414bde5a19704f52a4aa06f856feec89021e9d50b428d76eaab4bc30e9",
@@ -1992,7 +1992,7 @@
             "previous_content_hash": "90351c414bde5a19704f52a4aa06f856feec89021e9d50b428d76eaab4bc30e9",
             "relative_path": "src/kis_auto_trading/modules/market_history/generated/router.py",
             "source": "module:market_history",
-            "specification_hash": "6afb6a5e2f9427d6952046cfdb00a0c56ad41229e5612f9641cfabf317bea82b",
+            "specification_hash": "9c7eb017ceb01f2c772754dd59d1da3f14a7c38091835a04ecfc90b742709245",
             "status": "unchanged"
           },
           {
@@ -2004,7 +2004,7 @@
             "previous_content_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "relative_path": "src/kis_auto_trading/modules/market_history/generated/schemas.py",
             "source": "module:market_history",
-            "specification_hash": "6afb6a5e2f9427d6952046cfdb00a0c56ad41229e5612f9641cfabf317bea82b",
+            "specification_hash": "9c7eb017ceb01f2c772754dd59d1da3f14a7c38091835a04ecfc90b742709245",
             "status": "unchanged"
           },
           {
@@ -2016,11 +2016,11 @@
             "previous_content_hash": "8c06bd9f7c1eea43e16e03e7302a5349018788b05a205859c637e569fd28ff26",
             "relative_path": "src/kis_auto_trading/modules/market_history/generated/sqlalchemy_models.py",
             "source": "module:market_history:sqlalchemy-model",
-            "specification_hash": "6afb6a5e2f9427d6952046cfdb00a0c56ad41229e5612f9641cfabf317bea82b",
+            "specification_hash": "9c7eb017ceb01f2c772754dd59d1da3f14a7c38091835a04ecfc90b742709245",
             "status": "unchanged"
           },
           {
-            "content_hash": "576e4877bdd939a5131a8ebc15ccc43dddada3c5b1addee2c470e7979d7a8bcb",
+            "content_hash": "2b2f08c2c95da420bf600a358118e10f9accd27798c6303af7a15b4142c9e7ce",
             "error": null,
             "generator_id": "autoforge.generator.sqlalchemy.model",
             "generator_version": "0.1.0",
@@ -2028,8 +2028,8 @@
             "previous_content_hash": "576e4877bdd939a5131a8ebc15ccc43dddada3c5b1addee2c470e7979d7a8bcb",
             "relative_path": "src/kis_auto_trading/modules/market_history/generated/sqlalchemy_repositories.py",
             "source": "module:market_history:sqlalchemy-model",
-            "specification_hash": "6afb6a5e2f9427d6952046cfdb00a0c56ad41229e5612f9641cfabf317bea82b",
-            "status": "unchanged"
+            "specification_hash": "9c7eb017ceb01f2c772754dd59d1da3f14a7c38091835a04ecfc90b742709245",
+            "status": "changed"
           },
           {
             "content_hash": "8d0d6f480490db24f71ca645cc0a2435adca936a2ac9ee64ad50367875a29467",
@@ -2040,12 +2040,12 @@
             "previous_content_hash": "8d0d6f480490db24f71ca645cc0a2435adca936a2ac9ee64ad50367875a29467",
             "relative_path": "src/kis_auto_trading/modules/market_history/handlers.py",
             "source": "module:market_history",
-            "specification_hash": "6afb6a5e2f9427d6952046cfdb00a0c56ad41229e5612f9641cfabf317bea82b",
+            "specification_hash": "9c7eb017ceb01f2c772754dd59d1da3f14a7c38091835a04ecfc90b742709245",
             "status": "preserved"
           }
         ],
-        "job_id": "b1a3687d-53b4-4576-8682-9456cb6c75d3",
-        "specification_hash": "6afb6a5e2f9427d6952046cfdb00a0c56ad41229e5612f9641cfabf317bea82b",
+        "job_id": "e053e7d0-a6f4-4fa5-a3d3-2a6abdd3d636",
+        "specification_hash": "9c7eb017ceb01f2c772754dd59d1da3f14a7c38091835a04ecfc90b742709245",
         "specification_version": "1"
       },
       "unit_id": "module:market_history"
@@ -2199,7 +2199,7 @@
             "status": "preserved"
           }
         ],
-        "job_id": "b1a3687d-53b4-4576-8682-9456cb6c75d3",
+        "job_id": "e053e7d0-a6f4-4fa5-a3d3-2a6abdd3d636",
         "specification_hash": "0cd1412091f3b657ed0dfa9b47e4c9db68ceaeeae3f202451c5f18dd49334d73",
         "specification_version": "1"
       },
@@ -2354,7 +2354,7 @@
             "status": "preserved"
           }
         ],
-        "job_id": "b1a3687d-53b4-4576-8682-9456cb6c75d3",
+        "job_id": "e053e7d0-a6f4-4fa5-a3d3-2a6abdd3d636",
         "specification_hash": "00b85c71d93258486d59c681fcc3c896fa48088fe4522cedb653c59e7a5426a6",
         "specification_version": "1"
       },
@@ -2557,7 +2557,7 @@
             "status": "preserved"
           }
         ],
-        "job_id": "b1a3687d-53b4-4576-8682-9456cb6c75d3",
+        "job_id": "e053e7d0-a6f4-4fa5-a3d3-2a6abdd3d636",
         "specification_hash": "dec488c64dda88c5e270ba970e7544b2d664ef40f1d2c42d5bbf8ac4f0829ef6",
         "specification_version": "1"
       },

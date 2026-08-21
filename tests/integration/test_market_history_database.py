@@ -23,24 +23,35 @@ def test_domestic_daily_candle_round_trips_through_automation_database() -> None
     async def scenario() -> None:
         engine = create_async_engine(database_url)
         registry = AsyncSessionRegistry({"automation": engine}, {})
-        source = KisDomesticDailyCandle(
-            stock_code="005930",
-            trading_date="20260821",
-            open_price="70000",
-            high_price="71000",
-            low_price="69000",
-            close_price="70500",
-            volume=123456,
+        source = (
+            KisDomesticDailyCandle(
+                stock_code="005930",
+                trading_date="20260820",
+                open_price="69000",
+                high_price="70000",
+                low_price="68000",
+                close_price="69500",
+                volume=100000,
+            ),
+            KisDomesticDailyCandle(
+                stock_code="005930",
+                trading_date="20260821",
+                open_price="70000",
+                high_price="71000",
+                low_price="69000",
+                close_price="70500",
+                volume=123456,
+            ),
         )
         try:
-            (saved,) = await save_domestic_daily_candles(registry, (source,))
+            saved = await save_domestic_daily_candles(registry, source)
             async with registry.session(ShardTarget(store="automation")) as session:
                 stored = await SQLAlchemyDomesticDailyCandleRepository(
                     session
-                ).find_by_id(saved.candle_id)
+                ).list_by_stock_code("005930")
         finally:
             await engine.dispose()
 
-        assert stored == saved
+        assert stored == [saved[1], saved[0]]
 
     asyncio.run(scenario())

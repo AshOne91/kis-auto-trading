@@ -72,6 +72,13 @@ database:
       operations:
         - find_by_id
         - save
+      queries:
+        - name: list_by_stock_code
+          column: stock_code
+          cardinality: many
+          order_by: trading_date
+          descending: true
+          limit: 100
   placements:
     - table: domestic_daily_candles
       store: automation

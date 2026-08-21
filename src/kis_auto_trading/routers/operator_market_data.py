@@ -26,7 +26,10 @@ from kis_auto_trading.infrastructure.kis_token_coordinator import (
 from kis_auto_trading.infrastructure.service_tokens import require_service_token
 from kis_auto_trading.modules.market_data.generated.models import MarketPriceSnapshot
 from kis_auto_trading.modules.market_history.generated.models import DomesticDailyCandle
-from kis_auto_trading.modules.market_history.handlers import save_domestic_daily_candles
+from kis_auto_trading.modules.market_history.handlers import (
+    list_domestic_daily_candles,
+    save_domestic_daily_candles,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -103,6 +106,29 @@ async def create_domestic_stock_price_snapshot(
         return await save_market_price_snapshot(session_registry, price)
     except (ShardRoutingError, SQLAlchemyError) as error:
         logger.warning("operator market price snapshot persistence failed: %s", type(error).__name__)
+        raise HTTPException(
+            status_code=503,
+            detail="KIS market data persistence is unavailable",
+        ) from error
+
+
+@router.get(
+    "/domestic-daily-candles",
+    response_model=list[DomesticDailyCandle],
+)
+async def get_domestic_daily_candles(
+    stock_code: Annotated[str, Query(pattern=r"^[0-9]{6}$")],
+    session_registry: Annotated[
+        AsyncSessionRegistry, Depends(get_session_registry)
+    ],
+) -> list[DomesticDailyCandle]:
+    try:
+        return await list_domestic_daily_candles(session_registry, stock_code)
+    except (ShardRoutingError, SQLAlchemyError) as error:
+        logger.warning(
+            "operator domestic daily candle lookup failed: %s",
+            type(error).__name__,
+        )
         raise HTTPException(
             status_code=503,
             detail="KIS market data persistence is unavailable",

@@ -16,3 +16,16 @@ class FakeDomesticDailyCandleRepository:
         self, aggregate: DomesticDailyCandle,
     ) -> None:
         self._items[aggregate.candle_id] = aggregate
+
+    async def list_by_stock_code(
+        self, stock_code: str,
+    ) -> list[DomesticDailyCandle]:
+        items = [
+            item for item in self._items.values()
+            if item.stock_code == stock_code
+        ]
+        return sorted(
+            items,
+            key=lambda item: item.trading_date,
+            reverse=True,
+        )[:100]

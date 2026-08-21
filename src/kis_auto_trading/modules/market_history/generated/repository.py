@@ -11,3 +11,6 @@ class DomesticDailyCandleRepository(Protocol):
     async def save(
         self, aggregate: DomesticDailyCandle,
     ) -> None: ...
+    async def list_by_stock_code(
+        self, stock_code: str,
+    ) -> list[DomesticDailyCandle]: ...
