@@ -225,8 +225,13 @@ services:
     command:
       - sh
       - -ec
-      - >-
-        psql -h postgres -U ${POSTGRES_USER:-autoforge} -d postgres -tAc "SELECT 1 FROM pg_database WHERE datname = 'airflow'" | grep -q 1 || psql -h postgres -U ${POSTGRES_USER:-autoforge} -d postgres -c "CREATE DATABASE airflow"
+      - |
+        for attempt in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30; do
+          if psql -h postgres -U ${POSTGRES_USER:-autoforge} -d postgres -tAc "SELECT 1 FROM pg_database WHERE datname = 'airflow'" | grep -q 1; then exit 0; fi
+          if psql -h postgres -U ${POSTGRES_USER:-autoforge} -d postgres -c "CREATE DATABASE airflow"; then exit 0; fi
+          [ "$$attempt" -lt 30 ] || exit 1
+          sleep 1
+        done
 
   airflow-init:
     image: apache/airflow:2.10.5-python3.12
