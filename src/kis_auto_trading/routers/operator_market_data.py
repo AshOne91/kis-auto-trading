@@ -15,6 +15,7 @@ from kis_auto_trading.infrastructure.database.provider import get_session_regist
 from kis_auto_trading.infrastructure.database.routing import ShardRoutingError
 from kis_auto_trading.infrastructure.database.session import AsyncSessionRegistry
 from kis_auto_trading.infrastructure.kis_market_data import (
+    KisDomesticDailyCandle,
     KisDomesticStockPrice,
     KisMarketDataClient,
     KisMarketDataError,
@@ -24,6 +25,8 @@ from kis_auto_trading.infrastructure.kis_token_coordinator import (
 )
 from kis_auto_trading.infrastructure.service_tokens import require_service_token
 from kis_auto_trading.modules.market_data.generated.models import MarketPriceSnapshot
+from kis_auto_trading.modules.market_history.generated.models import DomesticDailyCandle
+from kis_auto_trading.modules.market_history.handlers import save_domestic_daily_candles
 
 logger = logging.getLogger(__name__)
 
@@ -106,6 +109,31 @@ async def create_domestic_stock_price_snapshot(
         ) from error
 
 
+@router.post(
+    "/domestic-daily-candles",
+    response_model=list[DomesticDailyCandle],
+)
+async def create_domestic_daily_candles(
+    stock_code: Annotated[str, Query(pattern=r"^[0-9]{6}$")],
+    market_data: Annotated[KisMarketDataClient, Depends(get_kis_market_data)],
+    session_registry: Annotated[
+        AsyncSessionRegistry, Depends(get_session_registry)
+    ],
+) -> tuple[DomesticDailyCandle, ...]:
+    candles = await _get_domestic_daily_candles(market_data, stock_code)
+    try:
+        return await save_domestic_daily_candles(session_registry, candles)
+    except (ShardRoutingError, SQLAlchemyError) as error:
+        logger.warning(
+            "operator domestic daily candle persistence failed: %s",
+            type(error).__name__,
+        )
+        raise HTTPException(
+            status_code=503,
+            detail="KIS market data persistence is unavailable",
+        ) from error
+
+
 async def _get_domestic_stock_price(
     market_data: KisMarketDataClient,
     stock_code: str,
@@ -120,6 +148,29 @@ async def _get_domestic_stock_price(
         ) from error
     except (KisTokenCoordinatorError, httpx.HTTPError) as error:
         logger.warning("operator KIS market data transport failed: %s", type(error).__name__)
+        raise HTTPException(
+            status_code=503,
+            detail="KIS market data is unavailable",
+        ) from error
+
+
+async def _get_domestic_daily_candles(
+    market_data: KisMarketDataClient,
+    stock_code: str,
+) -> tuple[KisDomesticDailyCandle, ...]:
+    try:
+        return await market_data.get_domestic_daily_candles(stock_code)
+    except KisMarketDataError as error:
+        logger.warning("operator KIS daily market data rejected: %s", error)
+        raise HTTPException(
+            status_code=502,
+            detail="KIS market data is unavailable",
+        ) from error
+    except (KisTokenCoordinatorError, httpx.HTTPError) as error:
+        logger.warning(
+            "operator KIS daily market data transport failed: %s",
+            type(error).__name__,
+        )
         raise HTTPException(
             status_code=503,
             detail="KIS market data is unavailable",

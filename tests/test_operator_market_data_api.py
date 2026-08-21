@@ -11,9 +11,11 @@ from sqlalchemy.exc import SQLAlchemyError
 from kis_auto_trading.application import market_price_snapshots
 from kis_auto_trading.application.app_factory import create_app
 from kis_auto_trading.infrastructure.kis_market_data import (
+    KisDomesticDailyCandle,
     KisDomesticStockPrice,
     KisMarketDataError,
 )
+from kis_auto_trading.modules.market_history import handlers as market_history_handlers
 
 
 @dataclass
@@ -21,9 +23,12 @@ class _FakeMarketDataClient:
     result: KisDomesticStockPrice | None = None
     error: Exception | None = None
     requested_stock_codes: list[str] | None = None
+    daily_result: tuple[KisDomesticDailyCandle, ...] = ()
+    requested_daily_stock_codes: list[str] | None = None
 
     def __post_init__(self) -> None:
         self.requested_stock_codes = []
+        self.requested_daily_stock_codes = []
 
     async def get_domestic_stock_price(self, stock_code: str) -> KisDomesticStockPrice:
         self.requested_stock_codes.append(stock_code)
@@ -31,6 +36,14 @@ class _FakeMarketDataClient:
             raise self.error
         assert self.result is not None
         return self.result
+
+    async def get_domestic_daily_candles(
+        self, stock_code: str
+    ) -> tuple[KisDomesticDailyCandle, ...]:
+        self.requested_daily_stock_codes.append(stock_code)
+        if self.error is not None:
+            raise self.error
+        return self.daily_result
 
 
 class _RecordingSessionRegistry:
@@ -66,6 +79,16 @@ class _RecordingSnapshotRepository:
             ),
             None,
         )
+
+
+class _RecordingCandleRepository:
+    saved: ClassVar[list[object]] = []
+
+    def __init__(self, session: object) -> None:
+        del session
+
+    async def save(self, candle) -> None:
+        self.saved.append(candle)
 
 
 def _configure_environment(monkeypatch) -> None:
@@ -186,6 +209,57 @@ def test_operator_market_data_persists_a_snapshot_only_through_post(monkeypatch)
     assert [target.store for target in session_registry.targets] == ["automation"]
     assert _RecordingSnapshotRepository.saved[0].stock_code == "005930"
     assert _RecordingSnapshotRepository.saved[0].current_price == "70000"
+
+
+def test_operator_market_data_persists_daily_candles_idempotently(monkeypatch) -> None:
+    _configure_environment(monkeypatch)
+    _RecordingCandleRepository.saved = []
+    monkeypatch.setattr(
+        market_history_handlers,
+        "SQLAlchemyDomesticDailyCandleRepository",
+        _RecordingCandleRepository,
+    )
+    app = create_app()
+    session_registry = _RecordingSessionRegistry()
+    market_data = _FakeMarketDataClient(
+        daily_result=(
+            KisDomesticDailyCandle(
+                stock_code="005930",
+                trading_date="20260821",
+                open_price="70000",
+                high_price="71000",
+                low_price="69000",
+                close_price="70500",
+                volume=123456,
+            ),
+        )
+    )
+
+    with TestClient(app) as client:
+        app.state.kis_market_data = market_data
+        app.state.session_registry = session_registry
+        first = client.post(
+            "/internal/operator/market-data/domestic-daily-candles?stock_code=005930",
+            headers={"Authorization": "Bearer operator-token"},
+        )
+        second = client.post(
+            "/internal/operator/market-data/domestic-daily-candles?stock_code=005930",
+            headers={"Authorization": "Bearer operator-token"},
+        )
+
+    assert first.status_code == 200
+    assert second.status_code == 200
+    assert first.json() == second.json()
+    assert first.json()[0]["trading_date"] == "20260821"
+    assert first.json()[0]["volume"] == 123456
+    assert market_data.requested_daily_stock_codes == ["005930", "005930"]
+    assert [target.store for target in session_registry.targets] == [
+        "automation",
+        "automation",
+    ]
+    assert _RecordingCandleRepository.saved[0].candle_id == (
+        _RecordingCandleRepository.saved[1].candle_id
+    )
 
 
 def test_operator_market_data_reads_a_snapshot_by_id(monkeypatch) -> None:

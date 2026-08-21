@@ -166,6 +166,83 @@ async def test_domestic_stock_price_reuses_a_short_shared_cache() -> None:
 
 
 @pytest.mark.anyio
+async def test_domestic_daily_candles_use_official_request_and_shared_cache() -> None:
+    client, transport = _client(
+        [
+            ExternalResponse(
+                status_code=200,
+                headers={},
+                content=(
+                    b'{"access_token":"token-value","token_type":"Bearer",'
+                    b'"expires_in":3600}'
+                ),
+            ),
+            ExternalResponse(
+                status_code=200,
+                headers={},
+                content=(
+                    b'{"rt_cd":"0","output":[{"stck_bsop_date":"20260821",'
+                    b'"stck_oprc":"70000","stck_hgpr":"71000",'
+                    b'"stck_lwpr":"69000","stck_clpr":"70500",'
+                    b'"acml_vol":"123456"}]}'
+                ),
+            ),
+        ]
+    )
+
+    first = await client.get_domestic_daily_candles("005930")
+    second = await client.get_domestic_daily_candles("005930")
+
+    assert second == first
+    assert first[0].trading_date == "20260821"
+    assert first[0].close_price == "70500"
+    assert first[0].volume == 123456
+    assert [(request.method, request.path) for request in transport.requests] == [
+        ("POST", "/oauth2/tokenP"),
+        ("GET", "/uapi/domestic-stock/v1/quotations/inquire-daily-price"),
+    ]
+    daily_request = transport.requests[1]
+    assert daily_request.headers is not None
+    assert daily_request.headers["tr_id"] == "FHKST01010400"
+    assert daily_request.params == {
+        "FID_COND_MRKT_DIV_CODE": "J",
+        "FID_INPUT_ISCD": "005930",
+        "FID_PERIOD_DIV_CODE": "D",
+        "FID_ORG_ADJ_PRC": "0",
+    }
+    assert daily_request.retry_safe is True
+
+
+@pytest.mark.anyio
+async def test_domestic_daily_candles_reject_malformed_rows() -> None:
+    client, _ = _client(
+        [
+            ExternalResponse(
+                status_code=200,
+                headers={},
+                content=(
+                    b'{"access_token":"token-value","token_type":"Bearer",'
+                    b'"expires_in":3600}'
+                ),
+            ),
+            ExternalResponse(
+                status_code=200,
+                headers={},
+                content=(
+                    b'{"rt_cd":"0","output":[{"stck_bsop_date":"invalid",'
+                    b'"stck_oprc":"70000","stck_hgpr":"71000",'
+                    b'"stck_lwpr":"69000","stck_clpr":"70500",'
+                    b'"acml_vol":"123456"}]}'
+                ),
+            ),
+        ]
+    )
+
+    with pytest.raises(KisMarketDataError, match="response is invalid"):
+        await client.get_domestic_daily_candles("005930")
+
+
+@pytest.mark.anyio
 async def test_domestic_stock_price_ignores_a_malformed_cache_value() -> None:
     cache = KeyValueStore(FakeKeyValueStoreClient(3600), 3600)
     client, transport = _client(

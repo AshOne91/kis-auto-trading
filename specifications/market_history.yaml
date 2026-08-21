@@ -1,0 +1,79 @@
+spec_version: "1"
+
+module:
+  name: market_history
+  display_name: Market History
+  route_prefix: /api/market-history
+
+models:
+  - name: DomesticDailyCandle
+    fields:
+      - name: candle_id
+        type:
+          kind: uuid
+      - name: stock_code
+        type:
+          kind: string
+      - name: trading_date
+        type:
+          kind: string
+      - name: open_price
+        type:
+          kind: string
+      - name: high_price
+        type:
+          kind: string
+      - name: low_price
+        type:
+          kind: string
+      - name: close_price
+        type:
+          kind: string
+      - name: volume
+        type:
+          kind: integer
+
+database:
+  provider: agnostic
+  tables:
+    - name: domestic_daily_candles
+      columns:
+        - name: candle_id
+          type:
+            kind: uuid
+          primary_key: true
+        - name: stock_code
+          type:
+            kind: string
+          index: true
+        - name: trading_date
+          type:
+            kind: string
+          index: true
+        - name: open_price
+          type:
+            kind: string
+        - name: high_price
+          type:
+            kind: string
+        - name: low_price
+          type:
+            kind: string
+        - name: close_price
+          type:
+            kind: string
+        - name: volume
+          type:
+            kind: integer
+  repositories:
+    - name: DomesticDailyCandleRepository
+      aggregate: DomesticDailyCandle
+      table: domestic_daily_candles
+      operations:
+        - find_by_id
+        - save
+  placements:
+    - table: domestic_daily_candles
+      store: automation
+      mode: global
+      unresolved_policy: error

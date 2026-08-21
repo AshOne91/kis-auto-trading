@@ -5,6 +5,9 @@ from kis_auto_trading.modules.identity.generated.router import router as identit
 from kis_auto_trading.modules.market_data.generated.router import (
     router as market_data_router,
 )
+from kis_auto_trading.modules.market_history.generated.router import (
+    router as market_history_router,
+)
 from kis_auto_trading.modules.news.generated.router import router as news_router
 from kis_auto_trading.modules.notification.generated.router import (
     router as notification_router,
@@ -16,6 +19,7 @@ MODULE_ROUTERS: tuple[APIRouter, ...] = (
     account_router,
     news_router,
     market_data_router,
+    market_history_router,
     signal_router,
     notification_router,
 )

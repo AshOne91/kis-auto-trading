@@ -99,6 +99,7 @@ application:
     - account
     - news
     - market_data
+    - market_history
     - signal
     - notification
   services:
