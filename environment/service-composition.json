@@ -58,6 +58,13 @@
       "routing_key": "market-price.snapshot.requested",
       "schedule": null,
       "store": "automation"
+    },
+    {
+      "event_type": "market-history.domestic-daily.collection.requested",
+      "name": "domestic_daily_candle_collection",
+      "routing_key": "market-history.domestic-daily.collection.requested",
+      "schedule": null,
+      "store": "automation"
     }
   ],
   "profile": "local-integration",

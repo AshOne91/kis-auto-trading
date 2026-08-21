@@ -10,7 +10,10 @@ from kis_auto_trading.application.durable_job_handler import (
     ApplicationDurableJobHandler,
 )
 from kis_auto_trading.infrastructure.durable_jobs.worker import DurableJobExecution
-from kis_auto_trading.infrastructure.kis_market_data import KisDomesticStockPrice
+from kis_auto_trading.infrastructure.kis_market_data import (
+    KisDomesticDailyCandle,
+    KisDomesticStockPrice,
+)
 from kis_auto_trading.modules.news.models import NewsArticle
 from kis_auto_trading.modules.news.yahoo import (
     YahooFinanceNewsProviderError,
@@ -36,6 +39,7 @@ class FakeProvider:
 class FakeMarketDataClient:
     def __init__(self) -> None:
         self.requested_stock_codes: list[str] = []
+        self.requested_daily_stock_codes: list[str] = []
         self.closed = False
 
     async def get_domestic_stock_price(self, stock_code: str) -> KisDomesticStockPrice:
@@ -44,6 +48,22 @@ class FakeMarketDataClient:
             stock_code=stock_code,
             current_price="70000",
             output={"stck_prpr": "70000"},
+        )
+
+    async def get_domestic_daily_candles(
+        self, stock_code: str
+    ) -> tuple[KisDomesticDailyCandle, ...]:
+        self.requested_daily_stock_codes.append(stock_code)
+        return (
+            KisDomesticDailyCandle(
+                stock_code=stock_code,
+                trading_date="20260821",
+                open_price="70000",
+                high_price="71000",
+                low_price="69000",
+                close_price="70500",
+                volume=123456,
+            ),
         )
 
     async def aclose(self) -> None:
@@ -123,6 +143,72 @@ async def test_market_price_snapshot_handler_rejects_invalid_stock_code() -> Non
         )
 
     assert market_data_client.requested_stock_codes == []
+
+
+@pytest.mark.anyio
+async def test_daily_candle_handler_collects_and_persists(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    saved: list[KisDomesticDailyCandle] = []
+
+    async def fake_save_domestic_daily_candles(
+        session_registry: FakeRegistry,
+        candles: tuple[KisDomesticDailyCandle, ...],
+    ) -> tuple[SimpleNamespace, ...]:
+        assert isinstance(session_registry, FakeRegistry)
+        saved.extend(candles)
+        return tuple(
+            SimpleNamespace(trading_date=candle.trading_date) for candle in candles
+        )
+
+    monkeypatch.setattr(
+        "kis_auto_trading.application.durable_job_handler.save_domestic_daily_candles",
+        fake_save_domestic_daily_candles,
+    )
+    market_data_client = FakeMarketDataClient()
+    result = await ApplicationDurableJobHandler(
+        FakeRegistry(),
+        FakeProvider(),
+        market_data_client=market_data_client,
+    ).handle(
+        DurableJobExecution(
+            job_id="daily-candle-job-1",
+            job_type="domestic_daily_candle_collection",
+            run_key="daily-candle:005930:20260821",
+            payload={"stock_code": " 005930 "},
+        )
+    )
+
+    assert result == {
+        "job_type": "domestic_daily_candle_collection",
+        "stock_code": "005930",
+        "candle_count": 1,
+        "latest_trading_date": "20260821",
+    }
+    assert market_data_client.requested_daily_stock_codes == ["005930"]
+    assert market_data_client.closed is False
+    assert [candle.close_price for candle in saved] == ["70500"]
+
+
+@pytest.mark.anyio
+async def test_daily_candle_handler_rejects_invalid_stock_code() -> None:
+    market_data_client = FakeMarketDataClient()
+
+    with pytest.raises(ValueError, match="six-digit domestic stock code"):
+        await ApplicationDurableJobHandler(
+            FakeRegistry(),
+            FakeProvider(),
+            market_data_client=market_data_client,
+        ).handle(
+            DurableJobExecution(
+                job_id="daily-candle-job-1",
+                job_type="domestic_daily_candle_collection",
+                run_key="daily-candle:invalid",
+                payload={"stock_code": "invalid"},
+            )
+        )
+
+    assert market_data_client.requested_daily_stock_codes == []
 
 
 @pytest.mark.anyio

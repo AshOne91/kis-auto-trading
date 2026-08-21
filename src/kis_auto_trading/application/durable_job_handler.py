@@ -12,6 +12,9 @@ from kis_auto_trading.infrastructure.durable_jobs.contracts import JOB_DEFINITIO
 from kis_auto_trading.infrastructure.durable_jobs.repository import DurableJobRepository
 from kis_auto_trading.infrastructure.durable_jobs.worker import DurableJobExecution
 from kis_auto_trading.infrastructure.kis_market_data import KisMarketDataClient
+from kis_auto_trading.modules.market_history.handlers import (
+    save_domestic_daily_candles,
+)
 from kis_auto_trading.modules.news.persistence import NewsArticleRepository
 from kis_auto_trading.modules.news.search import NewsSearchIndexer
 from kis_auto_trading.modules.news.yahoo import (
@@ -52,12 +55,17 @@ class ApplicationDurableJobHandler:
             return await self._index_durable_job_history(execution)
         if execution.job_type == "market_price_snapshot":
             return await self._collect_market_price_snapshot(execution)
+        if execution.job_type == "domestic_daily_candle_collection":
+            return await self._collect_domestic_daily_candles(execution)
         raise ValueError(f"unsupported durable job type: {execution.job_type}")
 
     async def _collect_market_price_snapshot(
         self, execution: DurableJobExecution
     ) -> dict[str, object]:
-        stock_code = _market_price_stock_code_from_payload(execution.payload)
+        stock_code = _domestic_stock_code_from_payload(
+            execution.payload,
+            execution.job_type,
+        )
         client = self._market_data_client or KisMarketDataClient.from_environment()
         try:
             price = await client.get_domestic_stock_price(stock_code)
@@ -69,6 +77,30 @@ class ApplicationDurableJobHandler:
             "job_type": execution.job_type,
             "stock_code": price.stock_code,
             "snapshot_id": str(snapshot.snapshot_id),
+        }
+
+    async def _collect_domestic_daily_candles(
+        self, execution: DurableJobExecution
+    ) -> dict[str, object]:
+        stock_code = _domestic_stock_code_from_payload(
+            execution.payload,
+            execution.job_type,
+        )
+        client = self._market_data_client or KisMarketDataClient.from_environment()
+        try:
+            source = await client.get_domestic_daily_candles(stock_code)
+            saved = await save_domestic_daily_candles(self._session_registry, source)
+        finally:
+            if self._market_data_client is None:
+                await client.aclose()
+        return {
+            "job_type": execution.job_type,
+            "stock_code": stock_code,
+            "candle_count": len(saved),
+            "latest_trading_date": max(
+                (candle.trading_date for candle in saved),
+                default=None,
+            ),
         }
 
     async def _collect_news(
@@ -249,8 +281,8 @@ class ApplicationDurableJobHandler:
 
 
 def validate_durable_job_payload(job_type: str, payload: dict[str, object]) -> None:
-    if job_type == "market_price_snapshot":
-        _market_price_stock_code_from_payload(payload)
+    if job_type in {"market_price_snapshot", "domestic_daily_candle_collection"}:
+        _domestic_stock_code_from_payload(payload, job_type)
 
 
 def _symbols_from_payload(payload: dict[str, object]) -> list[str]:
@@ -269,10 +301,13 @@ def _symbols_from_payload(payload: dict[str, object]) -> list[str]:
     return normalized
 
 
-def _market_price_stock_code_from_payload(payload: dict[str, object]) -> str:
+def _domestic_stock_code_from_payload(
+    payload: dict[str, object],
+    job_type: str,
+) -> str:
     stock_code = payload.get("stock_code")
     if not isinstance(stock_code, str):
-        raise TypeError("market_price_snapshot payload requires a stock_code string")
+        raise TypeError(f"{job_type} payload requires a stock_code string")
     normalized = stock_code.strip()
     if (
         len(normalized) != 6
@@ -280,7 +315,7 @@ def _market_price_stock_code_from_payload(payload: dict[str, object]) -> str:
         or not normalized.isdecimal()
     ):
         raise ValueError(
-            "market_price_snapshot stock_code must be a six-digit domestic stock code"
+            f"{job_type} stock_code must be a six-digit domestic stock code"
         )
     return normalized
 

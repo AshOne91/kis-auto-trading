@@ -45,5 +45,11 @@ JOB_DEFINITIONS: dict[str, DurableJobDefinition] = {
         store="automation",
         event_type="market-price.snapshot.requested",
         routing_key="market-price.snapshot.requested",
+    ),
+    "domestic_daily_candle_collection": DurableJobDefinition(
+        name="domestic_daily_candle_collection",
+        store="automation",
+        event_type="market-history.domestic-daily.collection.requested",
+        routing_key="market-history.domestic-daily.collection.requested",
     )
 }

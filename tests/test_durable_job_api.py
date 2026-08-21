@@ -79,6 +79,10 @@ def test_durable_job_api_authenticates_and_reuses_run_key(
         "run_key": "market-price:005930",
         "payload": {"stock_code": "005930"},
     }
+    daily_candle_body = {
+        "run_key": "daily-candle:005930:20260821",
+        "payload": {"stock_code": "005930"},
+    }
     with TestClient(app) as client:
         assert client.post("/internal/jobs/news_collection", json=body).status_code == 401
         assert (
@@ -110,6 +114,19 @@ def test_durable_job_api_authenticates_and_reuses_run_key(
             headers={"Authorization": "Bearer test-token"},
             json={
                 "run_key": "market-price:invalid",
+                "payload": {"stock_code": "invalid"},
+            },
+        )
+        daily_candle_created = client.post(
+            "/internal/jobs/domestic_daily_candle_collection",
+            headers={"Authorization": "Bearer test-token"},
+            json=daily_candle_body,
+        )
+        invalid_daily_candle = client.post(
+            "/internal/jobs/domestic_daily_candle_collection",
+            headers={"Authorization": "Bearer test-token"},
+            json={
+                "run_key": "daily-candle:invalid",
                 "payload": {"stock_code": "invalid"},
             },
         )
@@ -156,6 +173,15 @@ def test_durable_job_api_authenticates_and_reuses_run_key(
     assert invalid_market_price.json() == {
         "detail": "market_price_snapshot stock_code must be a six-digit domestic stock code"
     }
+    assert daily_candle_created.status_code == 202
+    assert daily_candle_created.json() == {"job_id": "job-1", "created": False}
+    assert invalid_daily_candle.status_code == 422
+    assert invalid_daily_candle.json() == {
+        "detail": (
+            "domestic_daily_candle_collection stock_code must be a six-digit "
+            "domestic stock code"
+        )
+    }
     assert history.status_code == 200
     assert history.json()[0]["job_id"] == "job-1"
     assert history.json()[0]["status"] == "requested"
@@ -163,6 +189,10 @@ def test_durable_job_api_authenticates_and_reuses_run_key(
         {"job_type": "news_collection", **body},
         {"job_type": "news_collection", **body},
         {"job_type": "market_price_snapshot", **market_price_body},
+        {
+            "job_type": "domestic_daily_candle_collection",
+            **daily_candle_body,
+        },
     ]
     assert status.status_code == 200
     assert status.json()["status"] == "requested"
@@ -176,6 +206,7 @@ def test_durable_job_api_authenticates_and_reuses_run_key(
     assert raced_cancel.json()["status"] == "cancelled"
     assert running_cancel.status_code == 409
     assert [target.store for target in registry.targets] == [
+        "automation",
         "automation",
         "automation",
         "automation",
