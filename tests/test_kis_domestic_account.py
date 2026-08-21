@@ -216,6 +216,35 @@ async def test_domestic_balance_caches_one_read_only_result() -> None:
     ]
 
 
+@pytest.mark.anyio
+async def test_domestic_balance_ignores_a_malformed_cache_value() -> None:
+    cache = KeyValueStore(FakeKeyValueStoreClient(3600), 3600)
+    client, transport = _client(
+        [
+            _token_response(),
+            ExternalResponse(
+                status_code=200,
+                headers={"tr_cont": "D"},
+                content=(
+                    b'{"rt_cd":"0","output1":[{"pdno":"005930",'
+                    b'"prdt_name":"Samsung","hldg_qty":"10",'
+                    b'"ord_psbl_qty":"8","prpr":"70000"}]}'
+                ),
+            ),
+        ],
+        cache=cache,
+    )
+    await cache.set(client._holdings_cache_key, "not-json", ttl_seconds=15)
+
+    holdings = await client.list_domestic_stock_holdings()
+
+    assert [holding.stock_code for holding in holdings] == ["005930"]
+    assert [(request.method, request.path) for request in transport.requests] == [
+        ("POST", "/oauth2/tokenP"),
+        ("GET", "/uapi/domestic-stock/v1/trading/inquire-balance"),
+    ]
+
+
 def test_domestic_balance_rejects_invalid_account_configuration_before_io() -> None:
     with pytest.raises(KisAccountConfigurationError, match="eight decimal"):
         KisAccountCredentials("not-an-account", "01", "real")
