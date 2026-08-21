@@ -156,6 +156,7 @@ application:
       store: automation
       event_type: market-history.domestic-daily.collection.requested
       routing_key: market-history.domestic-daily.collection.requested
+      schedule: "0 8 * * 1-5"
   service_tokens:
     - name: durable_jobs
       token_env: DURABLE_JOB_API_TOKEN

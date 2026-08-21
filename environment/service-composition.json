@@ -63,7 +63,7 @@
       "event_type": "market-history.domestic-daily.collection.requested",
       "name": "domestic_daily_candle_collection",
       "routing_key": "market-history.domestic-daily.collection.requested",
-      "schedule": null,
+      "schedule": "0 8 * * 1-5",
       "store": "automation"
     }
   ],
@@ -109,7 +109,9 @@
         "AIRFLOW__CORE__LOAD_EXAMPLES",
         "AIRFLOW__DATABASE__SQL_ALCHEMY_CONN",
         "DURABLE_JOB_API_TOKEN",
-        "DURABLE_JOB_API_URL"
+        "DURABLE_JOB_API_URL",
+        "DURABLE_JOB_DOMESTIC_DAILY_CANDLE_COLLECTION_PAYLOAD_JSON",
+        "DURABLE_JOB_NEWS_COLLECTION_PAYLOAD_JSON"
       ],
       "dependencies": {
         "airflow-init": "service_completed_successfully",
@@ -131,7 +133,9 @@
         "AIRFLOW__CORE__LOAD_EXAMPLES",
         "AIRFLOW__DATABASE__SQL_ALCHEMY_CONN",
         "DURABLE_JOB_API_TOKEN",
-        "DURABLE_JOB_API_URL"
+        "DURABLE_JOB_API_URL",
+        "DURABLE_JOB_DOMESTIC_DAILY_CANDLE_COLLECTION_PAYLOAD_JSON",
+        "DURABLE_JOB_NEWS_COLLECTION_PAYLOAD_JSON"
       ],
       "dependencies": {
         "airflow-init": "service_completed_successfully"
