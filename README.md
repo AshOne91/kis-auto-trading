@@ -85,6 +85,18 @@ The default test suite never contacts KIS. For the preferred live check, set
 the generated Compose stack, then run the verification inside the application
 container:
 
+For a first read-only check, use the KIS virtual-investment REST domain for
+`KIS_API_URL`:
+
+```text
+https://openapivts.koreainvestment.com:29443
+```
+
+Create the virtual-investment app in KIS Developers and copy its App Key and
+App Secret into the ignored `environment/.env` file. Do not commit them. Use
+the real-investment REST domain only after the same read-only path is verified:
+`https://openapi.koreainvestment.com:9443`.
+
 ```powershell
 .\deploy\single-host\windows\start-compose.ps1
 docker compose --env-file environment/.env -f environment/compose.integration.yml exec application python scripts/verify_kis_read_only_price.py
