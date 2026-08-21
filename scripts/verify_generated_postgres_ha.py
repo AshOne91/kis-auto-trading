@@ -59,6 +59,33 @@ class GeneratedEnvironment:
                 "KIS_ACCOUNT_ENVIRONMENT": "demo",
             }
         )
+        self.rag_network_name = self.environment.get(
+            "RAG_NETWORK_NAME", "kis_auto_trading-rag"
+        )
+        self.environment["RAG_NETWORK_NAME"] = self.rag_network_name
+        inspected = subprocess.run(
+            ("docker", "network", "inspect", self.rag_network_name),
+            check=False,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+        )
+        self._owns_rag_network = inspected.returncode != 0
+        if self._owns_rag_network:
+            created = subprocess.run(
+                ("docker", "network", "create", self.rag_network_name),
+                check=False,
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+            )
+            if created.returncode:
+                raise RuntimeError(
+                    f"Could not create RAG network {self.rag_network_name!r}: "
+                    f"{created.stderr.strip()}"
+                )
 
     def run(self, *arguments: str) -> subprocess.CompletedProcess[str]:
         result = subprocess.run(
@@ -82,6 +109,21 @@ class GeneratedEnvironment:
             self.run("down", "--volumes", "--remove-orphans")
         except RuntimeError as error:
             print(f"isolated Compose cleanup failed for {self.project_name}: {error}")
+        finally:
+            if self._owns_rag_network:
+                removed = subprocess.run(
+                    ("docker", "network", "rm", self.rag_network_name),
+                    check=False,
+                    capture_output=True,
+                    text=True,
+                    encoding="utf-8",
+                    errors="replace",
+                )
+                if removed.returncode:
+                    print(
+                        f"isolated RAG network cleanup failed for "
+                        f"{self.rag_network_name}: {removed.stderr.strip()}"
+                    )
 
 
 def _workspace_from_arguments() -> Path:
