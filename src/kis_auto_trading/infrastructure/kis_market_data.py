@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 from collections.abc import Mapping
@@ -18,6 +19,7 @@ from kis_auto_trading.infrastructure.kis_token_coordinator import (
 _DOMESTIC_STOCK_PRICE_PATH: Final = "/uapi/domestic-stock/v1/quotations/inquire-price"
 _DOMESTIC_STOCK_PRICE_TR_ID: Final = "FHKST01010100"
 _STOCK_CODE_PATTERN: Final = re.compile(r"[0-9]{6}")
+_PRICE_CACHE_TTL_SECONDS: Final = 2
 
 
 class KisMarketDataError(RuntimeError):
@@ -39,24 +41,29 @@ class KisMarketDataClient:
         provider: ExternalProvider,
         token_coordinator: KisTokenCoordinator,
         credentials: KisTokenCredentials,
+        *,
+        price_cache: KeyValueStore | None = None,
     ) -> None:
         self._provider = provider
         self._token_coordinator = token_coordinator
         self._credentials = credentials
+        self._price_cache = price_cache
 
     @classmethod
     def from_environment(cls) -> KisMarketDataClient:
         credentials = KisTokenCredentials.from_environment()
         provider = ExternalProvider.from_environment()
+        cache = KeyValueStore.from_environment()
         return cls(
             provider,
             KisTokenCoordinator(
                 provider,
                 DistributedLock.from_environment(),
-                KeyValueStore.from_environment(),
+                cache,
                 credentials,
             ),
             credentials,
+            price_cache=cache,
         )
 
     async def get_domestic_stock_price(
@@ -66,6 +73,9 @@ class KisMarketDataClient:
             stock_code
         ):
             raise ValueError("stock_code must be a six-digit domestic stock code")
+        cached = await self._read_cached_price(stock_code)
+        if cached is not None:
+            return cached
         token = await self._token_coordinator.get_access_token()
         response = await self._provider.request(
             "GET",
@@ -77,10 +87,56 @@ class KisMarketDataClient:
             },
             retry_safe=True,
         )
-        return self._parse_price_response(
+        price = self._parse_price_response(
             stock_code,
             response.status_code,
             response.content,
+        )
+        await self._write_cached_price(price)
+        return price
+
+    def _cache_key(self, stock_code: str) -> str:
+        identity = f"{self._credentials.scope}:{self._credentials.app_key}".encode()
+        suffix = hashlib.sha256(identity).hexdigest()[:16]
+        return f"market:domestic-price:{suffix}:{stock_code}"
+
+    async def _read_cached_price(
+        self, stock_code: str
+    ) -> KisDomesticStockPrice | None:
+        if self._price_cache is None:
+            return None
+        value = await self._price_cache.get(self._cache_key(stock_code))
+        if value is None:
+            return None
+        try:
+            payload = json.loads(value)
+            if not isinstance(payload, Mapping):
+                return None
+            output = payload.get("output")
+            current_price = payload.get("current_price")
+            if not isinstance(output, Mapping) or not isinstance(current_price, str):
+                return None
+            return KisDomesticStockPrice(
+                stock_code=stock_code,
+                current_price=current_price,
+                output=dict(output),
+            )
+        except (TypeError, ValueError):
+            return None
+
+    async def _write_cached_price(self, price: KisDomesticStockPrice) -> None:
+        if self._price_cache is None:
+            return
+        await self._price_cache.set(
+            self._cache_key(price.stock_code),
+            json.dumps(
+                {
+                    "current_price": price.current_price,
+                    "output": dict(price.output),
+                },
+                separators=(",", ":"),
+            ),
+            ttl_seconds=_PRICE_CACHE_TTL_SECONDS,
         )
 
     async def aclose(self) -> None:

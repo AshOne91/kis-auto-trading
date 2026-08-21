@@ -63,6 +63,21 @@ python -m autoforge.main generate `
   --validation-python .venv\\Scripts\\python.exe
 ```
 
+## First safe KIS domain step
+
+Start with the domestic current-price path before implementing strategies or
+orders. Its fake-transport tests require no KIS account or credentials and
+verify the complete local boundary: operator API, shared token coordinator,
+short-lived Redis cache, and KIS response parsing.
+
+```powershell
+pytest -p no:cacheprovider tests/test_kis_market_data.py tests/test_operator_market_data_api.py tests/test_kis_market_data_lifespan.py -q
+```
+
+This is read-only: it does not submit an order, access a balance, or contact
+KIS. Once it passes, use the opt-in check below to make exactly one real
+current-price request.
+
 ## Opt-in KIS read-only integration check
 
 The default test suite never contacts KIS. To run one real domestic current-price

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 from collections.abc import Mapping
 from dataclasses import dataclass
@@ -18,6 +19,7 @@ _DOMESTIC_BALANCE_PATH: Final = "/uapi/domestic-stock/v1/trading/inquire-balance
 _REAL_BALANCE_TR_ID: Final = "TTTC8434R"
 _DEMO_BALANCE_TR_ID: Final = "VTTC8434R"
 _MAX_BALANCE_PAGES: Final = 10
+_HOLDINGS_CACHE_TTL_SECONDS: Final = 15
 
 
 class KisAccountConfigurationError(ValueError):
@@ -90,29 +92,46 @@ class KisDomesticAccountClient:
         token_coordinator: KisTokenCoordinator,
         token_credentials: KisTokenCredentials,
         account_credentials: KisAccountCredentials,
+        *,
+        holdings_cache: KeyValueStore | None = None,
     ) -> None:
         self._provider = provider
         self._token_coordinator = token_coordinator
         self._token_credentials = token_credentials
         self._account_credentials = account_credentials
+        self._holdings_cache = holdings_cache
+        identity = (
+            f"{account_credentials.environment}:"
+            f"{account_credentials.account_number}:"
+            f"{account_credentials.account_product_code}"
+        ).encode()
+        self._holdings_cache_key = (
+            "portfolio:domestic-stock-holdings:"
+            f"{hashlib.sha256(identity).hexdigest()[:16]}"
+        )
 
     @classmethod
     def from_environment(cls) -> KisDomesticAccountClient:
         token_credentials = KisTokenCredentials.from_environment()
         provider = ExternalProvider.from_environment()
+        cache = KeyValueStore.from_environment()
         return cls(
             provider,
             KisTokenCoordinator(
                 provider,
                 DistributedLock.from_environment(),
-                KeyValueStore.from_environment(),
+                cache,
                 token_credentials,
             ),
             token_credentials,
             KisAccountCredentials.from_environment(),
+            holdings_cache=cache,
         )
 
     async def list_domestic_stock_holdings(self) -> tuple[KisDomesticStockHolding, ...]:
+        cached = await self._read_cached_holdings()
+        if cached is not None:
+            return cached
         token = await self._token_coordinator.get_access_token()
         holdings: list[KisDomesticStockHolding] = []
         context_fk = ""
@@ -129,11 +148,65 @@ class KisDomesticAccountClient:
             payload = self._parse_response(response.status_code, response.content)
             holdings.extend(self._parse_holdings(payload))
             if response.headers.get("tr_cont") not in {"M", "F"}:
-                return tuple(holdings)
+                result = tuple(holdings)
+                await self._write_cached_holdings(result)
+                return result
             context_fk = self._required_string(payload, "ctx_area_fk100")
             context_nk = self._required_string(payload, "ctx_area_nk100")
             continuation = "N"
         raise KisDomesticAccountError("KIS domestic balance pagination limit exceeded")
+
+    async def _read_cached_holdings(
+        self,
+    ) -> tuple[KisDomesticStockHolding, ...] | None:
+        if self._holdings_cache is None:
+            return None
+        value = await self._holdings_cache.get(self._holdings_cache_key)
+        if value is None:
+            return None
+        try:
+            payload = json.loads(value)
+            if not isinstance(payload, list):
+                return None
+            return tuple(
+                KisDomesticStockHolding(
+                    stock_code=_required_holding_string(item, "stock_code"),
+                    product_name=_required_holding_string(item, "product_name"),
+                    holding_quantity=_required_holding_string(
+                        item, "holding_quantity"
+                    ),
+                    orderable_quantity=_required_holding_string(
+                        item, "orderable_quantity"
+                    ),
+                    current_price=_required_holding_string(item, "current_price"),
+                )
+                for item in payload
+            )
+        except (TypeError, ValueError):
+            return None
+
+    async def _write_cached_holdings(
+        self, holdings: tuple[KisDomesticStockHolding, ...]
+    ) -> None:
+        if self._holdings_cache is None:
+            return
+        await self._holdings_cache.set(
+            self._holdings_cache_key,
+            json.dumps(
+                [
+                    {
+                        "stock_code": holding.stock_code,
+                        "product_name": holding.product_name,
+                        "holding_quantity": holding.holding_quantity,
+                        "orderable_quantity": holding.orderable_quantity,
+                        "current_price": holding.current_price,
+                    }
+                    for holding in holdings
+                ],
+                separators=(",", ":"),
+            ),
+            ttl_seconds=_HOLDINGS_CACHE_TTL_SECONDS,
+        )
 
     async def aclose(self) -> None:
         await self._token_coordinator.aclose()
@@ -217,3 +290,12 @@ class KisDomesticAccountClient:
         if not isinstance(value, str):
             raise KisDomesticAccountError("KIS domestic balance response is invalid")
         return value
+
+
+def _required_holding_string(value: object, name: str) -> str:
+    if not isinstance(value, Mapping):
+        raise TypeError("Cached domestic holdings must be objects")
+    field = value.get(name)
+    if not isinstance(field, str):
+        raise TypeError(f"Cached domestic holding {name} must be a string")
+    return field

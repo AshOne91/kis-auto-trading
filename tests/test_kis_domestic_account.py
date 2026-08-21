@@ -69,15 +69,19 @@ class _CapturingProviderClient:
 
 
 def _client(
-    responses: list[ExternalResponse], *, environment: str = "real"
+    responses: list[ExternalResponse],
+    *,
+    environment: str = "real",
+    cache: KeyValueStore | None = None,
 ) -> tuple[KisDomesticAccountClient, _CapturingProviderClient]:
     transport = _CapturingProviderClient(responses)
     provider = ExternalProvider(transport)
     token_credentials = KisTokenCredentials("test-app-key", "test-app-secret")
+    cache = cache or KeyValueStore(FakeKeyValueStoreClient(3600), 3600)
     coordinator = KisTokenCoordinator(
         provider,
         DistributedLock(FakeDistributedLockClient(30), 30),
-        KeyValueStore(FakeKeyValueStoreClient(3600), 3600),
+        cache,
         token_credentials,
     )
     return (
@@ -86,6 +90,7 @@ def _client(
             coordinator,
             token_credentials,
             KisAccountCredentials("12345678", "01", environment),
+            holdings_cache=cache,
         ),
         transport,
     )
@@ -182,6 +187,33 @@ async def test_domestic_balance_rejects_error_envelopes() -> None:
 
     with pytest.raises(KisDomesticAccountError, match="account unavailable"):
         await client.list_domestic_stock_holdings()
+
+
+@pytest.mark.anyio
+async def test_domestic_balance_caches_one_read_only_result() -> None:
+    client, transport = _client(
+        [
+            _token_response(),
+            ExternalResponse(
+                status_code=200,
+                headers={"tr_cont": "D"},
+                content=(
+                    b'{"rt_cd":"0","output1":[{"pdno":"005930",'
+                    b'"prdt_name":"Samsung","hldg_qty":"10",'
+                    b'"ord_psbl_qty":"8","prpr":"70000"}]}'
+                ),
+            ),
+        ]
+    )
+
+    first = await client.list_domestic_stock_holdings()
+    second = await client.list_domestic_stock_holdings()
+
+    assert second == first
+    assert [(request.method, request.path) for request in transport.requests] == [
+        ("POST", "/oauth2/tokenP"),
+        ("GET", "/uapi/domestic-stock/v1/trading/inquire-balance"),
+    ]
 
 
 def test_domestic_balance_rejects_invalid_account_configuration_before_io() -> None:

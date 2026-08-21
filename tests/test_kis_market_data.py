@@ -72,13 +72,17 @@ def _client(
     transport = _CapturingProviderClient(responses)
     provider = ExternalProvider(transport)
     credentials = KisTokenCredentials("test-app-key", "test-app-secret")
+    cache = KeyValueStore(FakeKeyValueStoreClient(3600), 3600)
     coordinator = KisTokenCoordinator(
         provider,
         DistributedLock(FakeDistributedLockClient(30), 30),
-        KeyValueStore(FakeKeyValueStoreClient(3600), 3600),
+        cache,
         credentials,
     )
-    return KisMarketDataClient(provider, coordinator, credentials), transport
+    return (
+        KisMarketDataClient(provider, coordinator, credentials, price_cache=cache),
+        transport,
+    )
 
 
 @pytest.mark.anyio
@@ -127,6 +131,36 @@ async def test_domestic_stock_price_uses_the_official_read_only_request_shape() 
         "FID_INPUT_ISCD": "005930",
     }
     assert price_request.retry_safe is True
+
+
+@pytest.mark.anyio
+async def test_domestic_stock_price_reuses_a_short_shared_cache() -> None:
+    client, transport = _client(
+        [
+            ExternalResponse(
+                status_code=200,
+                headers={},
+                content=(
+                    b'{"access_token":"token-value","token_type":"Bearer",'
+                    b'"expires_in":3600}'
+                ),
+            ),
+            ExternalResponse(
+                status_code=200,
+                headers={},
+                content=b'{"rt_cd":"0","output":{"stck_prpr":"70000"}}',
+            ),
+        ]
+    )
+
+    first = await client.get_domestic_stock_price("005930")
+    second = await client.get_domestic_stock_price("005930")
+
+    assert second == first
+    assert [(request.method, request.path) for request in transport.requests] == [
+        ("POST", "/oauth2/tokenP"),
+        ("GET", "/uapi/domestic-stock/v1/quotations/inquire-price"),
+    ]
 
 
 @pytest.mark.anyio
