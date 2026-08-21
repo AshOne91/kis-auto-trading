@@ -80,9 +80,24 @@ current-price request.
 
 ## Opt-in KIS read-only integration check
 
-The default test suite never contacts KIS. To run one real domestic current-price
-GET after exporting `KIS_API_URL`, `KIS_APP_KEY`, and `KIS_APP_SECRET`, explicitly
-enable the check:
+The default test suite never contacts KIS. For the preferred live check, set
+`KIS_API_URL`, `KIS_APP_KEY`, and `KIS_APP_SECRET` in `environment/.env`, start
+the generated Compose stack, then run the verification inside the application
+container:
+
+```powershell
+.\deploy\single-host\windows\start-compose.ps1
+docker compose --env-file environment/.env -f environment/compose.integration.yml exec application python scripts/verify_kis_read_only_price.py
+```
+
+This reuses the application's existing `REDIS_URL=redis://redis:6379` container
+network setting. It validates configuration before I/O, performs exactly one
+current-price GET (default stock code `005930`), prints no secrets or price, and
+closes its HTTP and Redis clients.
+
+The pytest variant below is useful only when the host process has all four
+values (`KIS_API_URL`, `KIS_APP_KEY`, `KIS_APP_SECRET`, and a host-reachable
+`REDIS_URL`) exported explicitly:
 
 ```powershell
 $env:KIS_READ_ONLY_INTEGRATION = "1"
