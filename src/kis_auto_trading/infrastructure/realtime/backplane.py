@@ -6,6 +6,7 @@ import os
 from contextlib import suppress
 
 from redis.asyncio import Redis
+from redis.asyncio.sentinel import Sentinel
 from redis.exceptions import RedisError
 
 from .protocol import RealtimeDeliveryHandler
@@ -28,6 +29,7 @@ class RedisPubSubRealtimeBackplane:
         *,
         topic: str = REALTIME_TOPIC,
         reconnect_delay_seconds: float = RECONNECT_DELAY_SECONDS,
+        sentinel_master: str | None = None,
     ) -> None:
         if not urls:
             raise ValueError(
@@ -38,6 +40,16 @@ class RedisPubSubRealtimeBackplane:
         self._urls = urls
         self._topic = topic
         self._reconnect_delay_seconds = reconnect_delay_seconds
+        self._sentinel_master = sentinel_master
+        self._sentinel = (
+            Sentinel(
+                _sentinel_endpoints(urls),
+                socket_timeout=2,
+                decode_responses=True,
+            )
+            if sentinel_master is not None
+            else None
+        )
         self._publisher: Redis | None = None
         self._listener: asyncio.Task[None] | None = None
         self._closed = False
@@ -79,6 +91,9 @@ class RedisPubSubRealtimeBackplane:
             with suppress(asyncio.CancelledError):
                 await listener
         await self._discard_publisher()
+        if self._sentinel is not None:
+            for sentinel_client in self._sentinel.sentinels:
+                await sentinel_client.aclose()
 
     async def _publisher_client(self) -> Redis:
         if self._publisher is None:
@@ -119,6 +134,12 @@ class RedisPubSubRealtimeBackplane:
                 await asyncio.sleep(self._reconnect_delay_seconds)
 
     async def _open_client(self) -> Redis:
+        if self._sentinel is not None and self._sentinel_master is not None:
+            return self._sentinel.master_for(
+                self._sentinel_master,
+                socket_timeout=2,
+                decode_responses=True,
+            )
         last_error: RedisError | None = None
         for url in self._urls:
             client = Redis.from_url(url, decode_responses=True)
@@ -141,6 +162,26 @@ def _redis_urls_from_environment() -> tuple[str, ...]:
         )
     return (redis_url,)
 
+
+
+def _sentinel_endpoints(values: tuple[str, ...]) -> list[tuple[str, int]]:
+    endpoints: list[tuple[str, int]] = []
+    for item in values:
+        host, separator, port_text = item.rpartition(":")
+        if not separator or not host:
+            raise RealtimeBackplaneError(
+                f"Invalid Redis Sentinel endpoint: {item!r}"
+            )
+        try:
+            port = int(port_text)
+        except ValueError as error:
+            raise RealtimeBackplaneError(
+                f"Invalid Redis Sentinel port: {item!r}"
+            ) from error
+        endpoints.append((host, port))
+    if not endpoints:
+        raise RealtimeBackplaneError("Redis Sentinel endpoints are empty")
+    return endpoints
 
 
 def _decode_payload(value: object) -> tuple[str, str] | None:

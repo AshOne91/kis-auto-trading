@@ -15,6 +15,7 @@ idempotently creates `S3_BUCKET` after MinIO becomes healthy. MinIO data uses a
 named Docker volume and the API/console bind to `LOCAL_BIND_ADDRESS` only.
 `minio-init` exits successfully after initialization, so start this overlay with
 `up -d` rather than adding it to a Compose `--wait` health gate.
+
 Replace the sample root credentials before starting the profile. Production
 requires separate credentials, encrypted backups, bucket policies, lifecycle
 rules, and a cluster-aware object-storage deployment; do not use this Compose

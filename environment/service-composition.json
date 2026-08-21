@@ -64,6 +64,20 @@
   "services": [
     {
       "configuration_env": [
+        "PGPASSWORD"
+      ],
+      "dependencies": {
+        "postgres": "service_healthy"
+      },
+      "healthcheck": false,
+      "lifecycle": "one_shot",
+      "name": "airflow-db-bootstrap",
+      "published_ports": [],
+      "restart_policy": "no",
+      "role": "scheduler"
+    },
+    {
+      "configuration_env": [
         "AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION",
         "AIRFLOW__CORE__EXECUTOR",
         "AIRFLOW__CORE__LOAD_EXAMPLES",
@@ -72,7 +86,7 @@
         "DURABLE_JOB_API_URL"
       ],
       "dependencies": {
-        "postgres": "service_healthy"
+        "airflow-db-bootstrap": "service_completed_successfully"
       },
       "healthcheck": false,
       "lifecycle": "one_shot",
