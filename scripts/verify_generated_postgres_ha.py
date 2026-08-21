@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import argparse
 import json
 import os
 import subprocess
 import time
+from pathlib import Path
 from urllib.request import urlopen
 from uuid import uuid4
 
@@ -11,6 +13,9 @@ COMPOSE_FILE = "environment/compose.integration.yml"
 PORT_BASE = 59300
 POSTGRES_PORT = PORT_BASE + 10
 APPLICATION_PORT = PORT_BASE
+RABBITMQ_AMQP_PORT = PORT_BASE + 30
+RABBITMQ_MANAGEMENT_PORT = PORT_BASE + 31
+AIRFLOW_PORT = PORT_BASE + 40
 MAX_ATTEMPTS = 120
 RETRY_SECONDS = 1.0
 PATRONI_SERVICES = ("postgres-ha-0", "postgres-ha-1", "postgres-ha-2")
@@ -18,7 +23,8 @@ REDIS_SERVICES = tuple(f"redis-{port}" for port in range(7000, 7006))
 
 
 class GeneratedEnvironment:
-    def __init__(self) -> None:
+    def __init__(self, workspace: Path | None = None) -> None:
+        self.workspace = (workspace or Path.cwd()).resolve()
         self.project_name = f"generated-postgres-ha-test-{uuid4().hex[:8]}"
         self.command = (
             "docker",
@@ -26,7 +32,7 @@ class GeneratedEnvironment:
             "--project-name",
             self.project_name,
             "-f",
-            COMPOSE_FILE,
+            str(self.workspace / COMPOSE_FILE),
         )
         self.environment = os.environ.copy()
         self.environment.update(
@@ -37,9 +43,20 @@ class GeneratedEnvironment:
                 "POSTGRES_REPLICATION_PASSWORD": "change-me-replication",
                 "POSTGRES_PORT": str(POSTGRES_PORT),
                 "APPLICATION_PORT": str(APPLICATION_PORT),
+                "RABBITMQ_AMQP_PORT": str(RABBITMQ_AMQP_PORT),
+                "RABBITMQ_MANAGEMENT_PORT": str(RABBITMQ_MANAGEMENT_PORT),
+                "AIRFLOW_PORT": str(AIRFLOW_PORT),
+                "AIRFLOW_FERNET_KEY": "bKR1MqFKfzQI29QbP21gQU6WkpYwIMVuZZt8Hq74gvs=",
                 "RABBITMQ_URL": "amqp://autoforge:change-me@rabbitmq:5672/",
                 "RABBITMQ_ERLANG_COOKIE": "generated-postgres-ha-test-cookie",
                 "DURABLE_JOB_API_TOKEN": "generated-postgres-ha-test-token",
+                "OPERATOR_API_TOKEN": "generated-postgres-ha-operator-token",
+                "KIS_API_URL": "https://example.invalid",
+                "KIS_APP_KEY": "generated-postgres-ha-test-key",
+                "KIS_APP_SECRET": "generated-postgres-ha-test-secret",
+                "KIS_ACCOUNT_NUMBER": "00000000",
+                "KIS_ACCOUNT_PRODUCT_CODE": "01",
+                "KIS_ACCOUNT_ENVIRONMENT": "demo",
             }
         )
 
@@ -65,6 +82,29 @@ class GeneratedEnvironment:
             self.run("down", "--volumes", "--remove-orphans")
         except RuntimeError as error:
             print(f"isolated Compose cleanup failed for {self.project_name}: {error}")
+
+
+def _workspace_from_arguments() -> Path:
+    parser = argparse.ArgumentParser(
+        description="Verify PostgreSQL and Redis HA recovery in a generated HA workspace."
+    )
+    parser.add_argument(
+        "--workspace",
+        type=Path,
+        default=Path.cwd(),
+        help="Generated workspace from autoforge.ha.yaml (default: current directory).",
+    )
+    workspace = parser.parse_args().workspace.resolve()
+    compose_file = workspace / COMPOSE_FILE
+    if not compose_file.is_file():
+        raise RuntimeError(f"Generated Compose file is missing: {compose_file}")
+    compose_source = compose_file.read_text(encoding="utf-8")
+    if "  postgres-ha-0:\n" not in compose_source or "  redis-7000:\n" not in compose_source:
+        raise RuntimeError(
+            "PostgreSQL and Redis HA are required. Generate a workspace from "
+            "autoforge.ha.yaml and pass it with --workspace."
+        )
+    return workspace
 
 
 def _cluster(environment: GeneratedEnvironment) -> dict[str, object]:
@@ -314,8 +354,8 @@ def _wait_for_application(
     raise RuntimeError("Generated application did not become healthy") from last_error
 
 
-def main() -> None:
-    environment = GeneratedEnvironment()
+def main(workspace: Path) -> None:
+    environment = GeneratedEnvironment(workspace)
     try:
         print(f"starting isolated PostgreSQL HA environment: {environment.project_name}")
         environment.run("up", "--build", "--detach", "application")
@@ -381,4 +421,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main(_workspace_from_arguments())

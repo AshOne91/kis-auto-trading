@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import argparse
-import os
 import time
 from pathlib import Path
 
@@ -223,8 +222,7 @@ def _primary_and_replica(
 
 
 def main(workspace: Path) -> None:
-    os.chdir(workspace)
-    environment = GeneratedEnvironment()
+    environment = GeneratedEnvironment(workspace)
     environment.environment.setdefault(
         "RABBITMQ_ERLANG_COOKIE", "generated-redis-failover-test-cookie"
     )

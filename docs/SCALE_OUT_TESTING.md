@@ -80,12 +80,20 @@ writer endpoint reaches the promoted leader, then confirms the stopped node
 rejoins as a replica.
 
 ```powershell
-python scripts/verify_generated_postgres_ha.py
+$haWorkspace = "C:\temp\kis-auto-trading-ha"
+& C:\AutoForge\.venv\Scripts\python.exe -m autoforge.main generate `
+  --project autoforge.ha.yaml `
+  --specifications specifications `
+  --output $haWorkspace `
+  --validation-python C:\AutoForge\.venv\Scripts\python.exe
+python scripts/verify_generated_postgres_ha.py --workspace $haWorkspace
 ```
 
-It removes only the containers, network, and named volumes created for its unique
-Compose project. It is a single-host Docker integration check, not production
-multi-host database HA validation.
+The drill rejects a default single-host workspace: it only accepts an isolated
+workspace generated from `autoforge.ha.yaml`. It removes only the containers,
+network, and named volumes created for its unique Compose project. It is a
+single-host Docker integration check, not production multi-host database HA
+validation.
 
 The same check starts the generated FastAPI application and waits for both its
 Compose healthcheck and `GET /health`. After the Patroni leader is stopped, it
@@ -107,6 +115,21 @@ starts the three replicas, and requests failover to one explicitly named local
 candidate. It verifies one leader, two streaming replicas, the HAProxy writer,
 and application health. Candidate selection remains an operator decision based
 on data assessment; this local test does not automate it or claim zero data loss.
+
+## Isolated generated RabbitMQ HA check
+
+Use the same generated HA workspace for the RabbitMQ quorum-queue drill:
+
+```powershell
+python scripts/verify_generated_rabbitmq_ha.py --workspace $haWorkspace
+```
+
+The drill starts only the generated three-node RabbitMQ cluster and HAProxy
+endpoint. It publishes and consumes from a quorum queue normally, stops one
+broker, repeats that operation through the unchanged HAProxy endpoint with two
+running nodes, then starts the stopped broker and verifies it rejoins. This is a
+single-host cluster-recovery check, not multi-host broker HA, replay, or
+end-to-end application delivery evidence.
 
 `down -v`는 `kis-scale-out-test` Compose 프로젝트가 만든 테스트 컨테이너와 volume만
 제거한다. 로컬 개발 DB나 다른 Compose 프로젝트는 대상으로 삼지 않는다.

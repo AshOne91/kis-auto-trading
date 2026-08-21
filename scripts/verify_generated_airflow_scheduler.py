@@ -36,7 +36,15 @@ def _environment() -> dict[str, str]:
             "RABBITMQ_MANAGEMENT_PORT": str(RABBITMQ_MANAGEMENT_PORT),
             "APPLICATION_PORT": str(APPLICATION_PORT),
             "AIRFLOW_PORT": str(AIRFLOW_PORT),
+            "AIRFLOW_FERNET_KEY": "bKR1MqFKfzQI29QbP21gQU6WkpYwIMVuZZt8Hq74gvs=",
             "DURABLE_JOB_API_TOKEN": "generated-scheduler-test-token",
+            "OPERATOR_API_TOKEN": "generated-scheduler-operator-token",
+            "KIS_API_URL": "https://example.invalid",
+            "KIS_APP_KEY": "generated-scheduler-test-key",
+            "KIS_APP_SECRET": "generated-scheduler-test-secret",
+            "KIS_ACCOUNT_NUMBER": "00000000",
+            "KIS_ACCOUNT_PRODUCT_CODE": "01",
+            "KIS_ACCOUNT_ENVIRONMENT": "demo",
             "RAG_NETWORK_NAME": "kis_auto_trading-rag",
         }
     )
