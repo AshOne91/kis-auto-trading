@@ -142,10 +142,11 @@ python scripts/verify_generated_durable_worker_ha.py --workspace $haWorkspace
 The generated single-host override must declare two Durable Job Worker replicas.
 The drill starts both, stops exactly one container, confirms the other remains
 healthy, then starts the stopped replica again and requires both to become
-healthy. It verifies process availability only: the atomic `requested -> running`
-job claim prevents two workers from starting the same requested job, while
-message delivery remains at-least-once and handler idempotency remains an
-application contract.
+healthy. It also proves explicit stop/restart recovery for the intentionally
+single Outbox Relay and generic Message Worker. The drill verifies process
+availability only: the atomic `requested -> running` job claim prevents two
+workers from starting the same requested job, while message delivery remains
+at-least-once and handler idempotency remains an application contract.
 
 `down -v`는 `kis-scale-out-test` Compose 프로젝트가 만든 테스트 컨테이너와 volume만
 제거한다. 로컬 개발 DB나 다른 Compose 프로젝트는 대상으로 삼지 않는다.

@@ -13,16 +13,17 @@ from verify_generated_postgres_ha import (
 
 WORKER_SERVICE = "durable-job-worker"
 EXPECTED_REPLICAS = 2
+SINGLE_WORKER_SERVICES = ("outbox-relay", "message-worker")
 
 
-def _worker_containers(
-    environment: GeneratedEnvironment, *, expected: int
+def _service_containers(
+    environment: GeneratedEnvironment, *, service: str, expected: int
 ) -> list[str]:
-    result = environment.run("ps", "--quiet", WORKER_SERVICE)
+    result = environment.run("ps", "--quiet", service)
     containers = [line.strip() for line in result.stdout.splitlines() if line.strip()]
     if len(containers) != expected:
         raise RuntimeError(
-            f"Expected {expected} running Durable Job Workers, got {containers!r}"
+            f"Expected {expected} running {service} containers, got {containers!r}"
         )
     return containers
 
@@ -45,28 +46,30 @@ def _health_status(environment: GeneratedEnvironment, container: str) -> str:
     return result.stdout.strip()
 
 
-def _wait_for_workers(
-    environment: GeneratedEnvironment, *, expected: int
+def _wait_for_service(
+    environment: GeneratedEnvironment, *, service: str, expected: int
 ) -> list[str]:
     last_error: RuntimeError | None = None
     for _ in range(MAX_ATTEMPTS):
         try:
-            containers = _worker_containers(environment, expected=expected)
+            containers = _service_containers(
+                environment, service=service, expected=expected
+            )
             statuses = [_health_status(environment, container) for container in containers]
             if all(status == "healthy" for status in statuses):
                 return containers
             last_error = RuntimeError(
-                f"Worker health is {dict(zip(containers, statuses, strict=True))!r}"
+                f"{service} health is {dict(zip(containers, statuses, strict=True))!r}"
             )
         except RuntimeError as error:
             last_error = error
         time.sleep(RETRY_SECONDS)
     raise RuntimeError(
-        f"Generated Durable Job Worker replicas did not reach healthy state: {last_error}"
+        f"Generated {service} containers did not reach healthy state: {last_error}"
     ) from last_error
 
 
-def _stop_worker(environment: GeneratedEnvironment, container: str) -> None:
+def _stop_container(environment: GeneratedEnvironment, container: str) -> None:
     result = subprocess.run(
         ("docker", "stop", container),
         check=False,
@@ -78,7 +81,17 @@ def _stop_worker(environment: GeneratedEnvironment, container: str) -> None:
         timeout=30,
     )
     if result.returncode:
-        raise RuntimeError(f"Could not stop Worker {container}: {result.stderr.strip()}")
+        raise RuntimeError(f"Could not stop container {container}: {result.stderr.strip()}")
+
+
+def _verify_single_worker_restart(
+    environment: GeneratedEnvironment, service: str
+) -> None:
+    environment.run("up", "--detach", "--wait", service)
+    [container] = _wait_for_service(environment, service=service, expected=1)
+    _stop_container(environment, container)
+    environment.run("up", "--detach", "--wait", service)
+    _wait_for_service(environment, service=service, expected=1)
 
 
 def _enable_generated_worker_replicas(
@@ -105,19 +118,28 @@ def main() -> None:
             f"starting isolated Durable Job Worker HA environment: {environment.project_name}"
         )
         environment.run("up", "--build", "--detach", "--wait", WORKER_SERVICE)
-        workers = _wait_for_workers(environment, expected=EXPECTED_REPLICAS)
+        workers = _wait_for_service(
+            environment, service=WORKER_SERVICE, expected=EXPECTED_REPLICAS
+        )
         stopped_worker, surviving_worker = workers
 
-        _stop_worker(environment, stopped_worker)
-        surviving = _wait_for_workers(environment, expected=1)
+        _stop_container(environment, stopped_worker)
+        surviving = _wait_for_service(
+            environment, service=WORKER_SERVICE, expected=1
+        )
         if surviving != [surviving_worker]:
             raise RuntimeError("The surviving Durable Job Worker was unexpectedly recreated")
 
         environment.run("up", "--detach", "--wait", WORKER_SERVICE)
-        _wait_for_workers(environment, expected=EXPECTED_REPLICAS)
+        _wait_for_service(
+            environment, service=WORKER_SERVICE, expected=EXPECTED_REPLICAS
+        )
+        for service in SINGLE_WORKER_SERVICES:
+            _verify_single_worker_restart(environment, service)
         print(
             "Generated Durable Job Worker HA verified: one of two healthy workers "
-            "stopped, the other stayed healthy, then the stopped worker rejoined"
+            "stopped, the other stayed healthy, then the stopped worker rejoined; "
+            "Outbox Relay and generic Message Worker each recovered from restart"
         )
     finally:
         environment.close()
