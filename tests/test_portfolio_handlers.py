@@ -181,14 +181,20 @@ async def test_capture_is_sharded_atomic_and_idempotent() -> None:
         cast(KisDomesticAccountClient, account),
         "daily-close",
     )
+    loaded = await handlers.get_portfolio_snapshot(
+        _session(user_id),
+        cast(AsyncSessionRegistry, registry),
+        first.snapshot.snapshot_id,
+    )
 
-    assert replayed == first
+    assert replayed == loaded == first
     assert first.snapshot.user_id == user_id
     assert first.snapshot.connection_id == connection.connection_id
     assert first.snapshot.position_count == 2
     assert [position.stock_code for position in first.positions] == ["005930", "035420"]
     assert account.requests == 1
     assert registry.targets == [
+        ShardTarget(store="account", shard_id="2"),
         ShardTarget(store="account", shard_id="2"),
         ShardTarget(store="account", shard_id="2"),
         ShardTarget(store="account", shard_id="2"),
@@ -266,3 +272,38 @@ async def test_capture_rolls_back_the_snapshot_and_outbox_on_position_failure() 
     assert registry.snapshots == {}
     assert registry.positions == {}
     assert registry.events == []
+
+
+@pytest.mark.anyio
+async def test_get_snapshot_hides_missing_and_foreign_ownership() -> None:
+    user_id = uuid4()
+    registry = MemorySessionRegistry()
+
+    with pytest.raises(HTTPException) as missing:
+        await handlers.get_portfolio_snapshot(
+            _session(user_id),
+            cast(AsyncSessionRegistry, registry),
+            uuid4(),
+        )
+
+    foreign_id = uuid4()
+    registry.snapshots[foreign_id] = PortfolioSnapshot(
+        snapshot_id=foreign_id,
+        connection_id=uuid4(),
+        user_id=uuid4(),
+        captured_at=datetime(2026, 8, 22, tzinfo=UTC),
+        position_count=0,
+    )
+    with pytest.raises(HTTPException) as foreign:
+        await handlers.get_portfolio_snapshot(
+            _session(user_id),
+            cast(AsyncSessionRegistry, registry),
+            foreign_id,
+        )
+
+    assert missing.value.status_code == 404
+    assert foreign.value.status_code == 404
+    assert registry.targets == [
+        ShardTarget(store="account", shard_id="2"),
+        ShardTarget(store="account", shard_id="2"),
+    ]

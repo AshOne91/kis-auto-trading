@@ -291,6 +291,9 @@ def test_user_portfolio_capture_requires_a_key_and_returns_the_snapshot(
         keys.append(idempotency_key)
         return PortfolioSnapshotCapture(snapshot=snapshot, positions=(position,))
 
+    async def fake_get_snapshot(*_args) -> PortfolioSnapshotCapture:
+        return PortfolioSnapshotCapture(snapshot=snapshot, positions=(position,))
+
     monkeypatch.setattr(
         operator_portfolio.handlers, "get_connection", fake_get_connection
     )
@@ -298,6 +301,11 @@ def test_user_portfolio_capture_requires_a_key_and_returns_the_snapshot(
         operator_portfolio.portfolio_handlers,
         "capture_portfolio_snapshot",
         fake_capture,
+    )
+    monkeypatch.setattr(
+        operator_portfolio.portfolio_handlers,
+        "get_portfolio_snapshot",
+        fake_get_snapshot,
     )
     with TestClient(_user_app(account)) as client:
         missing_key = client.post(
@@ -311,6 +319,7 @@ def test_user_portfolio_capture_requires_a_key_and_returns_the_snapshot(
             "/api/portfolio/snapshots",
             headers={"Idempotency-Key": "daily-close"},
         )
+        loaded = client.get(f"/api/portfolio/snapshots/{snapshot.snapshot_id}")
 
     assert missing_key.status_code == 400
     assert long_key.status_code == 400
@@ -319,4 +328,7 @@ def test_user_portfolio_capture_requires_a_key_and_returns_the_snapshot(
         "snapshot": snapshot.model_dump(mode="json"),
         "positions": [position.model_dump(mode="json")],
     }
+    assert loaded.status_code == 200
+    assert loaded.json() == response.json()
     assert keys == ["daily-close"]
+    assert account.requests == 0

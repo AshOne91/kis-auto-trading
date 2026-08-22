@@ -92,6 +92,21 @@ async def capture_portfolio_snapshot(
     return PortfolioSnapshotCapture(snapshot=snapshot, positions=positions)
 
 
+async def get_portfolio_snapshot(
+    current_session: SessionData,
+    session_registry: AsyncSessionRegistry,
+    snapshot_id: UUID,
+) -> PortfolioSnapshotCapture:
+    user_id, target = _account_location(current_session)
+    capture = await _find_capture(session_registry, target, snapshot_id)
+    if capture is None or capture.snapshot.user_id != user_id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Portfolio snapshot was not found",
+        )
+    return capture
+
+
 async def _find_capture(
     session_registry: AsyncSessionRegistry,
     target: ShardTarget,
@@ -113,6 +128,18 @@ def _snapshot_location(
     current_session: SessionData,
     connection: BrokerageAccountConnection,
 ) -> tuple[UUID, ShardTarget]:
+    user_id, target = _account_location(current_session)
+    if connection.user_id != user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Brokerage account is not owned by this user",
+        )
+    return user_id, target
+
+
+def _account_location(
+    current_session: SessionData,
+) -> tuple[UUID, ShardTarget]:
     try:
         user_id = UUID(current_session.user_id)
     except ValueError as error:
@@ -120,11 +147,6 @@ def _snapshot_location(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Session user is invalid",
         ) from error
-    if connection.user_id != user_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Brokerage account is not owned by this user",
-        )
     shard_id = current_session.data.get("shard_id")
     if not isinstance(shard_id, str) or not shard_id:
         raise HTTPException(

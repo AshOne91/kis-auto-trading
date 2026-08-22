@@ -1,5 +1,6 @@
 import logging
 from typing import Annotated
+from uuid import UUID
 
 import httpx
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -184,6 +185,28 @@ async def capture_linked_portfolio_snapshot(
             status_code=503,
             detail="KIS domestic account is unavailable",
         ) from error
+    return PortfolioSnapshotResponse(
+        snapshot=capture.snapshot,
+        positions=list(capture.positions),
+    )
+
+
+@portfolio_router.get(
+    "/snapshots/{snapshot_id}",
+    response_model=PortfolioSnapshotResponse,
+)
+async def get_persisted_portfolio_snapshot(
+    snapshot_id: UUID,
+    current_session: Annotated[SessionData, Depends(get_current_session)],
+    session_registry: Annotated[
+        AsyncSessionRegistry, Depends(get_session_registry)
+    ],
+) -> PortfolioSnapshotResponse:
+    capture = await portfolio_handlers.get_portfolio_snapshot(
+        current_session,
+        session_registry,
+        snapshot_id,
+    )
     return PortfolioSnapshotResponse(
         snapshot=capture.snapshot,
         positions=list(capture.positions),
