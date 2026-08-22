@@ -126,9 +126,12 @@ class GeneratedEnvironment:
                     )
 
 
-def _workspace_from_arguments() -> Path:
+def _workspace_from_arguments(
+    *,
+    description: str = "Verify PostgreSQL and Redis HA recovery in a generated HA workspace.",
+) -> Path:
     parser = argparse.ArgumentParser(
-        description="Verify PostgreSQL and Redis HA recovery in a generated HA workspace."
+        description=description
     )
     parser.add_argument(
         "--workspace",

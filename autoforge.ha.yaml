@@ -19,6 +19,7 @@ tooling:
   single_host:
     enabled: true
     application_replicas: 3
+    durable_job_worker_replicas: 2
     bootstrap_provider: windows_task_scheduler
   elk:
     enabled: true
