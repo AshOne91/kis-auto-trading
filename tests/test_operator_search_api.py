@@ -12,6 +12,9 @@ from kis_auto_trading.routers.operator_market_data import (
 from kis_auto_trading.routers.operator_portfolio import (
     router as portfolio_router,
 )
+from kis_auto_trading.routers.operator_portfolio import (
+    user_router as user_portfolio_router,
+)
 from kis_auto_trading.routers.operator_search import (
     get_durable_job_history_search_indexer,
     get_news_search_indexer,
@@ -73,10 +76,11 @@ def _app(indexer: FakeIndexer, news_indexer: FakeNewsIndexer | None = None) -> F
     return app
 
 
-def test_user_owned_extension_registers_operator_routers() -> None:
+def test_user_owned_extension_registers_routers() -> None:
     assert USER_ROUTERS == (
         market_data_router,
         portfolio_router,
+        user_portfolio_router,
         router,
         signal_router,
         notifications_router,

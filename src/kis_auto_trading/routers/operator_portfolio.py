@@ -5,6 +5,12 @@ import httpx
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 
+from kis_auto_trading.infrastructure.access_control import (
+    AccessLevel,
+    require_access_level,
+)
+from kis_auto_trading.infrastructure.database.provider import get_session_registry
+from kis_auto_trading.infrastructure.database.session import AsyncSessionRegistry
 from kis_auto_trading.infrastructure.kis_domestic_account import (
     KisDomesticAccountClient,
     KisDomesticAccountError,
@@ -13,6 +19,9 @@ from kis_auto_trading.infrastructure.kis_token_coordinator import (
     KisTokenCoordinatorError,
 )
 from kis_auto_trading.infrastructure.service_tokens import require_service_token
+from kis_auto_trading.infrastructure.session_store.protocol import SessionData
+from kis_auto_trading.infrastructure.session_store.provider import get_current_session
+from kis_auto_trading.modules.brokerage_account import handlers
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +49,32 @@ router = APIRouter(
     tags=["operator-portfolio"],
     dependencies=[Depends(require_service_token("operator"))],
 )
+
+user_router = APIRouter(
+    prefix="/api/brokerage-account",
+    tags=["brokerage-account"],
+    dependencies=[Depends(require_access_level(AccessLevel.USER))],
+)
+
+
+async def get_linked_kis_domestic_account(
+    request: Request,
+    current_session: Annotated[SessionData, Depends(get_current_session)],
+    session_registry: Annotated[
+        AsyncSessionRegistry, Depends(get_session_registry)
+    ],
+) -> KisDomesticAccountClient:
+    connection = await handlers.get_connection(current_session, session_registry)
+    if (
+        connection.provider != "kis"
+        or connection.credential_ref != "kis:default"
+        or connection.status != "active"
+    ):
+        raise HTTPException(
+            status_code=409,
+            detail="Brokerage account connection is unavailable",
+        )
+    return get_kis_domestic_account(request)
 
 
 @router.get("/domestic-stock-holdings", response_model=list[DomesticStockHoldingResponse])
@@ -72,3 +107,15 @@ async def list_domestic_stock_holdings(
         )
         for holding in holdings
     ]
+
+
+@user_router.get(
+    "/domestic-stock-holdings",
+    response_model=list[DomesticStockHoldingResponse],
+)
+async def list_linked_domestic_stock_holdings(
+    account: Annotated[
+        KisDomesticAccountClient, Depends(get_linked_kis_domestic_account)
+    ],
+) -> list[DomesticStockHoldingResponse]:
+    return await list_domestic_stock_holdings(account)

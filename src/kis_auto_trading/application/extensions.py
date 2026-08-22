@@ -17,6 +17,9 @@ from kis_auto_trading.routers.operator_market_data import (
 from kis_auto_trading.routers.operator_portfolio import (
     router as operator_portfolio_router,
 )
+from kis_auto_trading.routers.operator_portfolio import (
+    user_router as user_portfolio_router,
+)
 from kis_auto_trading.routers.operator_search import router as operator_search_router
 from kis_auto_trading.routers.operator_signal import router as operator_signal_router
 from kis_auto_trading.routers.realtime_notifications import (
@@ -49,6 +52,7 @@ async def kis_domestic_account_lifespan(app: FastAPI) -> AsyncIterator[None]:
 USER_ROUTERS: tuple[APIRouter, ...] = (
     operator_market_data_router,
     operator_portfolio_router,
+    user_portfolio_router,
     operator_search_router,
     operator_signal_router,
     notifications_router,
