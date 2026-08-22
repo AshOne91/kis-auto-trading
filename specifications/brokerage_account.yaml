@@ -1,0 +1,114 @@
+spec_version: "1"
+
+module:
+  name: brokerage_account
+  display_name: Brokerage Account
+  route_prefix: /api/brokerage-account
+
+endpoints:
+  - name: link_default_connection
+    method: PUT
+    path: /connection
+    response:
+      model: BrokerageAccountConnection
+    handler: link_default_connection
+    idempotency: true
+    access_level: user
+    dependencies:
+      - current_session
+      - database_session_registry
+  - name: get_connection
+    method: GET
+    path: /connection
+    response:
+      model: BrokerageAccountConnection
+    handler: get_connection
+    access_level: user
+    dependencies:
+      - current_session
+      - database_session_registry
+
+models:
+  - name: BrokerageAccountConnection
+    fields:
+      - name: connection_id
+        type:
+          kind: uuid
+      - name: user_id
+        type:
+          kind: uuid
+      - name: provider
+        type:
+          kind: string
+      - name: environment
+        type:
+          kind: string
+      - name: display_name
+        type:
+          kind: string
+      - name: account_mask
+        type:
+          kind: string
+      - name: credential_ref
+        type:
+          kind: string
+      - name: status
+        type:
+          kind: string
+      - name: created_at
+        type:
+          kind: datetime
+      - name: updated_at
+        type:
+          kind: datetime
+
+database:
+  provider: agnostic
+  tables:
+    - name: brokerage_account_connections
+      columns:
+        - name: connection_id
+          type:
+            kind: uuid
+          primary_key: true
+        - name: user_id
+          type:
+            kind: uuid
+          index: true
+        - name: provider
+          type:
+            kind: string
+        - name: environment
+          type:
+            kind: string
+        - name: display_name
+          type:
+            kind: string
+        - name: account_mask
+          type:
+            kind: string
+        - name: credential_ref
+          type:
+            kind: string
+        - name: status
+          type:
+            kind: string
+        - name: created_at
+          type:
+            kind: datetime
+        - name: updated_at
+          type:
+            kind: datetime
+  repositories:
+    - name: BrokerageAccountConnectionRepository
+      aggregate: BrokerageAccountConnection
+      table: brokerage_account_connections
+      operations:
+        - find_by_id
+        - save
+  placements:
+    - table: brokerage_account_connections
+      store: account
+      mode: sharded
+      partition_key: user_id
+      unresolved_policy: error

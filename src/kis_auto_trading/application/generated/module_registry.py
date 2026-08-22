@@ -1,6 +1,9 @@
 from fastapi import APIRouter
 
 from kis_auto_trading.modules.account.generated.router import router as account_router
+from kis_auto_trading.modules.brokerage_account.generated.router import (
+    router as brokerage_account_router,
+)
 from kis_auto_trading.modules.identity.generated.router import router as identity_router
 from kis_auto_trading.modules.market_data.generated.router import (
     router as market_data_router,
@@ -20,6 +23,7 @@ MODULE_ROUTERS: tuple[APIRouter, ...] = (
     news_router,
     market_data_router,
     market_history_router,
+    brokerage_account_router,
     signal_router,
     notification_router,
 )

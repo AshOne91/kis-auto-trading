@@ -22,6 +22,7 @@ The Secret must provide these keys before the Deployment starts:
 - `IDENTITY_DATABASE_URL`
 - `KIS_ACCOUNT_ENVIRONMENT`
 - `KIS_ACCOUNT_NUMBER`
+- `KIS_ACCOUNT_OWNER_USER_ID`
 - `KIS_ACCOUNT_PRODUCT_CODE`
 - `KIS_API_URL`
 - `KIS_APP_KEY`

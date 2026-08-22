@@ -105,6 +105,11 @@ spec:
             secretKeyRef:
               name: my-kis-gold-bar
               key: KIS_ACCOUNT_NUMBER
+        - name: KIS_ACCOUNT_OWNER_USER_ID
+          valueFrom:
+            secretKeyRef:
+              name: my-kis-gold-bar
+              key: KIS_ACCOUNT_OWNER_USER_ID
         - name: KIS_ACCOUNT_PRODUCT_CODE
           valueFrom:
             secretKeyRef:

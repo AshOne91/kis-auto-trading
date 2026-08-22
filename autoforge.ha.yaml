@@ -94,12 +94,16 @@ application:
       health_test_value: "01"
     - name: KIS_ACCOUNT_ENVIRONMENT
       health_test_value: demo
+    - name: KIS_ACCOUNT_OWNER_USER_ID
+      required: false
+      health_test_value: "00000000-0000-0000-0000-000000000001"
   modules:
     - identity
     - account
     - news
     - market_data
     - market_history
+    - brokerage_account
     - signal
     - notification
   services:

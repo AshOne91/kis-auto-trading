@@ -13,6 +13,7 @@ def test_health(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("KIS_ACCOUNT_NUMBER", "12345678")
     monkeypatch.setenv("KIS_ACCOUNT_PRODUCT_CODE", "01")
     monkeypatch.setenv("KIS_ACCOUNT_ENVIRONMENT", "demo")
+    monkeypatch.setenv("KIS_ACCOUNT_OWNER_USER_ID", "00000000-0000-0000-0000-000000000001")
     monkeypatch.setenv("IDENTITY_DATABASE_URL", "postgresql+asyncpg://user:password@localhost/database")
     monkeypatch.setenv("AUTOMATION_DATABASE_URL", "postgresql+asyncpg://user:password@localhost/database")
     monkeypatch.setenv("ACCOUNT_SHARD_1_DATABASE_URL", "postgresql+asyncpg://user:password@localhost/database")
