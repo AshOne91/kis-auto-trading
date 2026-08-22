@@ -1,0 +1,135 @@
+spec_version: "1"
+
+module:
+  name: portfolio
+  display_name: Portfolio
+  route_prefix: /api/portfolio
+
+models:
+  - name: PortfolioSnapshot
+    fields:
+      - name: snapshot_id
+        type:
+          kind: uuid
+      - name: connection_id
+        type:
+          kind: uuid
+      - name: user_id
+        type:
+          kind: uuid
+      - name: captured_at
+        type:
+          kind: datetime
+      - name: position_count
+        type:
+          kind: integer
+  - name: PortfolioPositionSnapshot
+    fields:
+      - name: position_id
+        type:
+          kind: uuid
+      - name: snapshot_id
+        type:
+          kind: uuid
+      - name: user_id
+        type:
+          kind: uuid
+      - name: stock_code
+        type:
+          kind: string
+      - name: product_name
+        type:
+          kind: string
+      - name: holding_quantity
+        type:
+          kind: string
+      - name: orderable_quantity
+        type:
+          kind: string
+      - name: current_price
+        type:
+          kind: string
+
+database:
+  provider: agnostic
+  tables:
+    - name: portfolio_snapshots
+      columns:
+        - name: snapshot_id
+          type:
+            kind: uuid
+          primary_key: true
+        - name: connection_id
+          type:
+            kind: uuid
+          index: true
+        - name: user_id
+          type:
+            kind: uuid
+          index: true
+        - name: captured_at
+          type:
+            kind: datetime
+        - name: position_count
+          type:
+            kind: integer
+    - name: portfolio_position_snapshots
+      columns:
+        - name: position_id
+          type:
+            kind: uuid
+          primary_key: true
+        - name: snapshot_id
+          type:
+            kind: uuid
+          index: true
+        - name: user_id
+          type:
+            kind: uuid
+          index: true
+        - name: stock_code
+          type:
+            kind: string
+          index: true
+        - name: product_name
+          type:
+            kind: string
+        - name: holding_quantity
+          type:
+            kind: string
+        - name: orderable_quantity
+          type:
+            kind: string
+        - name: current_price
+          type:
+            kind: string
+  repositories:
+    - name: PortfolioSnapshotRepository
+      aggregate: PortfolioSnapshot
+      table: portfolio_snapshots
+      operations:
+        - find_by_id
+        - save
+    - name: PortfolioPositionSnapshotRepository
+      aggregate: PortfolioPositionSnapshot
+      table: portfolio_position_snapshots
+      operations:
+        - find_by_id
+        - save
+      queries:
+        - name: list_by_snapshot_id
+          column: snapshot_id
+          cardinality: many
+          order_by: stock_code
+          limit: 1000
+  placements:
+    - table: portfolio_snapshots
+      store: account
+      mode: sharded
+      partition_key: user_id
+      unresolved_policy: error
+    - table: portfolio_position_snapshots
+      store: account
+      mode: sharded
+      partition_key: user_id
+      unresolved_policy: error

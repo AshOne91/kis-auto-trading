@@ -21,6 +21,11 @@ from kis_auto_trading.infrastructure.session_store.provider import get_current_s
 from kis_auto_trading.modules.brokerage_account.generated.models import (
     BrokerageAccountConnection,
 )
+from kis_auto_trading.modules.portfolio.generated.models import (
+    PortfolioPositionSnapshot,
+    PortfolioSnapshot,
+)
+from kis_auto_trading.modules.portfolio.handlers import PortfolioSnapshotCapture
 from kis_auto_trading.routers import operator_portfolio
 
 
@@ -85,6 +90,7 @@ def _connection(
 def _user_app(account: _FakeDomesticAccountClient) -> FastAPI:
     app = FastAPI()
     app.include_router(operator_portfolio.user_router)
+    app.include_router(operator_portfolio.portfolio_router)
     app.state.kis_domestic_account = account
     app.dependency_overrides[get_current_session] = _session
     app.dependency_overrides[get_session_registry] = lambda: cast(
@@ -243,3 +249,74 @@ def test_user_portfolio_propagates_connection_denial_before_kis_io(
 
     assert response.status_code == status_code
     assert account.requests == 0
+
+
+def test_user_portfolio_capture_requires_a_key_and_returns_the_snapshot(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    account = _FakeDomesticAccountClient()
+    connection = _connection()
+    captured_at = datetime(2026, 8, 22, tzinfo=UTC)
+    snapshot = PortfolioSnapshot(
+        snapshot_id=UUID("00000000-0000-0000-0000-000000000003"),
+        connection_id=connection.connection_id,
+        user_id=connection.user_id,
+        captured_at=captured_at,
+        position_count=1,
+    )
+    position = PortfolioPositionSnapshot(
+        position_id=UUID("00000000-0000-0000-0000-000000000004"),
+        snapshot_id=snapshot.snapshot_id,
+        user_id=connection.user_id,
+        stock_code="005930",
+        product_name="Samsung",
+        holding_quantity="10",
+        orderable_quantity="8",
+        current_price="70000",
+    )
+    keys: list[str] = []
+
+    async def fake_get_connection(*_args) -> BrokerageAccountConnection:
+        return connection
+
+    async def fake_capture(
+        _session_data,
+        _registry,
+        received_connection,
+        received_account,
+        idempotency_key,
+    ) -> PortfolioSnapshotCapture:
+        assert received_connection == connection
+        assert received_account is account
+        keys.append(idempotency_key)
+        return PortfolioSnapshotCapture(snapshot=snapshot, positions=(position,))
+
+    monkeypatch.setattr(
+        operator_portfolio.handlers, "get_connection", fake_get_connection
+    )
+    monkeypatch.setattr(
+        operator_portfolio.portfolio_handlers,
+        "capture_portfolio_snapshot",
+        fake_capture,
+    )
+    with TestClient(_user_app(account)) as client:
+        missing_key = client.post(
+            "/api/portfolio/snapshots"
+        )
+        long_key = client.post(
+            "/api/portfolio/snapshots",
+            headers={"Idempotency-Key": "x" * 129},
+        )
+        response = client.post(
+            "/api/portfolio/snapshots",
+            headers={"Idempotency-Key": "daily-close"},
+        )
+
+    assert missing_key.status_code == 400
+    assert long_key.status_code == 400
+    assert response.status_code == 200
+    assert response.json() == {
+        "snapshot": snapshot.model_dump(mode="json"),
+        "positions": [position.model_dump(mode="json")],
+    }
+    assert keys == ["daily-close"]

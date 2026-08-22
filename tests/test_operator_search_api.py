@@ -10,6 +10,9 @@ from kis_auto_trading.routers.operator_market_data import (
     router as market_data_router,
 )
 from kis_auto_trading.routers.operator_portfolio import (
+    portfolio_router as portfolio_snapshot_router,
+)
+from kis_auto_trading.routers.operator_portfolio import (
     router as portfolio_router,
 )
 from kis_auto_trading.routers.operator_portfolio import (
@@ -81,6 +84,7 @@ def test_user_owned_extension_registers_routers() -> None:
         market_data_router,
         portfolio_router,
         user_portfolio_router,
+        portfolio_snapshot_router,
         router,
         signal_router,
         notifications_router,

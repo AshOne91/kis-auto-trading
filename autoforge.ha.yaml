@@ -104,6 +104,7 @@ application:
     - market_data
     - market_history
     - brokerage_account
+    - portfolio
     - signal
     - notification
   services:

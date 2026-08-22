@@ -15,6 +15,9 @@ from kis_auto_trading.routers.operator_market_data import (
     router as operator_market_data_router,
 )
 from kis_auto_trading.routers.operator_portfolio import (
+    portfolio_router as user_portfolio_snapshot_router,
+)
+from kis_auto_trading.routers.operator_portfolio import (
     router as operator_portfolio_router,
 )
 from kis_auto_trading.routers.operator_portfolio import (
@@ -53,6 +56,7 @@ USER_ROUTERS: tuple[APIRouter, ...] = (
     operator_market_data_router,
     operator_portfolio_router,
     user_portfolio_router,
+    user_portfolio_snapshot_router,
     operator_search_router,
     operator_signal_router,
     notifications_router,
